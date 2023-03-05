@@ -14,6 +14,9 @@ window.addEventListener('keydown', function (event) {
       options.moveMode = true
       gui.updateDisplay()
       break
+    case 'KeyD':
+      editor.RemoveBody()
+      break
   }
 })
 
@@ -43,7 +46,8 @@ UpdateSize()
 
 gui.add(editor, 'MakeImages').name("骨架图/深度图");
 gui.add(editor, 'CopyBody').name("复制骨架");
-gui.add(options, 'moveMode').name("移动模式 (按X切换)");
+gui.add(editor, 'RemoveBody').name("删除选中骨架(按D)");
+gui.add(options, 'moveMode').name("移动模式(按X切换)");
 
 
 gui.add(editor, "CameraNear", 0.1, 1000).name("相机near")

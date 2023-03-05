@@ -8,7 +8,7 @@ import { options } from "./config";
 import { SetScreenShot } from "./image";
 import { LoadObjFile } from "./loader";
 import { getCurrentTime } from "./util";
-import handObjFileUrl from "/models/hand.obj?url"
+import handObjFileUrl from "../models/hand.obj?url"
 
 const pickableObjectNames: string[] = ["torso",
     "neck",
@@ -37,7 +37,6 @@ export class BodyEditor {
     raycaster = new THREE.Raycaster()
     IsClick = false
     templateBody: Object3D | null = null
-
     stats: Stats
     constructor(canvas: HTMLCanvasElement) {
         this.renderer = new THREE.WebGLRenderer({
@@ -92,9 +91,9 @@ export class BodyEditor {
         this.scene.add(this.alight);
 
 
-        document.addEventListener('mousedown', () => this.IsClick = true, false)
-        document.addEventListener('mousemove', () => this.IsClick = false, false)
-        document.addEventListener('mouseup', this.onDocumentMouseDown.bind(this), false)
+        this.renderer.domElement.addEventListener('mousedown', () => this.IsClick = true, false)
+        this.renderer.domElement.addEventListener('mousemove', () => this.IsClick = false, false)
+        this.renderer.domElement.addEventListener('mouseup', this.onMouseDown.bind(this), false)
 
         window.addEventListener('resize', this.handleResize.bind(this))
         this.stats = Stats()
@@ -103,7 +102,24 @@ export class BodyEditor {
         this.handleResize()
     }
 
-    onDocumentMouseDown(event: MouseEvent) {
+    getBodyByPart(o: Object3D) {
+        let obj: Object3D | null = o
+        while (obj) {
+            if (obj?.name !== "torso")
+                obj = obj.parent
+            else
+                break
+        }
+        while (obj) {
+            if (obj?.parent?.name == "torso")
+                obj = obj.parent
+            else
+                break
+        }
+
+        return obj
+    }
+    onMouseDown(event: MouseEvent) {
 
         this.raycaster.setFromCamera(
             {
@@ -125,18 +141,7 @@ export class BodyEditor {
             }
 
             if (options.moveMode) {
-                while (obj) {
-                    if (obj?.name !== "torso")
-                        obj = obj.parent
-                    else
-                        break
-                }
-                while (obj) {
-                    if (obj?.parent?.name == name)
-                        obj = obj.parent
-                    else
-                        break
-                }
+                obj = this.getBodyByPart(obj)
 
                 if (obj) {
                     console.log(obj.name)
@@ -269,11 +274,21 @@ export class BodyEditor {
             .filter(o => o.position.x === 0)
             .map(o => Math.ceil(o.position.z / 30))
 
-        body.translateZ((Math.min(...list) - 1) * 30)
+        if (list.length > 0)
+            body.translateZ((Math.min(...list) - 1) * 30)
         this.scene.add(body)
 
     }
+    RemoveBody() {
+        let obj: Object3D | null = this.transformControl.object ?? null
+        obj = obj ? this.getBodyByPart(obj) : null
 
+        if (obj) {
+            console.log(obj.name)
+            obj.removeFromParent()
+            this.transformControl.detach()
+        }
+    }
     get Width() {
         return this.renderer.domElement.clientWidth
     }
