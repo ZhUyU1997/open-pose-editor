@@ -1,0 +1,30 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    width: 100vw;
+    height: 100vh;
+}
+
+canvas {
+    display: block;
+    width: inherit;
+    height: inherit;
+}
+
+.gallery {
+    height: 140px;
+    position: fixed;
+    bottom: 50px;
+    right: 50px;
+}
+
+
+.gallery img {
+    width: 100px;
+    height: 140px;
+    object-fit: contain;
+    background-color: gray;
+}
