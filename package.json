@@ -16,7 +16,8 @@
     "rollup-plugin-visualizer": "^5.9.0",
     "sweetalert2": "^11.7.3",
     "three": "^0.150.1",
-    "vite-plugin-pwa": "^0.14.4"
+    "vite-plugin-pwa": "^0.14.4",
+    "workbox-window": "^6.5.4"
   },
   "devDependencies": {
     "@types/dat.gui": "^0.7.7",
