@@ -8,6 +8,7 @@ import { options } from "./config";
 import { SetScreenShot } from "./image";
 import { LoadObjFile } from "./loader";
 import { getCurrentTime } from "./util";
+import handObjFileUrl from "/models/hand.obj?url"
 
 const pickableObjectNames: string[] = ["torso",
     "neck",
@@ -297,7 +298,7 @@ export class BodyEditor {
     }
 
     async loadBodyData() {
-        const object = await LoadObjFile('/models/hand.obj')
+        const object = await LoadObjFile(handObjFileUrl)
         object.traverse(function (child) {
 
             if (child instanceof THREE.Mesh) {
