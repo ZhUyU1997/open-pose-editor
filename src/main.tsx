@@ -1,6 +1,5 @@
-import * as THREE from "three"
+import "./init"
 import * as dat from 'dat.gui';
-
 import "./index.css"
 import { options } from "./config";
 import { BodyEditor } from "./editor";

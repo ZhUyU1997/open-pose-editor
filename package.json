@@ -10,9 +10,13 @@
   },
   "dependencies": {
     "dat.gui": "^0.7.9",
+    "dayjs": "^1.11.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "three": "^0.150.1"
+    "rollup-plugin-visualizer": "^5.9.0",
+    "sweetalert2": "^11.7.3",
+    "three": "^0.150.1",
+    "vite-plugin-pwa": "^0.14.4"
   },
   "devDependencies": {
     "@types/dat.gui": "^0.7.7",
