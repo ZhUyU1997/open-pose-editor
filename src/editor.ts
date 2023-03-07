@@ -1,14 +1,25 @@
 import * as THREE from "three"
-import { MeshDepthMaterial, Object3D } from "three";
+import { Bone, MeshDepthMaterial, MeshNormalMaterial, Object3D, Skeleton, SkinnedMesh } from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls';
+
+// @ts-ignore
+import { CCDIKHelper, CCDIKSolver, IKS } from 'three/examples/jsm/animate/CCDIKSolver';
+
 import Stats from "three/examples/jsm/libs/stats.module";
 import { CreateBody } from "./body";
 import { options } from "./config";
 import { SetScreenShot } from "./image";
-import { LoadObjFile } from "./loader";
+import { LoadGLTFile, LoadObjFile } from "./loader";
 import { getCurrentTime } from "./util";
 import handObjFileUrl from "../models/hand.obj?url"
+import xbotFileUrl from "../models/test.glb?url"
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+
+import { LuminosityShader } from 'three/examples/jsm/shaders/LuminosityShader.js';
+import { SobelOperatorShader } from 'three/examples/jsm/shaders/SobelOperatorShader.js';
 
 const pickableObjectNames: string[] = ["torso",
     "neck",
@@ -38,11 +49,16 @@ export class BodyEditor {
     IsClick = false
     templateBody: Object3D | null = null
     stats: Stats
+
+    ikSolver?: CCDIKSolver
+    composer?: EffectComposer
+    effectSobel?: ShaderPass
+    enableComposer: boolean = false
     constructor(canvas: HTMLCanvasElement) {
         this.renderer = new THREE.WebGLRenderer({
             canvas,
             antialias: true,
-            logarithmicDepthBuffer: true
+            // logarithmicDepthBuffer: true
         });
         this.renderer.setClearColor(options.clearColor, 1.0)
         this.scene = new THREE.Scene();
@@ -96,10 +112,93 @@ export class BodyEditor {
         this.renderer.domElement.addEventListener('mouseup', this.onMouseDown.bind(this), false)
 
         window.addEventListener('resize', this.handleResize.bind(this))
+
+        this.initEdgeComposer();
+
+        // // Create a render target with depth texture
+        // this.setupRenderTarget();
+
+        // // Setup post-processing step
+        // this.setupPost();
+
         this.stats = Stats()
         document.body.appendChild(this.stats.dom)
-        this.render()
+        this.animate()
         this.handleResize()
+    }
+
+    target?: THREE.WebGLRenderTarget
+    setupRenderTarget() {
+
+        if (this.target) this.target.dispose();
+
+        const params = {
+            format: THREE.DepthFormat,
+            type: THREE.UnsignedShortType
+        };
+
+        const format = params.format;
+        const type = params.type;
+
+        this.target = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
+        this.target.texture.minFilter = THREE.NearestFilter;
+        this.target.texture.magFilter = THREE.NearestFilter;
+        this.target.stencilBuffer = (format === THREE.DepthStencilFormat) ? true : false;
+        this.target.depthTexture = new THREE.DepthTexture(window.innerWidth, window.innerHeight);
+        this.target.depthTexture.format = format;
+        this.target.depthTexture.type = type;
+
+    }
+
+    postCamera?: THREE.OrthographicCamera
+    postMaterial?: THREE.ShaderMaterial
+    postScene?: THREE.Scene
+    setupPost() {
+
+        // Setup post processing stage
+        this.postCamera = new THREE.OrthographicCamera(- 1, 1, 1, - 1, 0, 1);
+        this.postMaterial = new THREE.ShaderMaterial({
+            vertexShader: document.querySelector('#post-vert')?.textContent?.trim(),
+            fragmentShader: document.querySelector('#post-frag')?.textContent?.trim(),
+            uniforms: {
+                cameraNear: { value: this.camera.near },
+                cameraFar: { value: this.camera.far },
+                tDiffuse: { value: null },
+                tDepth: { value: null }
+            }
+        });
+        const postPlane = new THREE.PlaneGeometry(2, 2);
+        const postQuad = new THREE.Mesh(postPlane, this.postMaterial);
+        this.postScene = new THREE.Scene();
+        this.postScene.add(postQuad);
+    }
+
+    render() {
+        this.ikSolver?.update();
+
+        if (this.postMaterial && this.target) {
+            this.renderer.setRenderTarget(this.target);
+            // this.postMaterial.uniforms.cameraNear.value = 100
+            // this.postMaterial.uniforms.cameraNear.value = 200
+            this.postMaterial.uniforms.tDiffuse.value = this.target.texture;
+            this.postMaterial.uniforms.tDepth.value = this.target.depthTexture;
+        }
+
+        if (this.enableComposer && this.composer)
+            this.composer?.render();
+        else
+            this.renderer.render(this.scene, this.camera);
+
+        if (this.postScene && this.postCamera) {
+            this.renderer.setRenderTarget(null);
+            this.renderer.render(this.postScene!, this.postCamera!)
+        }
+
+        this.stats.update()
+    }
+    animate() {
+        requestAnimationFrame(this.animate.bind(this));
+        this.render()
     }
 
     getBodyByPart(o: Object3D) {
@@ -169,6 +268,17 @@ export class BodyEditor {
 
     }
 
+    traverseHandObjecct(handle: (o: THREE.Mesh) => void) {
+        this.scene.children
+            .filter(o => o?.name === "torso")
+            .forEach((o) => {
+                o.traverse((child) => {
+                    if (child?.name === "038F_05SET_04SHOT") {
+                        handle(child as THREE.Mesh)
+                    }
+                })
+            })
+    }
     Capture() {
         this.transformControl.detach()
 
@@ -177,45 +287,23 @@ export class BodyEditor {
 
         this.renderer.setClearColor(0x000000)
 
-        this.scene.children
-            .filter(o => o?.name === "torso")
-            .forEach((o) => {
-                o.traverse((child) => {
-                    if (child?.name === "038F_05SET_04SHOT") {
-                        child.visible = false
-                    }
-                })
-            })
+        this.traverseHandObjecct(o => o.visible = false)
 
-        this.renderer.render(this.scene, this.camera);//renderer为three.js里的渲染器，scene为场景 camera为相机
-        let imgData = this.renderer.domElement.toDataURL("image/png");//这里可以选择png格式jpeg格式
+        this.render();
+        let imgData = this.renderer.domElement.toDataURL("image/png");
         const fileName = "pose_" + getCurrentTime()
         this.axesHelper.visible = true
         this.gridHelper.visible = true
         this.renderer.setClearColor(options.clearColor)
 
-        this.scene.children
-            .filter(o => o?.name === "torso")
-            .forEach((o) => {
-                o.traverse((child) => {
-                    if (child?.name === "038F_05SET_04SHOT") {
-                        child.visible = true
-                    }
-                })
-            })
+        this.traverseHandObjecct(o => o.visible = true)
+
         return {
             imgData, fileName
         }
     }
 
-    CaptureDepth() {
-        this.transformControl.detach()
-
-        this.axesHelper.visible = false
-        this.gridHelper.visible = false
-
-        this.renderer.setClearColor(0x000000)
-
+    hideSkeleten() {
         const map = new Map<Object3D, Object3D | null>()
 
         this.scene.children
@@ -229,14 +317,10 @@ export class BodyEditor {
                 })
                 o.visible = false
             })
+        return map
+    }
 
-        this.renderer.render(this.scene, this.camera);//renderer为three.js里的渲染器，scene为场景 camera为相机
-        let imgData = this.renderer.domElement.toDataURL("image/png");//这里可以选择png格式jpeg格式
-        const fileName = "pose_" + getCurrentTime()
-        this.axesHelper.visible = true
-        this.gridHelper.visible = true
-        this.renderer.setClearColor(options.clearColor)
-
+    showSkeleten(map: Map<Object3D, Object3D | null>) {
         for (const [k, v] of map.entries()) {
             v?.attach(k)
         }
@@ -246,7 +330,111 @@ export class BodyEditor {
             .forEach((o) => {
                 o.visible = true
             })
+    }
 
+    changeComposer(enable: boolean) {
+        const save = this.enableComposer
+        this.enableComposer = enable
+
+        return () => this.enableComposer = save
+    }
+    CaptureCanny() {
+        this.transformControl.detach()
+
+        this.axesHelper.visible = false
+        this.gridHelper.visible = false
+
+        this.renderer.setClearColor(0x000000)
+
+        const map = this.hideSkeleten()
+
+        const restore = this.changeComposer(true)
+        this.render();
+
+
+        let imgData = this.renderer.domElement.toDataURL("image/png");
+        const fileName = "canny_" + getCurrentTime()
+        this.axesHelper.visible = true
+        this.gridHelper.visible = true
+        this.renderer.setClearColor(options.clearColor)
+
+        this.showSkeleten(map)
+        restore()
+
+        return {
+            imgData, fileName
+        }
+    }
+
+
+    changeHandMaterial(type: "depth" | "normal") {
+        let initType = "depth"
+        this.traverseHandObjecct(o => {
+            if (o.material && o.material instanceof MeshNormalMaterial)
+                initType = "normal"
+            o.material = type == "depth" ? new MeshDepthMaterial() : new MeshNormalMaterial();
+        })
+
+
+        return () => {
+            this.traverseHandObjecct(o => {
+                o.material = initType == "depth" ? new MeshDepthMaterial() : new MeshNormalMaterial();
+            })
+        }
+
+    }
+    CaptureNormal() {
+        this.transformControl.detach()
+
+        this.axesHelper.visible = false
+        this.gridHelper.visible = false
+
+        this.renderer.setClearColor(0x000000)
+
+
+        const restoreHand = this.changeHandMaterial("normal");
+        const map = this.hideSkeleten()
+        const restore = this.changeComposer(false)
+        this.render();
+
+
+        let imgData = this.renderer.domElement.toDataURL("image/png");
+        const fileName = "normal_" + getCurrentTime()
+        this.axesHelper.visible = true
+        this.gridHelper.visible = true
+        this.renderer.setClearColor(options.clearColor)
+
+        this.showSkeleten(map)
+        restore()
+        restoreHand()
+
+        return {
+            imgData, fileName
+        }
+    }
+
+    CaptureDepth() {
+        this.transformControl.detach()
+
+        this.axesHelper.visible = false
+        this.gridHelper.visible = false
+
+        this.renderer.setClearColor(0x000000)
+
+        const restoreHand = this.changeHandMaterial("depth")
+        const map = this.hideSkeleten()
+        const restore = this.changeComposer(false)
+        this.render();
+
+        let imgData = this.renderer.domElement.toDataURL("image/png");
+        const fileName = "depth_" + getCurrentTime()
+        this.axesHelper.visible = true
+        this.gridHelper.visible = true
+        this.renderer.setClearColor(options.clearColor)
+
+        this.showSkeleten(map)
+        restore()
+        restoreHand()
 
         return {
             imgData, fileName
@@ -261,6 +449,15 @@ export class BodyEditor {
         {
             const { imgData, fileName } = this.CaptureDepth()
             SetScreenShot("depth", imgData, fileName)
+        }
+        {
+            const { imgData, fileName } = this.CaptureNormal()
+            SetScreenShot("normal", imgData, fileName)
+        }
+
+        {
+            const { imgData, fileName } = this.CaptureCanny()
+            SetScreenShot("canny", imgData, fileName)
         }
     }
 
@@ -297,11 +494,7 @@ export class BodyEditor {
         return this.renderer.domElement.clientHeight
     }
 
-    render() {
-        requestAnimationFrame(this.render.bind(this));
-        this.renderer.render(this.scene, this.camera);
-        this.stats.update()
-    }
+
 
     handleResize() {
         const canvas = this.renderer.domElement
@@ -310,6 +503,36 @@ export class BodyEditor {
 
         console.log(canvas.clientWidth, canvas.clientHeight)
         this.renderer.setSize(canvas.clientWidth, canvas.clientHeight, false)
+        this.chnageComposerResoultion()
+    }
+
+    initEdgeComposer() {
+        this.composer = new EffectComposer(this.renderer);
+        const renderPass = new RenderPass(this.scene, this.camera);
+        this.composer.addPass(renderPass);
+
+        // color to grayscale conversion
+
+        const effectGrayScale = new ShaderPass(LuminosityShader);
+        this.composer.addPass(effectGrayScale);
+
+        // you might want to use a gaussian blur filter before
+        // the next pass to improve the result of the Sobel operator
+
+        // Sobel operator
+
+        const effectSobel = new ShaderPass(SobelOperatorShader);
+        effectSobel.uniforms['resolution'].value.x = this.Width * window.devicePixelRatio;
+        effectSobel.uniforms['resolution'].value.y = this.Height * window.devicePixelRatio;
+        this.composer.addPass(effectSobel);
+    }
+
+    chnageComposerResoultion() {
+        this.composer?.setSize(this.Width, this.Height);
+        if (this.effectSobel) {
+            this.effectSobel.uniforms['resolution'].value.x = this.Width * window.devicePixelRatio;
+            this.effectSobel.uniforms['resolution'].value.y = this.Height * window.devicePixelRatio;
+        }
     }
 
     async loadBodyData() {
@@ -327,6 +550,80 @@ export class BodyEditor {
         const body = this.templateBody.clone()
         this.scene.add(body);
         this.dlight.target = body;
+
+
+
+
+
+        // test
+
+        // const { scene: xbot } = await LoadGLTFile(xbotFileUrl)
+        // xbot.scale.multiplyScalar(100)
+        // xbot.translateZ(30)
+        // console.log('gltf对象场景属性', xbot);
+        // xbot.visible = true
+        // this.scene.add(xbot);
+
+        // xbot.traverse((child) => {
+        //     if (child.type === 'Object3D' || child.type === 'SkinnedMesh') {
+        //         if(child.name)
+        //         console.log("traverse: ", child.name, child.type)
+        //         child.frustumCulled = false;
+        //     }
+        // })
+
+        // const mesh: SkinnedMesh = await this.findObjectItem(xbot, "Bodybaked") as SkinnedMesh;
+        // console.log(mesh.skeleton.bones)
+        // const helper = new THREE.SkeletonHelper(mesh.parent!);
+        // this.scene.add(helper);
+
+        // const iks: IKS[] = [
+        //     {
+        //         target: 45, // "target"
+        //         effector: 61, // "bone3"
+        //         iteration: 1,
+        //         links: [
+        //             {
+        //                 enabled: true,
+        //                 index: 60
+        //             },
+        //             {
+        //                 enabled: true,
+        //                 index: 59
+        //             },
+        //             {
+        //                 enabled: true,
+        //                 index: 58
+        //             },
+        //             {
+        //                 enabled: true,
+        //                 index: 57
+        //             },
+        //         ], // "bone2", "bone1", "bone0"
+        //         minAngle: -Math.PI,
+        //         maxAngle: Math.PI,
+        //     }
+        // ];
+        // const xhelper = new CCDIKHelper(mesh, iks)
+        // this.scene.add(xhelper)
+
+        // this.transformControl.setMode("translate")
+        // this.transformControl.attach(mesh.skeleton.bones[60])
+
+        // console.log(xbot)
+        // this.ikSolver = new CCDIKSolver(mesh, iks)
+    }
+
+    async findObjectItem(object: Object3D, name: string): Promise<Object3D> {
+        //console.log(object);
+        return new Promise(function (resolve) {
+            object.traverse((child) => {
+                //console.log("child", child);
+                if (child.name == name) {
+                    resolve(child);
+                }
+            });
+        });
     }
 
     get CameraNear() {

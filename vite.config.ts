@@ -11,6 +11,9 @@ export default defineConfig({
     __APP_VERSION__: JSON.stringify("v0.0.1"),
     __APP_BUILD_TIME__: Date.now()
   },
+  build: {
+    target: "chrome84"
+  },
   plugins: [react(), VitePWA({
     workbox: {
       globPatterns: ['**/*.{js,css,html,ico,png,svg,mp3,obj}']

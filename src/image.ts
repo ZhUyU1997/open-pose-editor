@@ -1,7 +1,7 @@
 import { download } from "./util"
 
-document.querySelectorAll(".gallery img").forEach(img => img.addEventListener("click", () => {
-    const image = document.querySelector("img")
+document.querySelectorAll(".gallery img").forEach(img => img.addEventListener("click", (e) => {
+    const image = e.target as HTMLImageElement
     const title = image?.getAttribute("title") ?? ""
     const url = image?.getAttribute("src") ?? ""
     download(url, title)
