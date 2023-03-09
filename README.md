@@ -6,6 +6,7 @@ https://user-images.githubusercontent.com/18410894/224073965-c782a05f-0a20-41cf-
 - pose editing
 - hand editing
 - generate depth/normal/canny map
+- save/load/restore the scene
 # Usage
 - Click the joint to rotate the human body
 - Click the red dot to rotate the hand bones
