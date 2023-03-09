@@ -36,7 +36,7 @@ gui.add(options, 'setBackground').name(i18n.t('Set Background Image'))
 
 gui.add(editor, 'SaveScene').name(i18n.t('Save Scene'))
 gui.add(editor, 'LoadScene').name(i18n.t('Load Scene'))
-gui.add(editor, 'RestoreAutoSavedScene').name(i18n.t('Restore Last Scene'))
+gui.add(editor, 'RestoreLastSavedScene').name(i18n.t('Restore Last Scene'))
 
 options['width'] = editor.Width
 options['height'] = editor.Height

@@ -885,6 +885,10 @@ export class BodyEditor {
     }
     AutoSaveScene() {
         try {
+            const rawData = localStorage.getItem('AutoSaveSceneData')
+            if (rawData) {
+                localStorage.setItem('LastSceneData', rawData)
+            }
             setInterval(() => {
                 localStorage.setItem(
                     'AutoSaveSceneData',
@@ -970,8 +974,8 @@ export class BodyEditor {
             console.error(error)
         }
     }
-    RestoreAutoSavedScene() {
-        const rawData = localStorage.getItem('AutoSaveSceneData')
+    RestoreLastSavedScene() {
+        const rawData = localStorage.getItem('LastSceneData')
         if (rawData) this.RestoreScene(rawData)
     }
     async LoadScene() {
