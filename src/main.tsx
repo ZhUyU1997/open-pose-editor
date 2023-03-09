@@ -45,7 +45,8 @@ function UpdateSize() {
 UpdateSize()
 
 gui.add(editor, 'MakeImages').name("骨架图/深度图/法向图/边缘图");
-gui.add(editor, 'CopyBody').name("复制骨架");
+gui.add(editor, 'CopyBodyZ').name("复制骨架(Z方向)");
+gui.add(editor, 'CopyBodyX').name("复制骨架(X方向)");
 gui.add(editor, 'RemoveBody').name("删除选中骨架(按D)");
 gui.add(options, 'moveMode').name("移动模式(按X切换)");
 

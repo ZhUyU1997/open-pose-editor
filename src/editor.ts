@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { Bone, MeshDepthMaterial, MeshNormalMaterial, Object3D, Skeleton, SkinnedMesh } from "three";
+import { Bone, MeshDepthMaterial, MeshNormalMaterial, MeshPhongMaterial, Object3D, Skeleton, SkinnedMesh } from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls';
 
@@ -7,19 +7,23 @@ import { TransformControls } from 'three/examples/jsm/controls/TransformControls
 import { CCDIKHelper, CCDIKSolver, IKS } from 'three/examples/jsm/animate/CCDIKSolver';
 
 import Stats from "three/examples/jsm/libs/stats.module";
-import { CreateBody } from "./body";
+import { CloneBody, CreateBody, CreateTemplateBody } from "./body";
 import { options } from "./config";
 import { SetScreenShot } from "./image";
-import { LoadGLTFile, LoadObjFile } from "./loader";
+import { LoadFBXFile, LoadGLTFile, LoadObjFile } from "./loader";
 import { getCurrentTime } from "./util";
 import handObjFileUrl from "../models/hand.obj?url"
-import xbotFileUrl from "../models/test.glb?url"
+import xbotFileUrl from "../models/hand2.glb?url"
+import handFBXFileUrl from "../models/hand.fbx?url"
+
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 
 import { LuminosityShader } from 'three/examples/jsm/shaders/LuminosityShader.js';
 import { SobelOperatorShader } from 'three/examples/jsm/shaders/SobelOperatorShader.js';
+import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils';
+import Swal from "sweetalert2";
 
 const pickableObjectNames: string[] = ["torso",
     "neck",
@@ -47,7 +51,6 @@ export class BodyEditor {
     alight: THREE.AmbientLight
     raycaster = new THREE.Raycaster()
     IsClick = false
-    templateBody: Object3D | null = null
     stats: Stats
 
     ikSolver?: CCDIKSolver
@@ -74,8 +77,8 @@ export class BodyEditor {
 
         this.camera.position.set(0, 100, 200)
         this.camera.lookAt(0, 100, 0);
-        this.camera.near = 130
-        this.camera.far = 600
+        // this.camera.near = 130
+        // this.camera.far = 600
         this.camera.updateProjectionMatrix();
 
         this.orbitControls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -111,7 +114,7 @@ export class BodyEditor {
         this.renderer.domElement.addEventListener('mousemove', () => this.IsClick = false, false)
         this.renderer.domElement.addEventListener('mouseup', this.onMouseDown.bind(this), false)
 
-        window.addEventListener('resize', this.handleResize.bind(this))
+        this.renderer.domElement.addEventListener('resize', this.handleResize.bind(this))
 
         this.initEdgeComposer();
 
@@ -174,6 +177,8 @@ export class BodyEditor {
     }
 
     render() {
+        this.handleResize();
+
         this.ikSolver?.update();
 
         if (this.postMaterial && this.target) {
@@ -251,7 +256,7 @@ export class BodyEditor {
 
 
             }
-            else if (pickableObjectNames.includes(name)) {
+            else if (pickableObjectNames.includes(name) || name.startsWith("shoujoint")) {
                 while (obj) {
                     if (obj?.parent?.name == name)
                         obj = obj.parent
@@ -314,6 +319,9 @@ export class BodyEditor {
                         map.set(child, child.parent)
                         this.scene.attach(child)
                     }
+                    else if (child?.name.startsWith("shoujoint") && !(child instanceof THREE.Bone)) {
+                        child.visible = false
+                    }
                 })
                 o.visible = false
             })
@@ -328,7 +336,13 @@ export class BodyEditor {
         this.scene.children
             .filter(o => o?.name === "torso")
             .forEach((o) => {
+                o.traverse((child) => {
+                    if (child?.name.startsWith("shoujoint") && !(child instanceof THREE.Bone)) {
+                        child.visible = true
+                    }
+                })
                 o.visible = true
+
             })
     }
 
@@ -367,18 +381,36 @@ export class BodyEditor {
     }
 
 
-    changeHandMaterial(type: "depth" | "normal") {
+    changeHandMaterial(type: "depth" | "normal" | "phone") {
         let initType = "depth"
-        this.traverseHandObjecct(o => {
-            if (o.material && o.material instanceof MeshNormalMaterial)
-                initType = "normal"
-            o.material = type == "depth" ? new MeshDepthMaterial() : new MeshNormalMaterial();
+        this.traverseHandObjecct(child => {
+            const o = this.findObjectItem<THREE.SkinnedMesh>(child, "shoupolySurface1")!
+            if (o.material) {
+                if (o.material instanceof MeshNormalMaterial)
+                    initType = "normal"
+                if (o.material instanceof MeshPhongMaterial)
+                    initType = "phone"
+            }
+
+            if (type == "depth")
+                o.material = new MeshDepthMaterial()
+            else if (type == "normal")
+                o.material = new MeshNormalMaterial()
+            else if (type == "phone")
+                o.material = new MeshPhongMaterial()
         })
 
 
         return () => {
-            this.traverseHandObjecct(o => {
-                o.material = initType == "depth" ? new MeshDepthMaterial() : new MeshNormalMaterial();
+            this.traverseHandObjecct(child => {
+                const o = this.findObjectItem<THREE.SkinnedMesh>(child, "shoupolySurface1")!
+
+                if (initType == "depth")
+                    o.material = new MeshDepthMaterial()
+                else if (initType == "normal")
+                    o.material = new MeshNormalMaterial()
+                else if (initType == "phone")
+                    o.material = new MeshPhongMaterial()
             })
         }
 
@@ -413,6 +445,40 @@ export class BodyEditor {
         }
     }
 
+    changeCamera() {
+        const hands: THREE.Mesh[] = []
+        this.scene.traverse(o => { if (o.name === "038F_05SET_04SHOT") hands.push(o) })
+
+        const cameraPos = new THREE.Vector3()
+        this.camera.getWorldPosition(cameraPos)
+
+        const handsPos = hands.map((o) => {
+            const cameraPos = new THREE.Vector3()
+            o.getWorldPosition(cameraPos)
+            return cameraPos
+        })
+
+        const handsDis = handsPos.map((pos) => {
+            return cameraPos.distanceTo(pos)
+        })
+
+        const minDis = Math.min(...handsDis)
+        const maxDis = Math.max(...handsDis)
+
+
+        const saveNear = this.camera.near
+        const saveFar = this.camera.far
+
+        this.camera.near = minDis - 20
+        this.camera.far = maxDis + 20
+        this.camera.updateProjectionMatrix()
+        return () => {
+
+            this.camera.near = saveNear
+            this.camera.far = saveFar
+            this.camera.updateProjectionMatrix()
+        }
+    }
     CaptureDepth() {
         this.transformControl.detach()
 
@@ -424,7 +490,10 @@ export class BodyEditor {
         const restoreHand = this.changeHandMaterial("depth")
         const map = this.hideSkeleten()
         const restore = this.changeComposer(false)
+
+        const restoreCamera = this.changeCamera()
         this.render();
+        restoreCamera()
 
         let imgData = this.renderer.domElement.toDataURL("image/png");
         const fileName = "depth_" + getCurrentTime()
@@ -461,10 +530,10 @@ export class BodyEditor {
         }
     }
 
-    CopyBody() {
-        if (!this.templateBody)
+    CopyBodyZ() {
+        const body = CloneBody()
+        if (!body)
             return
-        const body = this.templateBody.clone()
 
         const list = this.scene.children
             .filter(o => o?.name === "torso")
@@ -476,6 +545,23 @@ export class BodyEditor {
         this.scene.add(body)
 
     }
+
+    CopyBodyX() {
+        const body = CloneBody()
+        if (!body)
+            return
+
+        const list = this.scene.children
+            .filter(o => o?.name === "torso")
+            .filter(o => o.position.z === 0)
+            .map(o => Math.ceil(o.position.x / 50))
+
+        if (list.length > 0)
+            body.translateX((Math.min(...list) - 1) * 50)
+        this.scene.add(body)
+
+    }
+
     RemoveBody() {
         let obj: Object3D | null = this.transformControl.object ?? null
         obj = obj ? this.getBodyByPart(obj) : null
@@ -497,8 +583,16 @@ export class BodyEditor {
 
 
     handleResize() {
+        const size = new THREE.Vector2()
+        this.renderer.getSize(size)
+
+        if (size.width == this.Width && size.height === this.Height)
+            return
+
+
         const canvas = this.renderer.domElement
         this.camera.aspect = canvas.clientWidth / canvas.clientHeight
+
         this.camera.updateProjectionMatrix()
 
         console.log(canvas.clientWidth, canvas.clientHeight)
@@ -535,26 +629,60 @@ export class BodyEditor {
         }
     }
 
-    async loadBodyData() {
-        const object = await LoadObjFile(handObjFileUrl)
-        object.traverse(function (child) {
-
-            if (child instanceof THREE.Mesh) {
-
-                child.material = new MeshDepthMaterial();
+    async loadHand() {
+        const fbx = await LoadFBXFile(handFBXFileUrl, (loaded) => {
+            if (loaded >= 100) {
+                Swal.hideLoading()
+                Swal.close()
             }
-        });
+            else if (Swal.isVisible() == false) {
+                Swal.fire({
+                    title: '正在下载手部模型',
+                    didOpen: () => {
+                        Swal.showLoading()
+                    },
+                })
+            }
+        })
+        fbx.name = "038F_05SET_04SHOT"
+        // fbx.scale.multiplyScalar(10)
+        const mesh = this.findObjectItem<THREE.SkinnedMesh>(fbx, "shoupolySurface1")!
+        mesh.material = new MeshPhongMaterial()
+        // this.scene.add();
+        // const helper = new THREE.SkeletonHelper(mesh.parent!);
+        // this.scene.add(helper);
+        mesh.skeleton.bones.forEach((o) => {
+            const point = new THREE.Mesh(
+                new THREE.SphereGeometry(0.5),
+                new THREE.MeshBasicMaterial({ color: 0xff0000 })
+            )
+            point.scale.setX(0.2)
+            point.name = o.name
+            point.position.copy(o.position)
+            o.add(point)
+        })
 
-        this.templateBody = CreateBody(object)
+        return fbx
+    }
+    async loadBodyData() {
+        // const object = await LoadObjFile(handObjFileUrl)
+        // object.traverse(function (child) {
+
+        //     if (child instanceof THREE.Mesh) {
+
+        //         child.material = new MeshPhongMaterial();
+        //     }
+        // });
+
+        const object = await this.loadHand()
+        CreateTemplateBody(object)
         // scene.add( object );
-        const body = this.templateBody.clone()
+        const body = CloneBody()!
+
         this.scene.add(body);
         this.dlight.target = body;
 
-
-
-
-
+        // await this.loadHand()
         // test
 
         // const { scene: xbot } = await LoadGLTFile(xbotFileUrl)
@@ -614,16 +742,16 @@ export class BodyEditor {
         // this.ikSolver = new CCDIKSolver(mesh, iks)
     }
 
-    async findObjectItem(object: Object3D, name: string): Promise<Object3D> {
+    findObjectItem<T extends Object3D>(object: Object3D, name: string): T | null {
         //console.log(object);
-        return new Promise(function (resolve) {
-            object.traverse((child) => {
-                //console.log("child", child);
-                if (child.name == name) {
-                    resolve(child);
-                }
-            });
+        let result = null
+        object.traverse((child) => {
+            //console.log("child", child);
+            if (child.name == name) {
+                result = (child);
+            }
         });
+        return result
     }
 
     get CameraNear() {

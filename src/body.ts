@@ -1,5 +1,7 @@
 import * as THREE from "three"
 import { Object3D } from "three"
+import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils';
+
 const coco_body_keypoints = [
     "nose",
     "neck",
@@ -259,7 +261,16 @@ function Ankle(name: string, x: number, y: number, z: number) {
     return object
 }
 
-export function CreateBody(hand: Object3D) {
+let templateBody: THREE.Group | null = null
+
+export function CloneBody() {
+    if (templateBody) {
+        return SkeletonUtils.clone(templateBody)
+    }
+    return null
+}
+
+export function CreateTemplateBody(hand: Object3D) {
     const { torso, right_shoulder, left_shoulder, right_hip, left_hip, neck } = Torso(0, 115, 0)
     const { nose, left_ear, right_ear, right_eye, left_eye } = Head(0, 20, 14)
     const right_elbow = Elbow("right_elbow", 0, -25, 0)
@@ -291,25 +302,25 @@ export function CreateBody(hand: Object3D) {
     CreateLink(right_knee, right_ankle)
     CreateLink(left_knee, left_ankle)
 
-    const right_hand = hand.clone()
-    const left_hand = hand.clone()
-    // left_hand.scale.x = -1
-    // left_hand.scale.y = -1
-    right_hand.rotateZ(Math.PI)
-    right_hand.rotateY(-Math.PI / 2)
-    right_hand.translateY(17)
-    right_hand.rotateX(-Math.PI / 12)
-    right_hand.scale.multiplyScalar(0.8)
+    const right_hand = SkeletonUtils.clone(hand)
+    const left_hand = SkeletonUtils.clone(hand)
+
+    right_hand.translateX(-0.4)
+    right_hand.translateY(-22)
+    right_hand.rotateY(Math.PI)
+    right_hand.rotateZ(-Math.PI / 2)
+
+    right_hand.scale.multiplyScalar(2.2)
 
     left_hand.scale.x = -1
-    left_hand.rotateZ(Math.PI)
-    left_hand.rotateY(Math.PI / 2)
-    left_hand.translateY(17)
-    left_hand.rotateX(-Math.PI / 12)
-    left_hand.scale.multiplyScalar(0.8)
+    left_hand.translateX(0.4)
+    left_hand.translateY(-22)
+    left_hand.rotateY(Math.PI)
+    left_hand.rotateZ(Math.PI / 2)
+    left_hand.scale.multiplyScalar(2.2)
 
     right_elbow.add(right_hand)
     left_elbow.add(left_hand)
 
-    return torso
+    templateBody = torso
 }
