@@ -396,10 +396,7 @@ export class BodyEditor {
                     ) {
                         map.set(child, child.parent)
                         this.scene.attach(child)
-                    } else if (
-                        child?.name.startsWith('shoujoint') &&
-                        !(child instanceof THREE.Bone)
-                    ) {
+                    } else if (child?.name === 'red_point') {
                         child.visible = false
                     }
                 })
@@ -417,10 +414,7 @@ export class BodyEditor {
             .filter((o) => o?.name === 'torso')
             .forEach((o) => {
                 o.traverse((child) => {
-                    if (
-                        child?.name.startsWith('shoujoint') &&
-                        !(child instanceof THREE.Bone)
-                    ) {
+                    if (child?.name === 'red_point') {
                         child.visible = true
                     }
                 })
@@ -733,6 +727,7 @@ export class BodyEditor {
                 new THREE.SphereGeometry(0.5),
                 new THREE.MeshBasicMaterial({ color: 0xff0000 })
             )
+            point.name = 'red_point'
             point.scale.setX(0.2)
             point.position.copy(o.position)
             o.add(point)
