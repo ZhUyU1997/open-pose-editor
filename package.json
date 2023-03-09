@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "format": "prettier --write src"
   },
   "dependencies": {
     "@typescript-eslint/eslint-plugin": "^5.54.1",

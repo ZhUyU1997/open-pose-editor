@@ -1,43 +1,55 @@
-import * as THREE from "three"
-import { Bone, MeshDepthMaterial, MeshNormalMaterial, MeshPhongMaterial, Object3D, Skeleton, SkinnedMesh } from "three";
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { TransformControls } from 'three/examples/jsm/controls/TransformControls';
+import * as THREE from 'three'
+import {
+    Bone,
+    MeshDepthMaterial,
+    MeshNormalMaterial,
+    MeshPhongMaterial,
+    Object3D,
+    Skeleton,
+    SkinnedMesh,
+} from 'three'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import { TransformControls } from 'three/examples/jsm/controls/TransformControls'
 
 // @ts-ignore
-import { CCDIKHelper, CCDIKSolver, IKS } from 'three/examples/jsm/animate/CCDIKSolver';
+import {
+    CCDIKHelper,
+    CCDIKSolver,
+    IKS,
+} from 'three/examples/jsm/animate/CCDIKSolver'
 
-import Stats from "three/examples/jsm/libs/stats.module";
-import { CloneBody, CreateTemplateBody } from "./body";
-import { options } from "./config";
-import { SetScreenShot } from "./image";
-import { LoadFBXFile, LoadGLTFile, LoadObjFile } from "./loader";
-import { getCurrentTime } from "./util";
-import handObjFileUrl from "../models/hand.obj?url"
-import xbotFileUrl from "../models/hand2.glb?url"
-import handFBXFileUrl from "../models/hand.fbx?url"
+import Stats from 'three/examples/jsm/libs/stats.module'
+import { CloneBody, CreateTemplateBody } from './body'
+import { options } from './config'
+import { SetScreenShot } from './image'
+import { LoadFBXFile, LoadGLTFile, LoadObjFile } from './loader'
+import { getCurrentTime } from './util'
+import handObjFileUrl from '../models/hand.obj?url'
+import xbotFileUrl from '../models/hand2.glb?url'
+import handFBXFileUrl from '../models/hand.fbx?url'
 
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
-import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
 
-import { LuminosityShader } from 'three/examples/jsm/shaders/LuminosityShader.js';
-import { SobelOperatorShader } from 'three/examples/jsm/shaders/SobelOperatorShader.js';
-import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils';
-import Swal from "sweetalert2";
-import i18n from "./i18n"
+import { LuminosityShader } from 'three/examples/jsm/shaders/LuminosityShader.js'
+import { SobelOperatorShader } from 'three/examples/jsm/shaders/SobelOperatorShader.js'
+import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils'
+import Swal from 'sweetalert2'
+import i18n from './i18n'
 
-const pickableObjectNames: string[] = ["torso",
-    "neck",
-    "right_shoulder",
-    "left_shoulder",
-    "right_elbow",
-    "left_elbow",
-    "right_hip",
-    "left_hip",
-    "right_knee",
-    "left_knee",
+const pickableObjectNames: string[] = [
+    'torso',
+    'neck',
+    'right_shoulder',
+    'left_shoulder',
+    'right_elbow',
+    'left_elbow',
+    'right_hip',
+    'left_hip',
+    'right_knee',
+    'left_knee',
 ]
-
 
 export class BodyEditor {
     renderer: THREE.WebGLRenderer
@@ -63,35 +75,43 @@ export class BodyEditor {
             canvas,
             antialias: true,
             // logarithmicDepthBuffer: true
-        });
+        })
         this.renderer.setClearColor(options.clearColor, 1.0)
-        this.scene = new THREE.Scene();
+        this.scene = new THREE.Scene()
 
         this.gridHelper = new THREE.GridHelper(800, 200)
-        this.axesHelper = new THREE.AxesHelper(1000);
+        this.axesHelper = new THREE.AxesHelper(1000)
         this.scene.add(this.gridHelper)
-        this.scene.add(this.axesHelper);
+        this.scene.add(this.axesHelper)
 
-        let aspect = window.innerWidth / window.innerHeight;
+        let aspect = window.innerWidth / window.innerHeight
 
-        this.camera = new THREE.PerspectiveCamera(60, aspect, 0.1, 1000);
+        this.camera = new THREE.PerspectiveCamera(60, aspect, 0.1, 1000)
 
         this.camera.position.set(0, 100, 200)
-        this.camera.lookAt(0, 100, 0);
+        this.camera.lookAt(0, 100, 0)
         // this.camera.near = 130
         // this.camera.far = 600
-        this.camera.updateProjectionMatrix();
+        this.camera.updateProjectionMatrix()
 
-        this.orbitControls = new OrbitControls(this.camera, this.renderer.domElement);
-        this.orbitControls.target = new THREE.Vector3(0, 100, 0);
-        this.orbitControls.update();
+        this.orbitControls = new OrbitControls(
+            this.camera,
+            this.renderer.domElement
+        )
+        this.orbitControls.target = new THREE.Vector3(0, 100, 0)
+        this.orbitControls.update()
 
-        this.transformControl = new TransformControls(this.camera, this.renderer.domElement);
+        this.transformControl = new TransformControls(
+            this.camera,
+            this.renderer.domElement
+        )
 
-        this.transformControl.setMode("rotate");//旋转
+        this.transformControl.setMode('rotate') //旋转
         // transformControl.setSize(0.4);
-        this.transformControl.setSpace("local");
-        this.transformControl.addEventListener('change', () => this.renderer.render(this.scene, this.camera));
+        this.transformControl.setSpace('local')
+        this.transformControl.addEventListener('change', () =>
+            this.renderer.render(this.scene, this.camera)
+        )
 
         this.transformControl.addEventListener('mouseDown', () => {
             this.orbitControls.enabled = false
@@ -100,24 +120,37 @@ export class BodyEditor {
             this.orbitControls.enabled = true
         })
 
-        this.scene.add(this.transformControl);
-
+        this.scene.add(this.transformControl)
 
         // Light
-        this.dlight = new THREE.DirectionalLight(0xffffff, 1.0);
-        this.dlight.position.set(0, 160, 1000);
-        this.scene.add(this.dlight);
-        this.alight = new THREE.AmbientLight(0xffffff, 0.5);
-        this.scene.add(this.alight);
+        this.dlight = new THREE.DirectionalLight(0xffffff, 1.0)
+        this.dlight.position.set(0, 160, 1000)
+        this.scene.add(this.dlight)
+        this.alight = new THREE.AmbientLight(0xffffff, 0.5)
+        this.scene.add(this.alight)
 
+        this.renderer.domElement.addEventListener(
+            'mousedown',
+            () => (this.IsClick = true),
+            false
+        )
+        this.renderer.domElement.addEventListener(
+            'mousemove',
+            () => (this.IsClick = false),
+            false
+        )
+        this.renderer.domElement.addEventListener(
+            'mouseup',
+            this.onMouseDown.bind(this),
+            false
+        )
 
-        this.renderer.domElement.addEventListener('mousedown', () => this.IsClick = true, false)
-        this.renderer.domElement.addEventListener('mousemove', () => this.IsClick = false, false)
-        this.renderer.domElement.addEventListener('mouseup', this.onMouseDown.bind(this), false)
+        this.renderer.domElement.addEventListener(
+            'resize',
+            this.handleResize.bind(this)
+        )
 
-        this.renderer.domElement.addEventListener('resize', this.handleResize.bind(this))
-
-        this.initEdgeComposer();
+        this.initEdgeComposer()
 
         // // Create a render target with depth texture
         // this.setupRenderTarget();
@@ -133,109 +166,119 @@ export class BodyEditor {
 
     target?: THREE.WebGLRenderTarget
     setupRenderTarget() {
-
-        if (this.target) this.target.dispose();
+        if (this.target) this.target.dispose()
 
         const params = {
             format: THREE.DepthFormat,
-            type: THREE.UnsignedShortType
-        };
+            type: THREE.UnsignedShortType,
+        }
 
-        const format = params.format;
-        const type = params.type;
+        const format = params.format
+        const type = params.type
 
-        this.target = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
-        this.target.texture.minFilter = THREE.NearestFilter;
-        this.target.texture.magFilter = THREE.NearestFilter;
-        this.target.stencilBuffer = (format === THREE.DepthStencilFormat) ? true : false;
-        this.target.depthTexture = new THREE.DepthTexture(window.innerWidth, window.innerHeight);
-        this.target.depthTexture.format = format;
-        this.target.depthTexture.type = type;
-
+        this.target = new THREE.WebGLRenderTarget(
+            window.innerWidth,
+            window.innerHeight
+        )
+        this.target.texture.minFilter = THREE.NearestFilter
+        this.target.texture.magFilter = THREE.NearestFilter
+        this.target.stencilBuffer =
+            format === THREE.DepthStencilFormat ? true : false
+        this.target.depthTexture = new THREE.DepthTexture(
+            window.innerWidth,
+            window.innerHeight
+        )
+        this.target.depthTexture.format = format
+        this.target.depthTexture.type = type
     }
 
     postCamera?: THREE.OrthographicCamera
     postMaterial?: THREE.ShaderMaterial
     postScene?: THREE.Scene
     setupPost() {
-
         // Setup post processing stage
-        this.postCamera = new THREE.OrthographicCamera(- 1, 1, 1, - 1, 0, 1);
+        this.postCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1)
         this.postMaterial = new THREE.ShaderMaterial({
-            vertexShader: document.querySelector('#post-vert')?.textContent?.trim(),
-            fragmentShader: document.querySelector('#post-frag')?.textContent?.trim(),
+            vertexShader: document
+                .querySelector('#post-vert')
+                ?.textContent?.trim(),
+            fragmentShader: document
+                .querySelector('#post-frag')
+                ?.textContent?.trim(),
             uniforms: {
                 cameraNear: { value: this.camera.near },
                 cameraFar: { value: this.camera.far },
                 tDiffuse: { value: null },
-                tDepth: { value: null }
-            }
-        });
-        const postPlane = new THREE.PlaneGeometry(2, 2);
-        const postQuad = new THREE.Mesh(postPlane, this.postMaterial);
-        this.postScene = new THREE.Scene();
-        this.postScene.add(postQuad);
+                tDepth: { value: null },
+            },
+        })
+        const postPlane = new THREE.PlaneGeometry(2, 2)
+        const postQuad = new THREE.Mesh(postPlane, this.postMaterial)
+        this.postScene = new THREE.Scene()
+        this.postScene.add(postQuad)
     }
 
     render() {
-        this.handleResize();
+        this.handleResize()
 
-        this.ikSolver?.update();
+        this.ikSolver?.update()
 
         if (this.postMaterial && this.target) {
-            this.renderer.setRenderTarget(this.target);
+            this.renderer.setRenderTarget(this.target)
             // this.postMaterial.uniforms.cameraNear.value = 100
             // this.postMaterial.uniforms.cameraNear.value = 200
-            this.postMaterial.uniforms.tDiffuse.value = this.target.texture;
-            this.postMaterial.uniforms.tDepth.value = this.target.depthTexture;
+            this.postMaterial.uniforms.tDiffuse.value = this.target.texture
+            this.postMaterial.uniforms.tDepth.value = this.target.depthTexture
         }
 
-        if (this.enableComposer && this.composer)
-            this.composer?.render();
-        else
-            this.renderer.render(this.scene, this.camera);
+        if (this.enableComposer && this.composer) this.composer?.render()
+        else this.renderer.render(this.scene, this.camera)
 
         if (this.postScene && this.postCamera) {
-            this.renderer.setRenderTarget(null);
+            this.renderer.setRenderTarget(null)
             this.renderer.render(this.postScene!, this.postCamera!)
         }
 
         this.stats.update()
     }
     animate() {
-        requestAnimationFrame(this.animate.bind(this));
+        requestAnimationFrame(this.animate.bind(this))
         this.render()
     }
 
     getBodyByPart(o: Object3D) {
         let obj: Object3D | null = o
         while (obj) {
-            if (obj?.name !== "torso")
-                obj = obj.parent
-            else
-                break
+            if (obj?.name !== 'torso') obj = obj.parent
+            else break
         }
         while (obj) {
-            if (obj?.parent?.name == "torso")
-                obj = obj.parent
-            else
-                break
+            if (obj?.parent?.name == 'torso') obj = obj.parent
+            else break
         }
 
         return obj
     }
     onMouseDown(event: MouseEvent) {
-
         this.raycaster.setFromCamera(
             {
-                x: (event.clientX / this.renderer.domElement.clientWidth) * 2 - 1,
-                y: -(event.clientY / this.renderer.domElement.clientHeight) * 2 + 1
+                x:
+                    (event.clientX / this.renderer.domElement.clientWidth) * 2 -
+                    1,
+                y:
+                    -(event.clientY / this.renderer.domElement.clientHeight) *
+                        2 +
+                    1,
             },
             this.camera
         )
-        let intersects: THREE.Intersection[] = this.raycaster.intersectObjects(this.scene.children.filter(o => o?.name === "torso"), true)
-        let intersectedObject: THREE.Object3D | null = intersects.length > 0 ? intersects[0].object : null
-        const name = intersectedObject ? intersectedObject.name : ""
+        let intersects: THREE.Intersection[] = this.raycaster.intersectObjects(
+            this.scene.children.filter((o) => o?.name === 'torso'),
+            true
+        )
+        let intersectedObject: THREE.Object3D | null =
+            intersects.length > 0 ? intersects[0].object : null
+        const name = intersectedObject ? intersectedObject.name : ''
         let obj: Object3D | null = intersectedObject
         console.log(obj?.name)
 
@@ -250,36 +293,33 @@ export class BodyEditor {
 
                 if (obj) {
                     console.log(obj.name)
-                    this.transformControl.setMode("translate")
-                    this.transformControl.setSpace("world")
+                    this.transformControl.setMode('translate')
+                    this.transformControl.setSpace('world')
                     this.transformControl.attach(obj)
                 }
-
-
-            }
-            else if (pickableObjectNames.includes(name) || name.startsWith("shoujoint")) {
+            } else if (
+                pickableObjectNames.includes(name) ||
+                name.startsWith('shoujoint')
+            ) {
                 while (obj) {
-                    if (obj?.parent?.name == name)
-                        obj = obj.parent
-                    else
-                        break
+                    if (obj?.parent?.name == name) obj = obj.parent
+                    else break
                 }
                 if (obj) {
-                    this.transformControl.setMode("rotate")
-                    this.transformControl.setSpace("local")
+                    this.transformControl.setMode('rotate')
+                    this.transformControl.setSpace('local')
                     this.transformControl.attach(obj)
                 }
             }
         }
-
     }
 
     traverseHandObjecct(handle: (o: THREE.Mesh) => void) {
         this.scene.children
-            .filter(o => o?.name === "torso")
+            .filter((o) => o?.name === 'torso')
             .forEach((o) => {
                 o.traverse((child) => {
-                    if (child?.name === "038F_05SET_04SHOT") {
+                    if (child?.name === '038F_05SET_04SHOT') {
                         handle(child as THREE.Mesh)
                     }
                 })
@@ -293,19 +333,20 @@ export class BodyEditor {
 
         this.renderer.setClearColor(0x000000)
 
-        this.traverseHandObjecct(o => o.visible = false)
+        this.traverseHandObjecct((o) => (o.visible = false))
 
-        this.render();
-        let imgData = this.renderer.domElement.toDataURL("image/png");
-        const fileName = "pose_" + getCurrentTime()
+        this.render()
+        let imgData = this.renderer.domElement.toDataURL('image/png')
+        const fileName = 'pose_' + getCurrentTime()
         this.axesHelper.visible = true
         this.gridHelper.visible = true
         this.renderer.setClearColor(options.clearColor)
 
-        this.traverseHandObjecct(o => o.visible = true)
+        this.traverseHandObjecct((o) => (o.visible = true))
 
         return {
-            imgData, fileName
+            imgData,
+            fileName,
         }
     }
 
@@ -313,14 +354,16 @@ export class BodyEditor {
         const map = new Map<Object3D, Object3D | null>()
 
         this.scene.children
-            .filter(o => o?.name === "torso")
+            .filter((o) => o?.name === 'torso')
             .forEach((o) => {
                 o.traverse((child) => {
-                    if (child?.name === "038F_05SET_04SHOT") {
+                    if (child?.name === '038F_05SET_04SHOT') {
                         map.set(child, child.parent)
                         this.scene.attach(child)
-                    }
-                    else if (child?.name.startsWith("shoujoint") && !(child instanceof THREE.Bone)) {
+                    } else if (
+                        child?.name.startsWith('shoujoint') &&
+                        !(child instanceof THREE.Bone)
+                    ) {
                         child.visible = false
                     }
                 })
@@ -335,15 +378,17 @@ export class BodyEditor {
         }
 
         this.scene.children
-            .filter(o => o?.name === "torso")
+            .filter((o) => o?.name === 'torso')
             .forEach((o) => {
                 o.traverse((child) => {
-                    if (child?.name.startsWith("shoujoint") && !(child instanceof THREE.Bone)) {
+                    if (
+                        child?.name.startsWith('shoujoint') &&
+                        !(child instanceof THREE.Bone)
+                    ) {
                         child.visible = true
                     }
                 })
                 o.visible = true
-
             })
     }
 
@@ -351,7 +396,7 @@ export class BodyEditor {
         const save = this.enableComposer
         this.enableComposer = enable
 
-        return () => this.enableComposer = save
+        return () => (this.enableComposer = save)
     }
     CaptureCanny() {
         this.transformControl.detach()
@@ -364,11 +409,10 @@ export class BodyEditor {
         const map = this.hideSkeleten()
 
         const restore = this.changeComposer(true)
-        this.render();
+        this.render()
 
-
-        let imgData = this.renderer.domElement.toDataURL("image/png");
-        const fileName = "canny_" + getCurrentTime()
+        let imgData = this.renderer.domElement.toDataURL('image/png')
+        const fileName = 'canny_' + getCurrentTime()
         this.axesHelper.visible = true
         this.gridHelper.visible = true
         this.renderer.setClearColor(options.clearColor)
@@ -377,44 +421,43 @@ export class BodyEditor {
         restore()
 
         return {
-            imgData, fileName
+            imgData,
+            fileName,
         }
     }
 
-
-    changeHandMaterial(type: "depth" | "normal" | "phone") {
-        let initType = "depth"
-        this.traverseHandObjecct(child => {
-            const o = this.findObjectItem<THREE.SkinnedMesh>(child, "shoupolySurface1")!
+    changeHandMaterial(type: 'depth' | 'normal' | 'phone') {
+        let initType = 'depth'
+        this.traverseHandObjecct((child) => {
+            const o = this.findObjectItem<THREE.SkinnedMesh>(
+                child,
+                'shoupolySurface1'
+            )!
             if (o.material) {
                 if (o.material instanceof MeshNormalMaterial)
-                    initType = "normal"
-                if (o.material instanceof MeshPhongMaterial)
-                    initType = "phone"
+                    initType = 'normal'
+                if (o.material instanceof MeshPhongMaterial) initType = 'phone'
             }
 
-            if (type == "depth")
-                o.material = new MeshDepthMaterial()
-            else if (type == "normal")
-                o.material = new MeshNormalMaterial()
-            else if (type == "phone")
-                o.material = new MeshPhongMaterial()
+            if (type == 'depth') o.material = new MeshDepthMaterial()
+            else if (type == 'normal') o.material = new MeshNormalMaterial()
+            else if (type == 'phone') o.material = new MeshPhongMaterial()
         })
 
-
         return () => {
-            this.traverseHandObjecct(child => {
-                const o = this.findObjectItem<THREE.SkinnedMesh>(child, "shoupolySurface1")!
+            this.traverseHandObjecct((child) => {
+                const o = this.findObjectItem<THREE.SkinnedMesh>(
+                    child,
+                    'shoupolySurface1'
+                )!
 
-                if (initType == "depth")
-                    o.material = new MeshDepthMaterial()
-                else if (initType == "normal")
+                if (initType == 'depth') o.material = new MeshDepthMaterial()
+                else if (initType == 'normal')
                     o.material = new MeshNormalMaterial()
-                else if (initType == "phone")
+                else if (initType == 'phone')
                     o.material = new MeshPhongMaterial()
             })
         }
-
     }
     CaptureNormal() {
         this.transformControl.detach()
@@ -424,15 +467,13 @@ export class BodyEditor {
 
         this.renderer.setClearColor(0x000000)
 
-
-        const restoreHand = this.changeHandMaterial("normal");
+        const restoreHand = this.changeHandMaterial('normal')
         const map = this.hideSkeleten()
         const restore = this.changeComposer(false)
-        this.render();
+        this.render()
 
-
-        let imgData = this.renderer.domElement.toDataURL("image/png");
-        const fileName = "normal_" + getCurrentTime()
+        let imgData = this.renderer.domElement.toDataURL('image/png')
+        const fileName = 'normal_' + getCurrentTime()
         this.axesHelper.visible = true
         this.gridHelper.visible = true
         this.renderer.setClearColor(options.clearColor)
@@ -442,13 +483,16 @@ export class BodyEditor {
         restoreHand()
 
         return {
-            imgData, fileName
+            imgData,
+            fileName,
         }
     }
 
     changeCamera() {
         const hands: THREE.Mesh[] = []
-        this.scene.traverse(o => { if (o.name === "038F_05SET_04SHOT") hands.push(o as THREE.Mesh) })
+        this.scene.traverse((o) => {
+            if (o.name === '038F_05SET_04SHOT') hands.push(o as THREE.Mesh)
+        })
 
         const cameraPos = new THREE.Vector3()
         this.camera.getWorldPosition(cameraPos)
@@ -466,7 +510,6 @@ export class BodyEditor {
         const minDis = Math.min(...handsDis)
         const maxDis = Math.max(...handsDis)
 
-
         const saveNear = this.camera.near
         const saveFar = this.camera.far
 
@@ -474,7 +517,6 @@ export class BodyEditor {
         this.camera.far = maxDis + 20
         this.camera.updateProjectionMatrix()
         return () => {
-
             this.camera.near = saveNear
             this.camera.far = saveFar
             this.camera.updateProjectionMatrix()
@@ -488,16 +530,16 @@ export class BodyEditor {
 
         this.renderer.setClearColor(0x000000)
 
-        const restoreHand = this.changeHandMaterial("depth")
+        const restoreHand = this.changeHandMaterial('depth')
         const map = this.hideSkeleten()
         const restore = this.changeComposer(false)
 
         const restoreCamera = this.changeCamera()
-        this.render();
+        this.render()
         restoreCamera()
 
-        let imgData = this.renderer.domElement.toDataURL("image/png");
-        const fileName = "depth_" + getCurrentTime()
+        let imgData = this.renderer.domElement.toDataURL('image/png')
+        const fileName = 'depth_' + getCurrentTime()
         this.axesHelper.visible = true
         this.gridHelper.visible = true
         this.renderer.setClearColor(options.clearColor)
@@ -507,60 +549,55 @@ export class BodyEditor {
         restoreHand()
 
         return {
-            imgData, fileName
+            imgData,
+            fileName,
         }
     }
 
     MakeImages() {
         {
             const { imgData, fileName } = this.Capture()
-            SetScreenShot("pose", imgData, fileName)
+            SetScreenShot('pose', imgData, fileName)
         }
         {
             const { imgData, fileName } = this.CaptureDepth()
-            SetScreenShot("depth", imgData, fileName)
+            SetScreenShot('depth', imgData, fileName)
         }
         {
             const { imgData, fileName } = this.CaptureNormal()
-            SetScreenShot("normal", imgData, fileName)
+            SetScreenShot('normal', imgData, fileName)
         }
 
         {
             const { imgData, fileName } = this.CaptureCanny()
-            SetScreenShot("canny", imgData, fileName)
+            SetScreenShot('canny', imgData, fileName)
         }
     }
 
     CopyBodyZ() {
         const body = CloneBody()
-        if (!body)
-            return
+        if (!body) return
 
         const list = this.scene.children
-            .filter(o => o?.name === "torso")
-            .filter(o => o.position.x === 0)
-            .map(o => Math.ceil(o.position.z / 30))
+            .filter((o) => o?.name === 'torso')
+            .filter((o) => o.position.x === 0)
+            .map((o) => Math.ceil(o.position.z / 30))
 
-        if (list.length > 0)
-            body.translateZ((Math.min(...list) - 1) * 30)
+        if (list.length > 0) body.translateZ((Math.min(...list) - 1) * 30)
         this.scene.add(body)
-
     }
 
     CopyBodyX() {
         const body = CloneBody()
-        if (!body)
-            return
+        if (!body) return
 
         const list = this.scene.children
-            .filter(o => o?.name === "torso")
-            .filter(o => o.position.z === 0)
-            .map(o => Math.ceil(o.position.x / 50))
+            .filter((o) => o?.name === 'torso')
+            .filter((o) => o.position.z === 0)
+            .map((o) => Math.ceil(o.position.x / 50))
 
-        if (list.length > 0)
-            body.translateX((Math.min(...list) - 1) * 50)
+        if (list.length > 0) body.translateX((Math.min(...list) - 1) * 50)
         this.scene.add(body)
-
     }
 
     RemoveBody() {
@@ -581,15 +618,11 @@ export class BodyEditor {
         return this.renderer.domElement.clientHeight
     }
 
-
-
     handleResize() {
         const size = new THREE.Vector2()
         this.renderer.getSize(size)
 
-        if (size.width == this.Width && size.height === this.Height)
-            return
-
+        if (size.width == this.Width && size.height === this.Height) return
 
         const canvas = this.renderer.domElement
         this.camera.aspect = canvas.clientWidth / canvas.clientHeight
@@ -602,31 +635,35 @@ export class BodyEditor {
     }
 
     initEdgeComposer() {
-        this.composer = new EffectComposer(this.renderer);
-        const renderPass = new RenderPass(this.scene, this.camera);
-        this.composer.addPass(renderPass);
+        this.composer = new EffectComposer(this.renderer)
+        const renderPass = new RenderPass(this.scene, this.camera)
+        this.composer.addPass(renderPass)
 
         // color to grayscale conversion
 
-        const effectGrayScale = new ShaderPass(LuminosityShader);
-        this.composer.addPass(effectGrayScale);
+        const effectGrayScale = new ShaderPass(LuminosityShader)
+        this.composer.addPass(effectGrayScale)
 
         // you might want to use a gaussian blur filter before
         // the next pass to improve the result of the Sobel operator
 
         // Sobel operator
 
-        const effectSobel = new ShaderPass(SobelOperatorShader);
-        effectSobel.uniforms['resolution'].value.x = this.Width * window.devicePixelRatio;
-        effectSobel.uniforms['resolution'].value.y = this.Height * window.devicePixelRatio;
-        this.composer.addPass(effectSobel);
+        const effectSobel = new ShaderPass(SobelOperatorShader)
+        effectSobel.uniforms['resolution'].value.x =
+            this.Width * window.devicePixelRatio
+        effectSobel.uniforms['resolution'].value.y =
+            this.Height * window.devicePixelRatio
+        this.composer.addPass(effectSobel)
     }
 
     chnageComposerResoultion() {
-        this.composer?.setSize(this.Width, this.Height);
+        this.composer?.setSize(this.Width, this.Height)
         if (this.effectSobel) {
-            this.effectSobel.uniforms['resolution'].value.x = this.Width * window.devicePixelRatio;
-            this.effectSobel.uniforms['resolution'].value.y = this.Height * window.devicePixelRatio;
+            this.effectSobel.uniforms['resolution'].value.x =
+                this.Width * window.devicePixelRatio
+            this.effectSobel.uniforms['resolution'].value.y =
+                this.Height * window.devicePixelRatio
         }
     }
 
@@ -635,8 +672,7 @@ export class BodyEditor {
             if (loaded >= 100) {
                 Swal.hideLoading()
                 Swal.close()
-            }
-            else if (Swal.isVisible() == false) {
+            } else if (Swal.isVisible() == false) {
                 Swal.fire({
                     title: i18n.t('Downloading Hand Model') ?? '',
                     didOpen: () => {
@@ -645,9 +681,12 @@ export class BodyEditor {
                 })
             }
         })
-        fbx.name = "038F_05SET_04SHOT"
+        fbx.name = '038F_05SET_04SHOT'
         // fbx.scale.multiplyScalar(10)
-        const mesh = this.findObjectItem<THREE.SkinnedMesh>(fbx, "shoupolySurface1")!
+        const mesh = this.findObjectItem<THREE.SkinnedMesh>(
+            fbx,
+            'shoupolySurface1'
+        )!
         mesh.material = new MeshPhongMaterial()
         // this.scene.add();
         // const helper = new THREE.SkeletonHelper(mesh.parent!);
@@ -680,8 +719,8 @@ export class BodyEditor {
         // scene.add( object );
         const body = CloneBody()!
 
-        this.scene.add(body);
-        this.dlight.target = body;
+        this.scene.add(body)
+        this.dlight.target = body
 
         // await this.loadHand()
         // test
@@ -743,15 +782,18 @@ export class BodyEditor {
         // this.ikSolver = new CCDIKSolver(mesh, iks)
     }
 
-    findObjectItem<T extends Object3D>(object: Object3D, name: string): T | null {
+    findObjectItem<T extends Object3D>(
+        object: Object3D,
+        name: string
+    ): T | null {
         //console.log(object);
         let result = null
         object.traverse((child) => {
             //console.log("child", child);
             if (child.name == name) {
-                result = (child);
+                result = child
             }
-        });
+        })
         return result
     }
 
@@ -760,7 +802,7 @@ export class BodyEditor {
     }
     set CameraNear(value: number) {
         this.camera.near = value
-        this.camera.updateProjectionMatrix();
+        this.camera.updateProjectionMatrix()
     }
 
     get CameraFar() {
@@ -768,8 +810,6 @@ export class BodyEditor {
     }
     set CameraFar(value: number) {
         this.camera.far = value
-        this.camera.updateProjectionMatrix();
+        this.camera.updateProjectionMatrix()
     }
 }
-
-

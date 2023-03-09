@@ -1,11 +1,13 @@
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
-import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
-import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import * as THREE from "three"
-
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'
+import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import * as THREE from 'three'
 
 const fbxLoader = new FBXLoader()
-export async function LoadFBXFile(url: string, onLoadding?: (loaded:number)=>void): Promise<THREE.Group> {
+export async function LoadFBXFile(
+    url: string,
+    onLoadding?: (loaded: number) => void
+): Promise<THREE.Group> {
     return new Promise((resolve, reject) => {
         // load a resource
         fbxLoader.load(
@@ -17,21 +19,20 @@ export async function LoadFBXFile(url: string, onLoadding?: (loaded:number)=>voi
             },
             // called when loading is in progresses
             function (xhr) {
-                console.log((xhr.loaded / xhr.total * 100) + '% loaded');
-                onLoadding?.(xhr.loaded / xhr.total * 100)
+                console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+                onLoadding?.((xhr.loaded / xhr.total) * 100)
             },
             // called when loading has errors
             function (error) {
-
-                console.log('An error happened');
+                console.log('An error happened')
                 reject(error)
             }
-        );
+        )
     })
 }
 
 // instantiate a loader
-const loader = new OBJLoader();
+const loader = new OBJLoader()
 
 export async function LoadObjFile(url: string): Promise<THREE.Group> {
     return new Promise((resolve, reject) => {
@@ -45,15 +46,14 @@ export async function LoadObjFile(url: string): Promise<THREE.Group> {
             },
             // called when loading is in progresses
             function (xhr) {
-                console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+                console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
             },
             // called when loading has errors
             function (error) {
-
-                console.log('An error happened');
+                console.log('An error happened')
                 reject(error)
             }
-        );
+        )
     })
 }
 
@@ -69,14 +69,13 @@ export async function LoadGLTFile(url: string): Promise<GLTF> {
             },
             // called when loading is in progresses
             function (xhr) {
-                console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+                console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
             },
             // called when loading has errors
             function (error) {
-
-                console.log('An error happened');
+                console.log('An error happened')
                 reject(error)
             }
-        );
+        )
     })
 }
