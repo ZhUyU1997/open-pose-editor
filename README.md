@@ -1,5 +1,5 @@
 # Online 3D Openpose Editor
-# [Click me to get editor](https://zhuyu1997.github.io/open-pose-editor/) ( https://zhuyu1997.github.io/open-pose-editor/ )
+# [Click me to get editor](https://zhuyu1997.github.io/open-pose-editor/)
 # Preview
 ![Intruduction](docs/intro.png)
 # Feature
