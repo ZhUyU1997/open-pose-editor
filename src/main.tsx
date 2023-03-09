@@ -1,63 +1,69 @@
-import "./init"
-import * as dat from 'dat.gui';
-import "./index.css"
-import { options } from "./config";
-import { BodyEditor } from "./editor";
+import './init'
+import * as dat from 'dat.gui'
+import './index.css'
+import { options } from './config'
+import { BodyEditor } from './editor'
+import i18n from './i18n'
 
-const editor = new BodyEditor(document.querySelector<HTMLCanvasElement>("#canvas")!)
-const gui = new dat.GUI();
-
+const editor = new BodyEditor(
+    document.querySelector<HTMLCanvasElement>('#canvas')!
+)
+const gui = new dat.GUI()
 
 window.addEventListener('keydown', function (event) {
-  switch (event.code) {
-    case 'KeyX':
-      options.moveMode = true
-      gui.updateDisplay()
-      break
-    case 'KeyD':
-      editor.RemoveBody()
-      break
-  }
+    switch (event.code) {
+        case 'KeyX':
+            options.moveMode = true
+            gui.updateDisplay()
+            break
+        case 'KeyD':
+            editor.RemoveBody()
+            break
+    }
 })
 
 window.addEventListener('keyup', function (event) {
-  switch (event.code) {
-    case 'KeyX':
-      options.moveMode = false
-      gui.updateDisplay()
-      break
-  }
+    switch (event.code) {
+        case 'KeyX':
+            options.moveMode = false
+            gui.updateDisplay()
+            break
+    }
 })
 
+gui.add(options, 'changeLanguage').name('Change Language/切换语言')
 
-options["width"] = editor.Width
-options["height"] = editor.Height
-gui.add(editor, 'Width').name("宽度");
-gui.add(editor, 'Height').name("高度");
+options['width'] = editor.Width
+options['height'] = editor.Height
+gui.add(editor, 'Width').name(i18n.t('Width'))
+gui.add(editor, 'Height').name(i18n.t('Height'))
 
 function UpdateSize() {
-  options["width"] = editor.Width
-  options["height"] = editor.Height
+    options['width'] = editor.Width
+    options['height'] = editor.Height
 
-  gui.updateDisplay()
+    gui.updateDisplay()
 }
 
 UpdateSize()
 
-gui.add(editor, 'MakeImages').name("骨架图/深度图/法向图/边缘图");
-gui.add(editor, 'CopyBodyZ').name("复制骨架(Z方向)");
-gui.add(editor, 'CopyBodyX').name("复制骨架(X方向)");
-gui.add(editor, 'RemoveBody').name("删除选中骨架(按D)");
-gui.add(options, 'moveMode').name("移动模式(按X切换)");
+gui.add(editor, 'MakeImages').name(
+    i18n.t('Skeleton Map/Depth Map/Normal Map/Edge Map')
+)
+gui.add(editor, 'CopyBodyZ').name(i18n.t('Duplicate Skeleton (Z-axis)'))
+gui.add(editor, 'CopyBodyX').name(i18n.t('Duplicate Skeleton (X-axis)'))
+gui.add(editor, 'RemoveBody').name(
+    i18n.t('Delete Selected Skeleton (Press D key)')
+)
+gui.add(options, 'moveMode').name(i18n.t('Move Mode (Press X key)'))
 
-gui.add(editor, "enableComposer").name("显示边缘图")
+gui.add(editor, 'enableComposer').name(i18n.t('Show Edge Map'))
 
-gui.add(editor, "CameraNear", 0.1, 1000).name("相机near")
-gui.add(editor, "CameraFar", 0.1, 1000).name("相机far")
+gui.add(editor, 'CameraNear', 0.1, 1000).name(i18n.t('Camera Near'))
+gui.add(editor, 'CameraFar', 0.1, 1000).name(i18n.t('Camera Far'))
 
 window.addEventListener('resize', () => {
-  UpdateSize()
+    UpdateSize()
 })
-
 
 editor.loadBodyData()

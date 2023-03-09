@@ -1,0 +1,12 @@
+{
+  "Width": "Width",
+  "Height": "Height",
+  "Skeleton Map/Depth Map/Normal Map/Edge Map": "Skeleton Map/Depth Map/Normal Map/Edge Map",
+  "Duplicate Skeleton (Z-axis)": "Duplicate Skeleton (Z-axis)",
+  "Duplicate Skeleton (X-axis)": "Duplicate Skeleton (X-axis)",
+  "Delete Selected Skeleton (Press D key)": "Delete Selected Skeleton (Press D key)",
+  "Move Mode (Press X key)": "Move Mode (Press X key)",
+  "Show Edge Map": "Show Edge Map",
+  "Camera Near": "Camera Near",
+  "Camera Far": "Camera Far"
+}
