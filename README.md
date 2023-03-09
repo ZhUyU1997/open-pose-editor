@@ -1,7 +1,7 @@
 # Online 3D Openpose Editor
 # [Click me to get editor](https://zhuyu1997.github.io/open-pose-editor/)
 # Preview
-![Intruduction](docs/intro.png)
+https://user-images.githubusercontent.com/18410894/224073965-c782a05f-0a20-41cf-863d-8de490021ed7.mp4
 # Feature
 - pose editing
 - hand editing
