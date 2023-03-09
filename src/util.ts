@@ -45,3 +45,29 @@ export async function uploadJson() {
         reader.readAsText(file)
     })
 }
+
+export async function uploadImage() {
+    const { value: file } = await Swal.fire({
+        title: i18n.t('Select an image')!,
+        input: 'file',
+        inputAttributes: {
+            accept: 'image/*',
+        },
+    })
+
+    if (!file) {
+        return null
+    }
+
+    return await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = function () {
+            resolve(reader.result as string)
+        }
+
+        reader.onerror = function () {
+            reject(reader.error)
+        }
+        reader.readAsDataURL(file)
+    })
+}

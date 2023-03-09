@@ -32,6 +32,8 @@ window.addEventListener('keyup', function (event) {
 })
 
 gui.add(options, 'changeLanguage').name('Change Language/切换语言')
+gui.add(options, 'setBackground').name(i18n.t('Set Background Image'))
+
 gui.add(editor, 'SaveScene').name(i18n.t('Save Scene'))
 gui.add(editor, 'LoadScene').name(i18n.t('Load Scene'))
 gui.add(editor, 'RestoreAutoSavedScene').name(i18n.t('Restore Last Scene'))

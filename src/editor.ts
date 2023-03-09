@@ -98,7 +98,7 @@ export class BodyEditor {
             antialias: true,
             // logarithmicDepthBuffer: true
         })
-        this.renderer.setClearColor(options.clearColor, 1.0)
+        this.renderer.setClearColor(options.clearColor, 0.0)
         this.scene = new THREE.Scene()
 
         this.gridHelper = new THREE.GridHelper(800, 200)
@@ -106,7 +106,7 @@ export class BodyEditor {
         this.scene.add(this.gridHelper)
         this.scene.add(this.axesHelper)
 
-        let aspect = window.innerWidth / window.innerHeight
+        const aspect = window.innerWidth / window.innerHeight
 
         this.camera = new THREE.PerspectiveCamera(60, aspect, 0.1, 1000)
 
@@ -358,13 +358,12 @@ export class BodyEditor {
                 })
             })
     }
+
     Capture() {
         this.transformControl.detach()
 
         this.axesHelper.visible = false
         this.gridHelper.visible = false
-
-        this.renderer.setClearColor(0x000000)
 
         this.traverseHandObjecct((o) => (o.visible = false))
 
@@ -373,7 +372,6 @@ export class BodyEditor {
         const fileName = 'pose_' + getCurrentTime()
         this.axesHelper.visible = true
         this.gridHelper.visible = true
-        this.renderer.setClearColor(options.clearColor)
 
         this.traverseHandObjecct((o) => (o.visible = true))
 
@@ -434,8 +432,6 @@ export class BodyEditor {
         this.axesHelper.visible = false
         this.gridHelper.visible = false
 
-        this.renderer.setClearColor(0x000000)
-
         const map = this.hideSkeleten()
 
         const restore = this.changeComposer(true)
@@ -445,7 +441,6 @@ export class BodyEditor {
         const fileName = 'canny_' + getCurrentTime()
         this.axesHelper.visible = true
         this.gridHelper.visible = true
-        this.renderer.setClearColor(options.clearColor)
 
         this.showSkeleten(map)
         restore()
@@ -495,8 +490,6 @@ export class BodyEditor {
         this.axesHelper.visible = false
         this.gridHelper.visible = false
 
-        this.renderer.setClearColor(0x000000)
-
         const restoreHand = this.changeHandMaterial('normal')
         const map = this.hideSkeleten()
         const restore = this.changeComposer(false)
@@ -506,7 +499,6 @@ export class BodyEditor {
         const fileName = 'normal_' + getCurrentTime()
         this.axesHelper.visible = true
         this.gridHelper.visible = true
-        this.renderer.setClearColor(options.clearColor)
 
         this.showSkeleten(map)
         restore()
@@ -559,8 +551,6 @@ export class BodyEditor {
         this.axesHelper.visible = false
         this.gridHelper.visible = false
 
-        this.renderer.setClearColor(0x000000)
-
         const restoreHand = this.changeHandMaterial('depth')
         const map = this.hideSkeleten()
         const restore = this.changeComposer(false)
@@ -573,7 +563,6 @@ export class BodyEditor {
         const fileName = 'depth_' + getCurrentTime()
         this.axesHelper.visible = true
         this.gridHelper.visible = true
-        this.renderer.setClearColor(options.clearColor)
 
         this.showSkeleten(map)
         restore()
@@ -586,6 +575,8 @@ export class BodyEditor {
     }
 
     MakeImages() {
+        this.renderer.setClearColor(0x000000)
+
         {
             const { imgData, fileName } = this.Capture()
             SetScreenShot('pose', imgData, fileName)
@@ -603,6 +594,7 @@ export class BodyEditor {
             const { imgData, fileName } = this.CaptureCanny()
             SetScreenShot('canny', imgData, fileName)
         }
+        this.renderer.setClearColor(0x000000, 0)
     }
 
     CopyBodyZ() {

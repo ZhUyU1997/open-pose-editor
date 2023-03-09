@@ -17,5 +17,7 @@
     "If the problem persists, please click here to ask a question.": "如果问题一直存在，请点击此处提问。",
     "Save Scene": "保存场景",
     "Load Scene": "加载场景",
-    "Restore Last Scene": "恢复上次场景"
+    "Restore Last Scene": "恢复上次场景",
+    "Set Background Image": "设置背景图片",
+    "Select an image": "选择一张图片"
 }

@@ -6,6 +6,7 @@
 body {
     width: 100vw;
     height: 100vh;
+    position: relative;
 }
 
 canvas {
@@ -28,4 +29,15 @@ canvas {
     object-fit: contain;
     background-color: gray;
     user-select: none;
+}
+
+#background {
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    z-index: -1;
+    background-color: rgb(214, 214, 214);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
 }
