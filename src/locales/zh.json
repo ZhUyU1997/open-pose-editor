@@ -1,12 +1,14 @@
 {
-  "Width": "宽度",
-  "Height": "高度",
-  "Skeleton Map/Depth Map/Normal Map/Edge Map": "骨架图/深度图/法向图/边缘图",
-  "Duplicate Skeleton (Z-axis)": "复制骨架(Z方向)",
-  "Duplicate Skeleton (X-axis)": "复制骨架(X方向)",
-  "Delete Selected Skeleton (Press D key)": "删除选中骨架(按D键)",
-  "Move Mode (Press X key)": "移动模式(按X键)",
-  "Show Edge Map": "显示边缘图",
-  "Camera Near": "相机near",
-  "Camera Far": "相机far"
+    "Width": "宽度",
+    "Height": "高度",
+    "Skeleton Map/Depth Map/Normal Map/Edge Map": "骨架图/深度图/法向图/边缘图",
+    "Duplicate Skeleton (Z-axis)": "复制骨架(Z方向)",
+    "Duplicate Skeleton (X-axis)": "复制骨架(X方向)",
+    "Delete Selected Skeleton (Press D key)": "删除选中骨架(按D键)",
+    "Move Mode (Press X key)": "移动模式(按X键)",
+    "Show Edge Map": "显示边缘图",
+    "Camera Near": "相机near",
+    "Camera Far": "相机far",
+    "Downloading Hand Model": "正在下载手部模型",
+    "Updates are available, please confirm!!": "有更新啦，请确认！！"
 }

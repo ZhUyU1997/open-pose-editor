@@ -24,6 +24,7 @@ import { LuminosityShader } from 'three/examples/jsm/shaders/LuminosityShader.js
 import { SobelOperatorShader } from 'three/examples/jsm/shaders/SobelOperatorShader.js';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils';
 import Swal from "sweetalert2";
+import i18n from "./i18n"
 
 const pickableObjectNames: string[] = ["torso",
     "neck",
@@ -637,7 +638,7 @@ export class BodyEditor {
             }
             else if (Swal.isVisible() == false) {
                 Swal.fire({
-                    title: '正在下载手部模型',
+                    title: i18n.t('Downloading Hand Model') ?? '',
                     didOpen: () => {
                         Swal.showLoading()
                     },
