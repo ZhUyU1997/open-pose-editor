@@ -7,7 +7,7 @@ import { TransformControls } from 'three/examples/jsm/controls/TransformControls
 import { CCDIKHelper, CCDIKSolver, IKS } from 'three/examples/jsm/animate/CCDIKSolver';
 
 import Stats from "three/examples/jsm/libs/stats.module";
-import { CloneBody, CreateBody, CreateTemplateBody } from "./body";
+import { CloneBody, CreateTemplateBody } from "./body";
 import { options } from "./config";
 import { SetScreenShot } from "./image";
 import { LoadFBXFile, LoadGLTFile, LoadObjFile } from "./loader";
@@ -447,7 +447,7 @@ export class BodyEditor {
 
     changeCamera() {
         const hands: THREE.Mesh[] = []
-        this.scene.traverse(o => { if (o.name === "038F_05SET_04SHOT") hands.push(o) })
+        this.scene.traverse(o => { if (o.name === "038F_05SET_04SHOT") hands.push(o as THREE.Mesh) })
 
         const cameraPos = new THREE.Vector3()
         this.camera.getWorldPosition(cameraPos)
