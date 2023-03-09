@@ -1,3 +1,7 @@
+import dayjs from 'dayjs'
+import Swal from 'sweetalert2'
+import i18n from './i18n'
+
 export function download(href: string, title: string) {
     const a = document.createElement('a')
     a.setAttribute('href', href)
@@ -5,17 +9,39 @@ export function download(href: string, title: string) {
     a.click()
 }
 
-export function getCurrentTime() {
-    let today = new Date()
-    let date =
-        today.getFullYear() +
-        '_' +
-        (today.getMonth() + 1) +
-        '_' +
-        today.getDate()
-    let time =
-        today.getHours() + '_' + today.getMinutes() + '_' + today.getSeconds()
-    let dateTime = date + '_' + time
+export function downloadJson(data: string, fileName: string) {
+    const blob = new Blob([data], { type: 'text/json' })
+    const href = window.URL.createObjectURL(blob)
+    download(href, fileName)
+    URL.revokeObjectURL(href)
+}
 
-    return dateTime
+export function getCurrentTime(format = 'YYYY_MM_DD_HH_mm_ss') {
+    return dayjs(new Date()).format(format)
+}
+
+export async function uploadJson() {
+    const { value: file } = await Swal.fire({
+        title: i18n.t('Select a scene file')!,
+        input: 'file',
+        inputAttributes: {
+            accept: 'application/json',
+        },
+    })
+
+    if (!file) {
+        return null
+    }
+
+    return await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = function () {
+            resolve(reader.result as string)
+        }
+
+        reader.onerror = function () {
+            reject(reader.error)
+        }
+        reader.readAsText(file)
+    })
 }

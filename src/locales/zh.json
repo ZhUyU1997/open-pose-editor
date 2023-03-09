@@ -10,5 +10,12 @@
     "Camera Near": "相机near",
     "Camera Far": "相机far",
     "Downloading Hand Model": "正在下载手部模型",
-    "Updates are available, please confirm!!": "有更新啦，请确认！！"
+    "Updates are available, please confirm!!": "有更新啦，请确认！！",
+    "Select a scene file": "选择一个场景文件",
+    "Oops...": "哎呀...",
+    "Something went wrong!": "出错了！",
+    "If the problem persists, please click here to ask a question.": "如果问题一直存在，请点击此处提问。",
+    "Save Scene": "保存场景",
+    "Load Scene": "加载场景",
+    "Restore Last Scene": "恢复上次场景"
 }

@@ -12,18 +12,18 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls'
 
 // @ts-ignore
-import {
-    CCDIKHelper,
-    CCDIKSolver,
-    IKS,
-} from 'three/examples/jsm/animate/CCDIKSolver'
+// import {
+//     CCDIKHelper,
+//     CCDIKSolver,
+//     IKS,
+// } from 'three/examples/jsm/animate/CCDIKSolver'
 
 import Stats from 'three/examples/jsm/libs/stats.module'
-import { CloneBody, CreateTemplateBody } from './body'
+import { CloneBody, CreateTemplateBody, IsNeedSaveObject } from './body'
 import { options } from './config'
 import { SetScreenShot } from './image'
 import { LoadFBXFile, LoadGLTFile, LoadObjFile } from './loader'
-import { getCurrentTime } from './util'
+import { download, downloadJson, getCurrentTime, uploadJson } from './util'
 import handObjFileUrl from '../models/hand.obj?url'
 import xbotFileUrl from '../models/hand2.glb?url'
 import handFBXFileUrl from '../models/hand.fbx?url'
@@ -51,6 +51,28 @@ const pickableObjectNames: string[] = [
     'left_knee',
 ]
 
+interface BodyData {
+    position: ReturnType<THREE.Vector3['toArray']>
+    rotation: ReturnType<THREE.Euler['toArray']>
+    scale: ReturnType<THREE.Vector3['toArray']>
+
+    child: Record<
+        string,
+        {
+            position: ReturnType<THREE.Vector3['toArray']>
+            rotation: ReturnType<THREE.Euler['toArray']>
+            scale: ReturnType<THREE.Vector3['toArray']>
+        }
+    >
+}
+
+interface CameraData {
+    position: ReturnType<THREE.Vector3['toArray']>
+    rotation: ReturnType<THREE.Euler['toArray']>
+    near: number
+    far: number
+    zoom: number
+}
 export class BodyEditor {
     renderer: THREE.WebGLRenderer
     scene: THREE.Scene
@@ -66,7 +88,7 @@ export class BodyEditor {
     IsClick = false
     stats: Stats
 
-    ikSolver?: CCDIKSolver
+    // ikSolver?: CCDIKSolver
     composer?: EffectComposer
     effectSobel?: ShaderPass
     enableComposer: boolean = false
@@ -162,6 +184,7 @@ export class BodyEditor {
         document.body.appendChild(this.stats.dom)
         this.animate()
         this.handleResize()
+        this.AutoSaveScene()
     }
 
     target?: THREE.WebGLRenderTarget
@@ -221,7 +244,7 @@ export class BodyEditor {
     render() {
         this.handleResize()
 
-        this.ikSolver?.update()
+        // this.ikSolver?.update()
 
         if (this.postMaterial && this.target) {
             this.renderer.setRenderTarget(this.target)
@@ -246,18 +269,17 @@ export class BodyEditor {
         this.render()
     }
 
+    getAncestors(o: Object3D) {
+        const ancestors: Object3D[] = []
+        o.traverseAncestors((ancestor) => ancestors.push(ancestor))
+        return ancestors
+    }
     getBodyByPart(o: Object3D) {
-        let obj: Object3D | null = o
-        while (obj) {
-            if (obj?.name !== 'torso') obj = obj.parent
-            else break
-        }
-        while (obj) {
-            if (obj?.parent?.name == 'torso') obj = obj.parent
-            else break
-        }
+        if (o?.name === 'torso') return o
 
-        return obj
+        const body =
+            this.getAncestors(o).find((o) => o?.name === 'torso') ?? null
+        return body
     }
     onMouseDown(event: MouseEvent) {
         this.raycaster.setFromCamera(
@@ -280,6 +302,8 @@ export class BodyEditor {
             intersects.length > 0 ? intersects[0].object : null
         const name = intersectedObject ? intersectedObject.name : ''
         let obj: Object3D | null = intersectedObject
+        console.log(intersects.map((o) => o.object.name))
+
         console.log(obj?.name)
 
         if (this.IsClick) {
@@ -297,14 +321,20 @@ export class BodyEditor {
                     this.transformControl.setSpace('world')
                     this.transformControl.attach(obj)
                 }
-            } else if (
-                pickableObjectNames.includes(name) ||
-                name.startsWith('shoujoint')
-            ) {
-                while (obj) {
-                    if (obj?.parent?.name == name) obj = obj.parent
-                    else break
+            } else {
+                const isOk =
+                    pickableObjectNames.includes(name) ||
+                    name.startsWith('shoujoint')
+
+                if (!isOk) {
+                    obj =
+                        this.getAncestors(obj).find(
+                            (o) =>
+                                pickableObjectNames.includes(o.name) ||
+                                o.name.startsWith('shoujoint')
+                        ) ?? null
                 }
+
                 if (obj) {
                     this.transformControl.setMode('rotate')
                     this.transformControl.setSpace('local')
@@ -319,7 +349,10 @@ export class BodyEditor {
             .filter((o) => o?.name === 'torso')
             .forEach((o) => {
                 o.traverse((child) => {
-                    if (child?.name === '038F_05SET_04SHOT') {
+                    if (
+                        child?.name === 'left_hand' ||
+                        child?.name === 'right_hand'
+                    ) {
                         handle(child as THREE.Mesh)
                     }
                 })
@@ -357,7 +390,10 @@ export class BodyEditor {
             .filter((o) => o?.name === 'torso')
             .forEach((o) => {
                 o.traverse((child) => {
-                    if (child?.name === '038F_05SET_04SHOT') {
+                    if (
+                        child?.name === 'left_hand' ||
+                        child?.name === 'right_hand'
+                    ) {
                         map.set(child, child.parent)
                         this.scene.attach(child)
                     } else if (
@@ -491,7 +527,8 @@ export class BodyEditor {
     changeCamera() {
         const hands: THREE.Mesh[] = []
         this.scene.traverse((o) => {
-            if (o.name === '038F_05SET_04SHOT') hands.push(o as THREE.Mesh)
+            if (o?.name === 'left_hand' || o?.name === 'right_hand')
+                hands.push(o as THREE.Mesh)
         })
 
         const cameraPos = new THREE.Vector3()
@@ -681,7 +718,7 @@ export class BodyEditor {
                 })
             }
         })
-        fbx.name = '038F_05SET_04SHOT'
+
         // fbx.scale.multiplyScalar(10)
         const mesh = this.findObjectItem<THREE.SkinnedMesh>(
             fbx,
@@ -697,7 +734,6 @@ export class BodyEditor {
                 new THREE.MeshBasicMaterial({ color: 0xff0000 })
             )
             point.scale.setX(0.2)
-            point.name = o.name
             point.position.copy(o.position)
             o.add(point)
         })
@@ -811,5 +847,148 @@ export class BodyEditor {
     set CameraFar(value: number) {
         this.camera.far = value
         this.camera.updateProjectionMatrix()
+    }
+
+    GetBodyData(o: Object3D): BodyData {
+        const result: BodyData = {
+            position: o.position.toArray(),
+            rotation: o.rotation.toArray(),
+            scale: o.scale.toArray(),
+            child: {},
+        }
+        o.traverse((child) => {
+            if (child.name && IsNeedSaveObject(child.name)) {
+                result.child[child.name] = {
+                    position: child.position.toArray(),
+                    rotation: child.rotation.toArray(),
+                    scale: child.scale.toArray(),
+                }
+            }
+        })
+
+        return result
+    }
+    GetCameraData() {
+        const result = {
+            position: this.camera.position.toArray(),
+            rotation: this.camera.rotation.toArray(),
+            near: this.camera.near,
+            far: this.camera.far,
+            zoom: this.camera.zoom,
+        }
+
+        return result
+    }
+    GetSceneData() {
+        const bodies = this.scene.children
+            .filter((o) => o?.name === 'torso')
+            .map((o) => this.GetBodyData(o))
+
+        const data = {
+            header: 'Openpose Editor by Yu Zhu',
+            version: __APP_VERSION__,
+            object: {
+                bodies: bodies,
+                camera: this.GetCameraData(),
+            },
+            setting: {},
+        }
+
+        return data
+    }
+    AutoSaveScene() {
+        try {
+            setInterval(() => {
+                localStorage.setItem(
+                    'AutoSaveSceneData',
+                    JSON.stringify(this.GetSceneData())
+                )
+            }, 5000)
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
+    SaveScene() {
+        try {
+            downloadJson(
+                JSON.stringify(this.GetSceneData()),
+                `scene_${getCurrentTime()}.json`
+            )
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
+    ClearScene() {
+        this.scene.children
+            .filter((o) => o?.name === 'torso')
+            .forEach((o) => o.removeFromParent())
+    }
+
+    CreateBodiesFromData(bodies: BodyData[]) {
+        return bodies.map((data) => {
+            const body = CloneBody()!
+
+            body?.traverse((o) => {
+                if (o.name && o.name in data.child) {
+                    const child = data.child[o.name]
+                    o.position.fromArray(child.position)
+                    o.rotation.fromArray(child.rotation as any)
+                    o.scale.fromArray(child.scale)
+                }
+            })
+            body.position.fromArray(data.position)
+            body.rotation.fromArray(data.rotation as any)
+            body.scale.fromArray(data.scale)
+
+            return body
+        })
+    }
+    RestoreCamera(data: CameraData) {
+        this.camera.position.fromArray(data.position)
+        this.camera.rotation.fromArray(data.rotation as any)
+        this.camera.near = data.near
+        this.camera.far = data.far
+        this.camera.zoom = data.zoom
+        this.camera.updateProjectionMatrix()
+    }
+    RestoreScene(rawData: string) {
+        try {
+            if (!rawData) return
+            const data = JSON.parse(rawData)
+
+            const {
+                version,
+                object: { bodies, camera },
+                setting,
+            } = data
+
+            const bodiesObject = this.CreateBodiesFromData(bodies)
+            this.ClearScene()
+
+            if (bodiesObject.length > 0) this.scene.add(...bodiesObject)
+            this.RestoreCamera(camera)
+        } catch (error: any) {
+            Swal.fire({
+                icon: 'error',
+                title: i18n.t('Oops...')!,
+                text:
+                    i18n.t('Something went wrong!')! + '\n' + error?.stack ??
+                    error,
+                footer: `<a href="https://github.com/ZhUyU1997/open-pose-editor/issues">${i18n.t(
+                    'If the problem persists, please click here to ask a question.'
+                )}</a>`,
+            })
+            console.error(error)
+        }
+    }
+    RestoreAutoSavedScene() {
+        const rawData = localStorage.getItem('AutoSaveSceneData')
+        if (rawData) this.RestoreScene(rawData)
+    }
+    async LoadScene() {
+        const rawData = await uploadJson()
+        if (rawData) this.RestoreScene(rawData)
     }
 }

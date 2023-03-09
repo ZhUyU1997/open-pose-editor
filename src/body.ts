@@ -22,6 +22,7 @@ const coco_body_keypoints = [
     'right_ear',
     'left_ear',
 ]
+
 const connect_keypoints = [
     [1, 2],
     [1, 5],
@@ -122,7 +123,7 @@ function CreateLink2(
         transparent: true,
     })
     const mesh = new THREE.Mesh(new THREE.SphereGeometry(JointRadius), material)
-    mesh.name = parent.name
+    mesh.name = parent.name + '_link'
 
     // 将拉伸后的球体放在中点，并计算旋转轴和jiaodu
     const origin = startPosition.clone().add(endPostion).multiplyScalar(0.5)
@@ -150,7 +151,7 @@ function Torso(x: number, y: number, z: number) {
     const width = 30
     const height = 50
 
-    let object = new THREE.Group()
+    const object = new THREE.Group()
     object.name = 'torso'
 
     object.translateX(x)
@@ -315,7 +316,7 @@ export function CreateTemplateBody(hand: Object3D) {
 
     const right_hand = SkeletonUtils.clone(hand)
     const left_hand = SkeletonUtils.clone(hand)
-
+    right_hand.name = 'right_hand'
     right_hand.translateX(-0.4)
     right_hand.translateY(-22)
     right_hand.rotateY(Math.PI)
@@ -323,6 +324,7 @@ export function CreateTemplateBody(hand: Object3D) {
 
     right_hand.scale.multiplyScalar(2.2)
 
+    left_hand.name = 'left_hand'
     left_hand.scale.x = -1
     left_hand.translateX(0.4)
     left_hand.translateY(-22)
@@ -334,4 +336,11 @@ export function CreateTemplateBody(hand: Object3D) {
     left_elbow.add(left_hand)
 
     templateBody = torso
+}
+
+export function IsNeedSaveObject(name: string) {
+    if (coco_body_keypoints.includes(name)) return true
+    if (name === 'right_hand' || name === 'left_hand') return true
+    if (name.startsWith('shoujoint')) return true
+    return false
 }
