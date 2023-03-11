@@ -5,6 +5,8 @@ import { BodyControlor } from './body'
 
 const bodyParams = {
     HeadCircumference: 100,
+    HeadSize: 100,
+    NoseToNeck: 100,
     ShoulderWidth: 100,
     ChestWidth: 100,
     Belly: 100,
@@ -26,10 +28,21 @@ export function CreateBodyParamsControls(editor: BodyEditor, gui: dat.GUI) {
     let currentControlor: BodyControlor | null = null
     const params = gui.addFolder(i18n.t('Body Parameters'))
     params
+        .add(bodyParams, 'HeadSize', 0.1, 100)
+        .name(i18n.t('Head Size'))
+        .onChange((value: number) => {
+            if (currentControlor) currentControlor.HeadSize = value
+        })
+    params
+        .add(bodyParams, 'NoseToNeck', 0.1, 100)
+        .name(i18n.t('Nose To Neck'))
+        .onChange((value: number) => {
+            if (currentControlor) currentControlor.NoseToNeck = value
+        })
+    params
         .add(bodyParams, 'ShoulderWidth', 0.1, 100)
         .name(i18n.t('Shoulder Width'))
         .onChange((value: number) => {
-            console.log(value)
             if (currentControlor) currentControlor.ShoulderWidth = value
         })
     params
@@ -96,6 +109,10 @@ export function CreateBodyParamsControls(editor: BodyEditor, gui: dat.GUI) {
         select(controlor) {
             currentControlor = controlor
             console.log('select')
+            bodyParams.HeadSize = currentControlor.HeadSize
+
+            bodyParams.NoseToNeck = currentControlor.NoseToNeck
+
             bodyParams.ShoulderWidth = currentControlor.ShoulderWidth
             bodyParams.ShoulderToHip = currentControlor.ShoulderToHip
 

@@ -200,6 +200,10 @@ function UpdateLink4(
     mesh.setRotationFromAxisAngle(axis.normalize(), angle)
 }
 
+function UpdateLink2(startObject: Object3D, endObject: Object3D) {
+    UpdateLink4(startObject, endObject, startObject.name, endObject.name)
+}
+
 function Joint(name: string) {
     const object = new THREE.Mesh(
         new THREE.SphereGeometry(JointRadius),
@@ -459,6 +463,41 @@ export class BodyControlor {
         })
         return result
     }
+
+    getWorldPosition(o: Object3D) {
+        const pos = new THREE.Vector3()
+        o.getWorldPosition(pos)
+        return pos
+    }
+    get HeadSize() {
+        const size = this.getWorldPosition(this.part['right_ear']).distanceTo(
+            this.getWorldPosition(this.part['left_ear'])
+        )
+        return size
+    }
+    set HeadSize(value: number) {
+        const scale = value / this.HeadSize
+
+        const earLength = this.part['left_ear'].position.length() * scale
+        const eyeLength = this.part['left_eye'].position.length() * scale
+
+        this.part['left_ear'].position.normalize().multiplyScalar(earLength)
+        this.part['right_ear'].position.normalize().multiplyScalar(earLength)
+        this.part['left_eye'].position.normalize().multiplyScalar(eyeLength)
+        this.part['right_eye'].position.normalize().multiplyScalar(eyeLength)
+
+        UpdateLink2(this.part['nose'], this.part['left_eye'])
+        UpdateLink2(this.part['nose'], this.part['right_eye'])
+        UpdateLink2(this.part['left_eye'], this.part['left_ear'])
+        UpdateLink2(this.part['right_eye'], this.part['right_ear'])
+    }
+    get NoseToNeck() {
+        return this.part['nose'].position.length()
+    }
+    set NoseToNeck(value: number) {
+        this.part['nose'].position.normalize().multiplyScalar(value)
+        UpdateLink2(this.part['neck'], this.part['nose'])
+    }
     get ShoulderToHip() {
         return this.part['five'].position.length() * 2
     }
@@ -506,19 +545,8 @@ export class BodyControlor {
     set UpperArm(length: number) {
         this.part['left_elbow'].position.normalize().multiplyScalar(length)
         this.part['right_elbow'].position.normalize().multiplyScalar(length)
-        UpdateLink4(
-            this.part['left_shoulder'],
-            this.part['left_elbow'],
-            'left_shoulder',
-            'left_elbow'
-        )
-
-        UpdateLink4(
-            this.part['right_shoulder'],
-            this.part['right_elbow'],
-            'right_shoulder',
-            'right_elbow'
-        )
+        UpdateLink2(this.part['left_shoulder'], this.part['left_elbow'])
+        UpdateLink2(this.part['right_shoulder'], this.part['right_elbow'])
     }
     get Forearm() {
         return this.part['left_wrist'].position.length()
@@ -527,19 +555,8 @@ export class BodyControlor {
         this.part['left_wrist'].position.normalize().multiplyScalar(length)
         this.part['right_wrist'].position.normalize().multiplyScalar(length)
 
-        UpdateLink4(
-            this.part['left_elbow'],
-            this.part['left_wrist'],
-            'left_elbow',
-            'left_wrist'
-        )
-
-        UpdateLink4(
-            this.part['right_elbow'],
-            this.part['right_wrist'],
-            'right_elbow',
-            'right_wrist'
-        )
+        UpdateLink2(this.part['left_elbow'], this.part['left_wrist'])
+        UpdateLink2(this.part['right_elbow'], this.part['right_wrist'])
     }
 
     get ArmLength() {
@@ -558,19 +575,8 @@ export class BodyControlor {
         this.part['left_knee'].position.normalize().multiplyScalar(length)
         this.part['right_knee'].position.normalize().multiplyScalar(length)
 
-        UpdateLink4(
-            this.part['left_hip'],
-            this.part['left_knee'],
-            'left_hip',
-            'left_knee'
-        )
-
-        UpdateLink4(
-            this.part['right_hip'],
-            this.part['right_knee'],
-            'right_hip',
-            'right_knee'
-        )
+        UpdateLink2(this.part['left_hip'], this.part['left_knee'])
+        UpdateLink2(this.part['right_hip'], this.part['right_knee'])
     }
 
     get HandSize() {
@@ -609,19 +615,8 @@ export class BodyControlor {
         this.part['left_ankle'].position.normalize().multiplyScalar(length)
         this.part['right_ankle'].position.normalize().multiplyScalar(length)
 
-        UpdateLink4(
-            this.part['left_knee'],
-            this.part['left_ankle'],
-            'left_knee',
-            'left_ankle'
-        )
-
-        UpdateLink4(
-            this.part['right_knee'],
-            this.part['right_ankle'],
-            'right_knee',
-            'right_ankle'
-        )
+        UpdateLink2(this.part['left_knee'], this.part['left_ankle'])
+        UpdateLink2(this.part['right_knee'], this.part['right_ankle'])
     }
 
     get LegLength() {
