@@ -25,8 +25,7 @@ https://user-images.githubusercontent.com/18410894/224073965-c782a05f-0a20-41cf-
 - **Select Body**: Click on the body to select it.
 - **Open Body Parameters**: Click on "Body Parameters" in the menu to adjust the body's parameters.
 ### Adjust Output Resolution:
-- **Change Browser Window Size**: Adjust the size of your browser window to control the output resolution.
-
+- **Adjust Output Resolution in Menu**: Change the "Width" or "Height" in the menu to control the output resolution.
 ### Other Functions:
 - **Switch to Move Mode**: Press the X key to switch to move mode, allowing you to move the entire body.
 - **Delete Body**: Press the D key to delete the entire body.
