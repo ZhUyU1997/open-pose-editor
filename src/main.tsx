@@ -39,16 +39,26 @@ gui.add(editor, 'SaveScene').name(i18n.t('Save Scene'))
 gui.add(editor, 'LoadScene').name(i18n.t('Load Scene'))
 gui.add(editor, 'RestoreLastSavedScene').name(i18n.t('Restore Last Scene'))
 
-options['width'] = editor.Width
-options['height'] = editor.Height
-gui.add(editor, 'Width').name(i18n.t('Width'))
-gui.add(editor, 'Height').name(i18n.t('Height'))
+options['Width'] = editor.Width
+options['Height'] = editor.Height
+gui.add(options, 'Width', 128, 5000)
+    .name(i18n.t('Width'))
+    .onChange(() => {
+        options.autoSize = false
+    })
+gui.add(options, 'Height', 128, 5000)
+    .name(i18n.t('Height'))
+    .onChange(() => {
+        options.autoSize = false
+    })
 
 function UpdateSize() {
-    options['width'] = editor.Width
-    options['height'] = editor.Height
+    if (options.autoSize) {
+        options['Width'] = editor.Width
+        options['Height'] = editor.Height
 
-    gui.updateDisplay()
+        gui.updateDisplay()
+    }
 }
 
 UpdateSize()
@@ -63,7 +73,8 @@ gui.add(editor, 'RemoveBody').name(
 )
 gui.add(options, 'moveMode').name(i18n.t('Move Mode (Press X key)'))
 
-gui.add(editor, 'enableComposer').name(i18n.t('Show Edge Map'))
+// gui.add(editor, 'enableComposer').name(i18n.t('Show Edge Map'))
+gui.add(editor, 'enablePreview').name(i18n.t('Show Preview'))
 
 gui.add(editor, 'CameraNear', 0.1, 1000).name(i18n.t('Camera Near'))
 gui.add(editor, 'CameraFar', 0.1, 1000).name(i18n.t('Camera Far'))

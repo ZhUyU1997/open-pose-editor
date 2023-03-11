@@ -87,6 +87,7 @@ type EditorUnselectEventHandler = () => void
 
 export class BodyEditor {
     renderer: THREE.WebGLRenderer
+    outputRenderer: THREE.WebGLRenderer
     scene: THREE.Scene
     gridHelper: THREE.GridHelper
     axesHelper: THREE.AxesHelper
@@ -104,12 +105,21 @@ export class BodyEditor {
     composer?: EffectComposer
     effectSobel?: ShaderPass
     enableComposer = false
+    enablePreview = true
+
     constructor(canvas: HTMLCanvasElement) {
         this.renderer = new THREE.WebGLRenderer({
             canvas,
             antialias: true,
             // logarithmicDepthBuffer: true
         })
+        this.outputRenderer = new THREE.WebGLRenderer({
+            antialias: true,
+            // logarithmicDepthBuffer: true
+        })
+        this.outputRenderer.domElement.style.display = 'none'
+        document.body.appendChild(this.outputRenderer.domElement)
+
         this.renderer.setClearColor(options.clearColor, 0.0)
         this.scene = new THREE.Scene()
 
@@ -143,9 +153,9 @@ export class BodyEditor {
         this.transformControl.setMode('rotate') //旋转
         // transformControl.setSize(0.4);
         this.transformControl.setSpace('local')
-        this.transformControl.addEventListener('change', () =>
-            this.renderer.render(this.scene, this.camera)
-        )
+        this.transformControl.addEventListener('change', () => {
+            // this.renderer.render(this.scene, this.camera)
+        })
 
         this.transformControl.addEventListener('mouseDown', () => {
             this.orbitControls.enabled = false
@@ -199,86 +209,92 @@ export class BodyEditor {
         this.AutoSaveScene()
     }
 
-    target?: THREE.WebGLRenderTarget
-    setupRenderTarget() {
-        if (this.target) this.target.dispose()
-
-        const params = {
-            format: THREE.DepthFormat,
-            type: THREE.UnsignedShortType,
-        }
-
-        const format = params.format
-        const type = params.type
-
-        this.target = new THREE.WebGLRenderTarget(
-            window.innerWidth,
-            window.innerHeight
-        )
-        this.target.texture.minFilter = THREE.NearestFilter
-        this.target.texture.magFilter = THREE.NearestFilter
-        this.target.stencilBuffer =
-            format === THREE.DepthStencilFormat ? true : false
-        this.target.depthTexture = new THREE.DepthTexture(
-            window.innerWidth,
-            window.innerHeight
-        )
-        this.target.depthTexture.format = format
-        this.target.depthTexture.type = type
-    }
-
-    postCamera?: THREE.OrthographicCamera
-    postMaterial?: THREE.ShaderMaterial
-    postScene?: THREE.Scene
-    setupPost() {
-        // Setup post processing stage
-        this.postCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1)
-        this.postMaterial = new THREE.ShaderMaterial({
-            vertexShader: document
-                .querySelector('#post-vert')
-                ?.textContent?.trim(),
-            fragmentShader: document
-                .querySelector('#post-frag')
-                ?.textContent?.trim(),
-            uniforms: {
-                cameraNear: { value: this.camera.near },
-                cameraFar: { value: this.camera.far },
-                tDiffuse: { value: null },
-                tDepth: { value: null },
-            },
-        })
-        const postPlane = new THREE.PlaneGeometry(2, 2)
-        const postQuad = new THREE.Mesh(postPlane, this.postMaterial)
-        this.postScene = new THREE.Scene()
-        this.postScene.add(postQuad)
-    }
-
-    render() {
-        this.handleResize()
-
+    render(width: number = this.Width, height: number = this.Height) {
         // this.ikSolver?.update()
 
-        if (this.postMaterial && this.target) {
-            this.renderer.setRenderTarget(this.target)
-            // this.postMaterial.uniforms.cameraNear.value = 100
-            // this.postMaterial.uniforms.cameraNear.value = 200
-            this.postMaterial.uniforms.tDiffuse.value = this.target.texture
-            this.postMaterial.uniforms.tDepth.value = this.target.depthTexture
+        this.renderer.setViewport(0, 0, width, height)
+        this.renderer.setScissor(0, 0, width, height)
+        this.renderer.setScissorTest(true)
+
+        this.renderer.render(this.scene, this.camera)
+    }
+
+    renderPreview() {
+        const outputWidth = options.autoSize ? this.Width : options.Width
+        const outputHeight = options.autoSize ? this.Height : options.Height
+
+        const outputAspect = outputWidth / outputHeight
+        const maxOutoutAspect = 2
+        const [left, bottom, width, height] =
+            outputAspect > maxOutoutAspect
+                ? [
+                      this.Width - 50 - 150 * maxOutoutAspect,
+                      220,
+                      150 * maxOutoutAspect,
+                      (150 * maxOutoutAspect * outputHeight) / outputWidth,
+                  ]
+                : [
+                      this.Width - 50 - (150 * outputWidth) / outputHeight,
+                      220,
+                      (150 * outputWidth) / outputHeight,
+                      150,
+                  ]
+        const save = {
+            viewport: new THREE.Vector4(),
+            scissor: new THREE.Vector4(),
+            scissorTest: this.renderer.getScissorTest(),
+            aspect: this.camera.aspect,
         }
 
-        if (this.enableComposer && this.composer) this.composer?.render()
-        else this.renderer.render(this.scene, this.camera)
+        this.renderer.getViewport(save.viewport)
+        this.renderer.getScissor(save.viewport)
 
-        if (this.postScene && this.postCamera) {
-            this.renderer.setRenderTarget(null)
-            this.renderer.render(this.postScene!, this.postCamera!)
+        this.renderer.setViewport(left, bottom, width, height)
+        this.renderer.setScissor(left, bottom, width, height)
+        this.renderer.setScissorTest(true)
+        this.camera.aspect = width / height
+        this.camera.updateProjectionMatrix()
+        this.renderer.render(this.scene, this.camera)
+
+        // restore
+        this.renderer.setViewport(save.viewport)
+        this.renderer.setScissor(save.scissor)
+        this.renderer.setScissorTest(save.scissorTest)
+        this.camera.aspect = save.aspect
+        this.camera.updateProjectionMatrix()
+    }
+
+    renderOutput() {
+        const outputWidth = options.autoSize ? this.Width : options.Width
+        const outputHeight = options.autoSize ? this.Height : options.Height
+
+        this.changeComposerResoultion(outputWidth, outputHeight)
+
+        const save = {
+            aspect: this.camera.aspect,
+        }
+        this.camera.aspect = outputWidth / outputHeight
+        this.camera.updateProjectionMatrix()
+        this.outputRenderer.setSize(outputWidth, outputHeight, true)
+
+        if (this.enableComposer) {
+            this.composer?.render()
+        } else {
+            this.outputRenderer.render(this.scene, this.camera)
         }
 
-        this.stats.update()
+        this.camera.aspect = save.aspect
+        this.camera.updateProjectionMatrix()
+    }
+    getOutputPNG() {
+        return this.outputRenderer.domElement.toDataURL('image/png')
     }
     animate() {
         requestAnimationFrame(this.animate.bind(this))
+        this.handleResize()
         this.render()
+        if (this.enablePreview) this.renderPreview()
+        this.stats.update()
     }
 
     getAncestors(o: Object3D) {
@@ -402,28 +418,6 @@ export class BodyEditor {
             })
     }
 
-    Capture() {
-        this.transformControl.detach()
-
-        this.axesHelper.visible = false
-        this.gridHelper.visible = false
-
-        this.traverseHandObjecct((o) => (o.visible = false))
-
-        this.render()
-        const imgData = this.renderer.domElement.toDataURL('image/png')
-        const fileName = 'pose_' + getCurrentTime()
-        this.axesHelper.visible = true
-        this.gridHelper.visible = true
-
-        this.traverseHandObjecct((o) => (o.visible = true))
-
-        return {
-            imgData,
-            fileName,
-        }
-    }
-
     hideSkeleten() {
         const map = new Map<Object3D, Object3D | null>()
 
@@ -469,30 +463,6 @@ export class BodyEditor {
 
         return () => (this.enableComposer = save)
     }
-    CaptureCanny() {
-        this.transformControl.detach()
-
-        this.axesHelper.visible = false
-        this.gridHelper.visible = false
-
-        const map = this.hideSkeleten()
-
-        const restore = this.changeComposer(true)
-        this.render()
-
-        const imgData = this.renderer.domElement.toDataURL('image/png')
-        const fileName = 'canny_' + getCurrentTime()
-        this.axesHelper.visible = true
-        this.gridHelper.visible = true
-
-        this.showSkeleten(map)
-        restore()
-
-        return {
-            imgData,
-            fileName,
-        }
-    }
 
     changeHandMaterial(type: 'depth' | 'normal' | 'phone') {
         let initType = 'depth'
@@ -527,6 +497,54 @@ export class BodyEditor {
             })
         }
     }
+
+    Capture() {
+        this.transformControl.detach()
+
+        this.axesHelper.visible = false
+        this.gridHelper.visible = false
+
+        this.traverseHandObjecct((o) => (o.visible = false))
+
+        this.renderOutput()
+        const imgData = this.getOutputPNG()
+        const fileName = 'pose_' + getCurrentTime()
+        this.axesHelper.visible = true
+        this.gridHelper.visible = true
+
+        this.traverseHandObjecct((o) => (o.visible = true))
+
+        return {
+            imgData,
+            fileName,
+        }
+    }
+
+    CaptureCanny() {
+        this.transformControl.detach()
+
+        this.axesHelper.visible = false
+        this.gridHelper.visible = false
+
+        const map = this.hideSkeleten()
+
+        const restore = this.changeComposer(true)
+        this.renderOutput()
+
+        const imgData = this.getOutputPNG()
+        const fileName = 'canny_' + getCurrentTime()
+        this.axesHelper.visible = true
+        this.gridHelper.visible = true
+
+        this.showSkeleten(map)
+        restore()
+
+        return {
+            imgData,
+            fileName,
+        }
+    }
+
     CaptureNormal() {
         this.transformControl.detach()
 
@@ -536,9 +554,9 @@ export class BodyEditor {
         const restoreHand = this.changeHandMaterial('normal')
         const map = this.hideSkeleten()
         const restore = this.changeComposer(false)
-        this.render()
+        this.renderOutput()
 
-        let imgData = this.renderer.domElement.toDataURL('image/png')
+        const imgData = this.getOutputPNG()
         const fileName = 'normal_' + getCurrentTime()
         this.axesHelper.visible = true
         this.gridHelper.visible = true
@@ -599,10 +617,10 @@ export class BodyEditor {
         const restore = this.changeComposer(false)
 
         const restoreCamera = this.changeCamera()
-        this.render()
+        this.renderOutput()
         restoreCamera()
 
-        const imgData = this.renderer.domElement.toDataURL('image/png')
+        const imgData = this.getOutputPNG()
         const fileName = 'depth_' + getCurrentTime()
         this.axesHelper.visible = true
         this.gridHelper.visible = true
@@ -697,11 +715,10 @@ export class BodyEditor {
 
         console.log(canvas.clientWidth, canvas.clientHeight)
         this.renderer.setSize(canvas.clientWidth, canvas.clientHeight, false)
-        this.chnageComposerResoultion()
     }
 
     initEdgeComposer() {
-        this.composer = new EffectComposer(this.renderer)
+        this.composer = new EffectComposer(this.outputRenderer)
         const renderPass = new RenderPass(this.scene, this.camera)
         this.composer.addPass(renderPass)
 
@@ -723,13 +740,13 @@ export class BodyEditor {
         this.composer.addPass(effectSobel)
     }
 
-    chnageComposerResoultion() {
-        this.composer?.setSize(this.Width, this.Height)
+    changeComposerResoultion(width: number, height: number) {
+        this.composer?.setSize(width, height)
         if (this.effectSobel) {
             this.effectSobel.uniforms['resolution'].value.x =
-                this.Width * window.devicePixelRatio
+                width * window.devicePixelRatio
             this.effectSobel.uniforms['resolution'].value.y =
-                this.Height * window.devicePixelRatio
+                height * window.devicePixelRatio
         }
     }
 

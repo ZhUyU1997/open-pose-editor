@@ -4,6 +4,9 @@ import { uploadImage } from './util'
 export const options: Record<string, any> = {
     clearColor: 0xaaaaaa,
     moveMode: false,
+    autoSize: true,
+    Width: 0,
+    Height: 0,
     changeLanguage() {
         const url = new URL(window.location.href)
         url.searchParams.set('lng', i18n.language === 'zh' ? 'en' : 'zh')
