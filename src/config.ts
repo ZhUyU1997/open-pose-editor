@@ -3,7 +3,6 @@ import { uploadImage } from './util'
 
 export const options: Record<string, any> = {
     clearColor: 0xaaaaaa,
-    moveMode: false,
     autoSize: true,
     Width: 0,
     Height: 0,

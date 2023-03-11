@@ -366,7 +366,7 @@ export class BodyEditor {
                 return
             }
 
-            if (options.moveMode) {
+            if (this.MoveMode) {
                 obj = this.getBodyByPart(obj)
 
                 if (obj) {
@@ -684,14 +684,31 @@ export class BodyEditor {
         this.scene.add(body)
     }
 
-    RemoveBody() {
+    getSelectedBody() {
         let obj: Object3D | null = this.transformControl.object ?? null
         obj = obj ? this.getBodyByPart(obj) : null
+
+        return obj
+    }
+    RemoveBody() {
+        const obj = this.getSelectedBody()
 
         if (obj) {
             console.log(obj.name)
             obj.removeFromParent()
             this.transformControl.detach()
+        }
+    }
+
+    get MoveMode() {
+        return this.transformControl.mode == 'translate'
+    }
+    set MoveMode(move: boolean) {
+        this.transformControl.setMode(move ? 'translate' : 'rotate')
+
+        if (move) {
+            const obj = this.getSelectedBody()
+            if (obj) this.transformControl.attach(obj)
         }
     }
     get Width() {
@@ -894,6 +911,13 @@ export class BodyEditor {
     set CameraFar(value: number) {
         this.camera.far = value
         this.camera.updateProjectionMatrix()
+    }
+
+    get CameraFocalLength() {
+        return this.camera.getFocalLength()
+    }
+    set CameraFocalLength(value) {
+        this.camera.setFocalLength(value)
     }
 
     GetBodyData(o: Object3D): BodyData {

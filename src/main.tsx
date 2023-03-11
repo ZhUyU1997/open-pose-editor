@@ -14,7 +14,7 @@ const gui = new dat.GUI()
 window.addEventListener('keydown', function (event) {
     switch (event.code) {
         case 'KeyX':
-            options.moveMode = true
+            editor.MoveMode = true
             gui.updateDisplay()
             break
         case 'KeyD':
@@ -26,7 +26,7 @@ window.addEventListener('keydown', function (event) {
 window.addEventListener('keyup', function (event) {
     switch (event.code) {
         case 'KeyX':
-            options.moveMode = false
+            editor.MoveMode = false
             gui.updateDisplay()
             break
     }
@@ -71,13 +71,16 @@ gui.add(editor, 'CopyBodyX').name(i18n.t('Duplicate Skeleton (X-axis)'))
 gui.add(editor, 'RemoveBody').name(
     i18n.t('Delete Selected Skeleton (Press D key)')
 )
-gui.add(options, 'moveMode').name(i18n.t('Move Mode (Press X key)'))
+gui.add(editor, 'MoveMode').name(i18n.t('Move Mode (Press X key)'))
 
 // gui.add(editor, 'enableComposer').name(i18n.t('Show Edge Map'))
 gui.add(editor, 'enablePreview').name(i18n.t('Show Preview'))
 
 gui.add(editor, 'CameraNear', 0.1, 1000).name(i18n.t('Camera Near'))
 gui.add(editor, 'CameraFar', 0.1, 1000).name(i18n.t('Camera Far'))
+gui.add(editor, 'CameraFocalLength', 0.1, 100).name(
+    i18n.t('Camera Focal Length')
+)
 
 CreateBodyParamsControls(editor, gui)
 
