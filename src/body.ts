@@ -1,8 +1,9 @@
 import * as THREE from 'three'
 import { Object3D } from 'three'
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils'
+import type { TupleToUnion } from 'type-fest'
 
-const coco_body_keypoints = [
+const coco_body_keypoints_const = [
     'nose',
     'neck',
     'right_shoulder',
@@ -21,7 +22,9 @@ const coco_body_keypoints = [
     'left_eye',
     'right_ear',
     'left_ear',
-]
+] as const
+
+const coco_body_keypoints = coco_body_keypoints_const as unknown as string[]
 
 const connect_keypoints = [
     [1, 2],
@@ -82,16 +85,22 @@ function SearchColor(start: number, end: number) {
     return null
 }
 
-function GetColorOfLink(start: Object3D, end: Object3D) {
-    if (!start.name || !end.name) return null
+function GetColorOfLinkByName(startName: string, endName: string) {
+    if (!startName || !endName) return null
 
-    const indexStart = coco_body_keypoints.indexOf(start.name)
-    const indexEnd = coco_body_keypoints.indexOf(end.name)
+    const indexStart = coco_body_keypoints.indexOf(startName)
+    const indexEnd = coco_body_keypoints.indexOf(endName)
 
     if (indexStart === -1 || indexEnd === -1) return null
 
     if (indexStart > indexEnd) return SearchColor(indexEnd, indexStart)
     else return SearchColor(indexStart, indexEnd)
+}
+
+function GetColorOfLink(start: Object3D, end: Object3D) {
+    if (!start.name || !end.name) return null
+
+    return GetColorOfLinkByName(start.name, end.name)
 }
 
 function GetPresetColorOfJoint(name: string) {
@@ -123,7 +132,7 @@ function CreateLink2(
         transparent: true,
     })
     const mesh = new THREE.Mesh(new THREE.SphereGeometry(JointRadius), material)
-    mesh.name = parent.name + '_link'
+    mesh.name = parent.name + '_link_' + endObject.name
 
     // 将拉伸后的球体放在中点，并计算旋转轴和jiaodu
     const origin = startPosition.clone().add(endPostion).multiplyScalar(0.5)
@@ -138,6 +147,59 @@ function CreateLink2(
     parent.add(mesh)
 }
 
+function CreateLink4(
+    startObject: THREE.Object3D,
+    endObject: THREE.Object3D,
+    startName: string,
+    endName: string
+) {
+    const startPosition = new THREE.Vector3(0, 0, 0)
+    const endPostion = endObject.position
+    const distance = startPosition.distanceTo(endPostion)
+
+    const presetColor = GetColorOfLinkByName(startName, endName)
+    const material = new THREE.MeshBasicMaterial({
+        color: presetColor ?? 0x0,
+        opacity: 0.6,
+        transparent: true,
+    })
+    const mesh = new THREE.Mesh(new THREE.SphereGeometry(JointRadius), material)
+    mesh.name = startName + '_link_' + endName
+
+    // 将拉伸后的球体放在中点，并计算旋转轴和角度
+    const origin = startPosition.clone().add(endPostion).multiplyScalar(0.5)
+    const v = endPostion.clone().sub(startPosition)
+    const unit = new THREE.Vector3(1, 0, 0)
+    const axis = unit.clone().cross(v)
+    const angle = unit.clone().angleTo(v)
+
+    mesh.scale.copy(new THREE.Vector3(distance / 2, 1, 1))
+    mesh.position.copy(origin)
+    mesh.setRotationFromAxisAngle(axis.normalize(), angle)
+    startObject.add(mesh)
+}
+
+function UpdateLink4(
+    startObject: Object3D,
+    endObject: Object3D,
+    startName: string,
+    endName: string
+) {
+    const startPosition = new THREE.Vector3(0, 0, 0)
+    const endPostion = endObject.position
+    const distance = startPosition.distanceTo(endPostion)
+    // 将拉伸后的球体放在中点，并计算旋转轴和角度
+    const origin = startPosition.clone().add(endPostion).multiplyScalar(0.5)
+    const v = endPostion.clone().sub(startPosition)
+    const unit = new THREE.Vector3(1, 0, 0)
+    const axis = unit.clone().cross(v)
+    const angle = unit.clone().angleTo(v)
+    const mesh = startObject.getObjectByName(startName + '_link_' + endName)!
+    mesh.scale.copy(new THREE.Vector3(distance / 2, 1, 1))
+    mesh.position.copy(origin)
+    mesh.setRotationFromAxisAngle(axis.normalize(), angle)
+}
+
 function Joint(name: string) {
     const object = new THREE.Mesh(
         new THREE.SphereGeometry(JointRadius),
@@ -148,8 +210,8 @@ function Joint(name: string) {
 }
 
 function Torso(x: number, y: number, z: number) {
-    const width = 30
-    const height = 50
+    const width = 34
+    const height = 46
 
     const object = new THREE.Group()
     object.name = 'torso'
@@ -158,39 +220,49 @@ function Torso(x: number, y: number, z: number) {
     object.translateY(y)
     object.translateZ(z)
 
+    const five = new THREE.Group()
+    five.name = 'five'
+    five.translateY(height / 2)
+    object.add(five)
+
     const neck = Joint('neck')
-    neck.translateY(height / 2 - 5)
-    object.add(neck)
+    five.add(neck)
+
+    const shoulder = new THREE.Group()
+    shoulder.name = 'shoulder'
+    five.add(shoulder)
 
     const right_shoulder = Joint('right_shoulder')
-    right_shoulder.translateX(-width / 2 - 2)
-    right_shoulder.translateY(height / 2 - 5)
+    right_shoulder.translateX(-width / 2)
 
     const left_shoulder = Joint('left_shoulder')
 
-    left_shoulder.translateX(width / 2 + 2)
-    left_shoulder.translateY(height / 2 - 5)
+    left_shoulder.translateX(width / 2)
+    x
+    shoulder.add(right_shoulder)
+    shoulder.add(left_shoulder)
 
-    object.add(right_shoulder)
-    object.add(left_shoulder)
+    const hip = new THREE.Group()
+    hip.name = 'hip'
+    five.add(hip)
 
     const right_hip = Joint('right_hip')
 
-    right_hip.translateX(-width / 2 + 8)
-    right_hip.translateY(-height / 2)
+    right_hip.translateX(-width / 2 + 10)
+    right_hip.translateY(-height)
 
     const left_hip = Joint('left_hip')
 
-    left_hip.translateX(width / 2 - 8)
-    left_hip.translateY(-height / 2)
+    left_hip.translateX(width / 2 - 10)
+    left_hip.translateY(-height)
 
-    CreateLink2(object, neck, right_hip)
-    CreateLink2(object, neck, left_hip)
-    CreateLink2(object, neck, right_shoulder)
-    CreateLink2(object, neck, left_shoulder)
+    hip.add(right_hip)
+    hip.add(left_hip)
 
-    object.add(right_hip)
-    object.add(left_hip)
+    CreateLink4(hip, right_hip, 'neck', 'right_hip')
+    CreateLink4(hip, left_hip, 'neck', 'left_hip')
+    CreateLink4(shoulder, right_shoulder, 'neck', 'right_shoulder')
+    CreateLink4(shoulder, left_shoulder, 'neck', 'left_shoulder')
 
     return {
         neck,
@@ -318,7 +390,7 @@ export function CreateTemplateBody(hand: Object3D) {
     const left_hand = SkeletonUtils.clone(hand)
     right_hand.name = 'right_hand'
     right_hand.translateX(-0.4)
-    right_hand.translateY(-22)
+    right_hand.translateY(3)
     right_hand.rotateY(Math.PI)
     right_hand.rotateZ(-Math.PI / 2)
 
@@ -327,13 +399,13 @@ export function CreateTemplateBody(hand: Object3D) {
     left_hand.name = 'left_hand'
     left_hand.scale.x = -1
     left_hand.translateX(0.4)
-    left_hand.translateY(-22)
+    left_hand.translateY(3)
     left_hand.rotateY(Math.PI)
     left_hand.rotateZ(Math.PI / 2)
     left_hand.scale.multiplyScalar(2.2)
 
-    right_elbow.add(right_hand)
-    left_elbow.add(left_hand)
+    right_wrist.add(right_hand)
+    left_wrist.add(left_hand)
 
     templateBody = torso
 }
@@ -341,6 +413,223 @@ export function CreateTemplateBody(hand: Object3D) {
 export function IsNeedSaveObject(name: string) {
     if (coco_body_keypoints.includes(name)) return true
     if (name === 'right_hand' || name === 'left_hand') return true
+    if (name === 'shoulder' || name === 'hip') return true // virtual point
     if (name.startsWith('shoujoint')) return true
+    if (name.includes('_link_')) return true
     return false
+}
+
+export class BodyControlor {
+    body: Object3D
+    part: Record<
+        | TupleToUnion<typeof coco_body_keypoints_const>
+        | 'hip'
+        | 'shoulder'
+        | 'five'
+        | 'right_hand'
+        | 'left_hand',
+        Object3D
+    > = {} as any
+    constructor(o: Object3D) {
+        this.body = o
+        this.body.traverse((o) => {
+            if (coco_body_keypoints.includes(o.name as any)) {
+                this.part[
+                    o.name as TupleToUnion<typeof coco_body_keypoints_const>
+                ] = o
+            }
+        })
+        this.part['hip'] = this.body.getObjectByName('hip')!
+        this.part['shoulder'] = this.body.getObjectByName('shoulder')!
+        this.part['five'] = this.body.getObjectByName('five')!
+        this.part['right_hand'] = this.body.getObjectByName('right_hand')!
+        this.part['left_hand'] = this.body.getObjectByName('left_hand')!
+    }
+    findObjectItem<T extends Object3D>(
+        object: Object3D,
+        name: string
+    ): T | null {
+        //console.log(object);
+        let result = null
+        object.traverse((child) => {
+            //console.log("child", child);
+            if (child.name == name) {
+                result = child
+            }
+        })
+        return result
+    }
+    get ShoulderToHip() {
+        return this.part['five'].position.length() * 2
+    }
+    set ShoulderToHip(value: number) {
+        this.part['five'].position.setY(value / 2)
+        this.part['left_hip'].position.setY(-value)
+        this.part['right_hip'].position.setY(-value)
+
+        UpdateLink4(this.part['hip'], this.part['left_hip'], 'neck', 'left_hip')
+        UpdateLink4(
+            this.part['hip'],
+            this.part['right_hip'],
+            'neck',
+            'right_hip'
+        )
+    }
+    get ShoulderWidth() {
+        return this.part['left_shoulder'].position.distanceTo(
+            this.part['right_shoulder'].position
+        )
+    }
+    set ShoulderWidth(width: number) {
+        const right_shoulder = this.part['right_shoulder']
+        right_shoulder.position.x = -width / 2
+        const left_shoulder = this.part['left_shoulder']
+        left_shoulder.position.x = width / 2
+
+        UpdateLink4(
+            this.part['shoulder'],
+            this.part['right_shoulder'],
+            'neck',
+            'right_shoulder'
+        )
+        UpdateLink4(
+            this.part['shoulder'],
+            this.part['left_shoulder'],
+            'neck',
+            'left_shoulder'
+        )
+    }
+
+    get UpperArm() {
+        return this.part['left_elbow'].position.length()
+    }
+    set UpperArm(length: number) {
+        this.part['left_elbow'].position.normalize().multiplyScalar(length)
+        this.part['right_elbow'].position.normalize().multiplyScalar(length)
+        UpdateLink4(
+            this.part['left_shoulder'],
+            this.part['left_elbow'],
+            'left_shoulder',
+            'left_elbow'
+        )
+
+        UpdateLink4(
+            this.part['right_shoulder'],
+            this.part['right_elbow'],
+            'right_shoulder',
+            'right_elbow'
+        )
+    }
+    get Forearm() {
+        return this.part['left_wrist'].position.length()
+    }
+    set Forearm(length: number) {
+        this.part['left_wrist'].position.normalize().multiplyScalar(length)
+        this.part['right_wrist'].position.normalize().multiplyScalar(length)
+
+        UpdateLink4(
+            this.part['left_elbow'],
+            this.part['left_wrist'],
+            'left_elbow',
+            'left_wrist'
+        )
+
+        UpdateLink4(
+            this.part['right_elbow'],
+            this.part['right_wrist'],
+            'right_elbow',
+            'right_wrist'
+        )
+    }
+
+    get ArmLength() {
+        return this.UpperArm + this.Forearm
+    }
+    set ArmLength(length: number) {
+        const origin = this.ArmLength
+        this.UpperArm = (length * this.UpperArm) / origin
+        this.Forearm = (length * this.Forearm) / origin
+    }
+
+    get Thigh() {
+        return this.part['left_knee'].position.length()
+    }
+    set Thigh(length: number) {
+        this.part['left_knee'].position.normalize().multiplyScalar(length)
+        this.part['right_knee'].position.normalize().multiplyScalar(length)
+
+        UpdateLink4(
+            this.part['left_hip'],
+            this.part['left_knee'],
+            'left_hip',
+            'left_knee'
+        )
+
+        UpdateLink4(
+            this.part['right_hip'],
+            this.part['right_knee'],
+            'right_hip',
+            'right_knee'
+        )
+    }
+
+    get HandSize() {
+        const fixedScale = 2.2
+        return Math.abs(this.part['left_hand'].scale.x) / fixedScale
+    }
+    set HandSize(size: number) {
+        const fixedScale = 2.2
+        const origin = this.HandSize
+        this.part['left_hand'].scale
+            .divideScalar(origin * fixedScale)
+            .multiplyScalar(size * fixedScale)
+        this.part['right_hand'].scale
+            .divideScalar(origin * fixedScale)
+            .multiplyScalar(size * fixedScale)
+    }
+
+    get Hips() {
+        return Math.abs(this.part['left_hip'].position.x) * 2
+    }
+    set Hips(width: number) {
+        this.part['left_hip'].position.setX(-width / 2)
+        this.part['right_hip'].position.setX(width / 2)
+        UpdateLink4(this.part['hip'], this.part['left_hip'], 'neck', 'left_hip')
+        UpdateLink4(
+            this.part['hip'],
+            this.part['right_hip'],
+            'neck',
+            'right_hip'
+        )
+    }
+    get LowerLeg() {
+        return this.part['left_ankle'].position.length()
+    }
+    set LowerLeg(length: number) {
+        this.part['left_ankle'].position.normalize().multiplyScalar(length)
+        this.part['right_ankle'].position.normalize().multiplyScalar(length)
+
+        UpdateLink4(
+            this.part['left_knee'],
+            this.part['left_ankle'],
+            'left_knee',
+            'left_ankle'
+        )
+
+        UpdateLink4(
+            this.part['right_knee'],
+            this.part['right_ankle'],
+            'right_knee',
+            'right_ankle'
+        )
+    }
+
+    get LegLength() {
+        return this.Thigh + this.LowerLeg
+    }
+    set LegLength(length: number) {
+        const origin = this.LegLength
+        this.Thigh = (length * this.Thigh) / origin
+        this.LowerLeg = (length * this.LowerLeg) / origin
+    }
 }

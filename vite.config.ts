@@ -8,7 +8,7 @@ export default defineConfig({
   base: '/open-pose-editor/',
   define: {
     global: {},
-    __APP_VERSION__: JSON.stringify("v0.0.1"),
+    __APP_VERSION__: JSON.stringify("v0.0.2"),
     __APP_BUILD_TIME__: Date.now()
   },
   build: {

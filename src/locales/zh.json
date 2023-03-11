@@ -19,5 +19,16 @@
     "Load Scene": "加载场景",
     "Restore Last Scene": "恢复上次场景",
     "Set Background Image": "设置背景图片",
-    "Select an image": "选择一张图片"
+    "Select an image": "选择一张图片",
+    "Body Parameters": "身体参数",
+    "Shoulder Width": "肩宽",
+    "Shoulder To Hip": "肩到臀",
+    "Arm Length": "手臂长度",
+    "Forearm": "前臂",
+    "Upper Arm": "上臂",
+    "Hand Size": "手部尺寸",
+    "Hips": "臀部宽度",
+    "Leg Length": "腿部长度",
+    "Thigh": "大腿",
+    "Lower Leg": "小腿"
 }

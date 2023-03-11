@@ -19,7 +19,12 @@ import { TransformControls } from 'three/examples/jsm/controls/TransformControls
 // } from 'three/examples/jsm/animate/CCDIKSolver'
 
 import Stats from 'three/examples/jsm/libs/stats.module'
-import { CloneBody, CreateTemplateBody, IsNeedSaveObject } from './body'
+import {
+    BodyControlor,
+    CloneBody,
+    CreateTemplateBody,
+    IsNeedSaveObject,
+} from './body'
 import { options } from './config'
 import { SetScreenShot } from './image'
 import { LoadFBXFile, LoadGLTFile, LoadObjFile } from './loader'
@@ -49,6 +54,9 @@ const pickableObjectNames: string[] = [
     'left_hip',
     'right_knee',
     'left_knee',
+    // virtual point for better control
+    'shoulder',
+    'hip',
 ]
 
 interface BodyData {
@@ -73,6 +81,10 @@ interface CameraData {
     far: number
     zoom: number
 }
+
+type EditorSelectEventHandler = (controlor: BodyControlor) => void
+type EditorUnselectEventHandler = () => void
+
 export class BodyEditor {
     renderer: THREE.WebGLRenderer
     scene: THREE.Scene
@@ -91,7 +103,7 @@ export class BodyEditor {
     // ikSolver?: CCDIKSolver
     composer?: EffectComposer
     effectSobel?: ShaderPass
-    enableComposer: boolean = false
+    enableComposer = false
     constructor(canvas: HTMLCanvasElement) {
         this.renderer = new THREE.WebGLRenderer({
             canvas,
@@ -281,6 +293,30 @@ export class BodyEditor {
             this.getAncestors(o).find((o) => o?.name === 'torso') ?? null
         return body
     }
+
+    selectEventHandlers: EditorSelectEventHandler[] =
+        [] as EditorSelectEventHandler[]
+    unselectEventHandlers: EditorUnselectEventHandler[] =
+        [] as EditorUnselectEventHandler[]
+    RegisterEvent({
+        select,
+        unselect,
+    }: {
+        select?: EditorSelectEventHandler
+        unselect?: EditorUnselectEventHandler
+    }) {
+        if (select) this.selectEventHandlers.push(select)
+        if (unselect) this.unselectEventHandlers.push(unselect)
+    }
+
+    triggerSelectEvent(body: Object3D) {
+        const c = new BodyControlor(body)
+        this.selectEventHandlers.forEach((h) => h(c))
+    }
+    triggerUnselectEvent() {
+        this.unselectEventHandlers.forEach((h) => h())
+    }
+
     onMouseDown(event: MouseEvent) {
         this.raycaster.setFromCamera(
             {
@@ -294,11 +330,12 @@ export class BodyEditor {
             },
             this.camera
         )
-        let intersects: THREE.Intersection[] = this.raycaster.intersectObjects(
-            this.scene.children.filter((o) => o?.name === 'torso'),
-            true
-        )
-        let intersectedObject: THREE.Object3D | null =
+        const intersects: THREE.Intersection[] =
+            this.raycaster.intersectObjects(
+                this.scene.children.filter((o) => o?.name === 'torso'),
+                true
+            )
+        const intersectedObject: THREE.Object3D | null =
             intersects.length > 0 ? intersects[0].object : null
         const name = intersectedObject ? intersectedObject.name : ''
         let obj: Object3D | null = intersectedObject
@@ -309,6 +346,7 @@ export class BodyEditor {
         if (this.IsClick) {
             if (!obj) {
                 this.transformControl.detach()
+                this.triggerUnselectEvent()
                 return
             }
 
@@ -320,6 +358,7 @@ export class BodyEditor {
                     this.transformControl.setMode('translate')
                     this.transformControl.setSpace('world')
                     this.transformControl.attach(obj)
+                    this.triggerSelectEvent(obj)
                 }
             } else {
                 const isOk =
@@ -336,9 +375,13 @@ export class BodyEditor {
                 }
 
                 if (obj) {
+                    console.log(obj.name)
                     this.transformControl.setMode('rotate')
                     this.transformControl.setSpace('local')
                     this.transformControl.attach(obj)
+
+                    const body = this.getBodyByPart(obj)
+                    if (body) this.triggerSelectEvent(body)
                 }
             }
         }
@@ -368,7 +411,7 @@ export class BodyEditor {
         this.traverseHandObjecct((o) => (o.visible = false))
 
         this.render()
-        let imgData = this.renderer.domElement.toDataURL('image/png')
+        const imgData = this.renderer.domElement.toDataURL('image/png')
         const fileName = 'pose_' + getCurrentTime()
         this.axesHelper.visible = true
         this.gridHelper.visible = true
@@ -437,7 +480,7 @@ export class BodyEditor {
         const restore = this.changeComposer(true)
         this.render()
 
-        let imgData = this.renderer.domElement.toDataURL('image/png')
+        const imgData = this.renderer.domElement.toDataURL('image/png')
         const fileName = 'canny_' + getCurrentTime()
         this.axesHelper.visible = true
         this.gridHelper.visible = true
@@ -559,7 +602,7 @@ export class BodyEditor {
         this.render()
         restoreCamera()
 
-        let imgData = this.renderer.domElement.toDataURL('image/png')
+        const imgData = this.renderer.domElement.toDataURL('image/png')
         const fileName = 'depth_' + getCurrentTime()
         this.axesHelper.visible = true
         this.gridHelper.visible = true

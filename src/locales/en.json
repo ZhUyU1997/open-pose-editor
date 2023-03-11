@@ -19,5 +19,16 @@
     "Load Scene": "Load Scene",
     "Restore Last Scene": "Restore Last Scene",
     "Set Background Image": "Set Background Image",
-    "Select an image": "Select an image"
+    "Select an image": "Select an image",
+    "Body Parameters": "Body Parameters",
+    "Shoulder Width": "Shoulder Width",
+    "Shoulder To Hip": "Shoulder To Hip",
+    "Arm Length": "Arm Length",
+    "Forearm": "Forearm",
+    "Upper Arm": "Upper Arm",
+    "Hand Size": "Hand Size",
+    "Hips": "Hips",
+    "Leg Length": "Leg Length",
+    "Thigh": "Thigh",
+    "Lower Leg": "Lower Leg"
 }

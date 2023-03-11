@@ -4,6 +4,7 @@ import './index.css'
 import { options } from './config'
 import { BodyEditor } from './editor'
 import i18n from './i18n'
+import { CreateBodyParamsControls } from './body-params'
 
 const editor = new BodyEditor(
     document.querySelector<HTMLCanvasElement>('#canvas')!
@@ -66,6 +67,8 @@ gui.add(editor, 'enableComposer').name(i18n.t('Show Edge Map'))
 
 gui.add(editor, 'CameraNear', 0.1, 1000).name(i18n.t('Camera Near'))
 gui.add(editor, 'CameraFar', 0.1, 1000).name(i18n.t('Camera Far'))
+
+CreateBodyParamsControls(editor, gui)
 
 window.addEventListener('resize', () => {
     UpdateSize()
