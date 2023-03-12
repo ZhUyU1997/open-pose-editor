@@ -902,7 +902,7 @@ export class BodyEditor {
             }
         })
 
-        fbx.scale.multiplyScalar(0.001)
+        // fbx.scale.multiplyScalar(0.001)
 
         const mesh = this.findObjectItem<THREE.SkinnedMesh>(
             fbx,

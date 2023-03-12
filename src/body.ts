@@ -357,6 +357,9 @@ export function CloneBody() {
     return null
 }
 
+const HandScale = 2.2
+const FootScale = 0.0008
+
 export function CreateTemplateBody(hand: Object3D, foot: Object3D) {
     const { torso, right_shoulder, left_shoulder, right_hip, left_hip, neck } =
         Torso(0, 115, 0)
@@ -398,7 +401,7 @@ export function CreateTemplateBody(hand: Object3D, foot: Object3D) {
     right_hand.rotateY(Math.PI)
     right_hand.rotateZ(-Math.PI / 2)
 
-    right_hand.scale.multiplyScalar(2.2)
+    right_hand.scale.multiplyScalar(HandScale)
 
     left_hand.name = 'left_hand'
     left_hand.scale.x = -1
@@ -406,7 +409,7 @@ export function CreateTemplateBody(hand: Object3D, foot: Object3D) {
     left_hand.translateY(3)
     left_hand.rotateY(Math.PI)
     left_hand.rotateZ(Math.PI / 2)
-    left_hand.scale.multiplyScalar(2.2)
+    left_hand.scale.multiplyScalar(HandScale)
 
     right_wrist.add(right_hand)
     left_wrist.add(left_hand)
@@ -416,10 +419,12 @@ export function CreateTemplateBody(hand: Object3D, foot: Object3D) {
 
     right_foot.name = 'right_foot'
     right_foot.translateY(-11)
-    right_foot.scale.setX(-right_foot.scale.x)
+    right_foot.scale.setX(-1)
+    right_foot.scale.multiplyScalar(FootScale)
 
     left_foot.name = 'left_foot'
     left_foot.translateY(-11)
+    left_foot.scale.multiplyScalar(FootScale)
 
     right_ankle.add(right_foot)
     left_ankle.add(left_foot)
@@ -634,18 +639,16 @@ export class BodyControlor {
     }
 
     get HandSize() {
-        const fixedScale = 2.2
-        return Math.abs(this.part['left_hand'].scale.x) / fixedScale
+        return Math.abs(this.part['left_hand'].scale.x) / HandScale
     }
     set HandSize(size: number) {
-        const fixedScale = 2.2
         const origin = this.HandSize
         this.part['left_hand'].scale
-            .divideScalar(origin * fixedScale)
-            .multiplyScalar(size * fixedScale)
+            .divideScalar(origin * HandScale)
+            .multiplyScalar(size * HandScale)
         this.part['right_hand'].scale
-            .divideScalar(origin * fixedScale)
-            .multiplyScalar(size * fixedScale)
+            .divideScalar(origin * HandScale)
+            .multiplyScalar(size * HandScale)
     }
 
     get Hips() {
@@ -683,17 +686,15 @@ export class BodyControlor {
     }
 
     get FootSize() {
-        const fixedScale = 0.001
-        return Math.abs(this.part['left_foot'].scale.x) / fixedScale
+        return Math.abs(this.part['left_foot'].scale.x) / FootScale
     }
     set FootSize(size: number) {
-        const fixedScale = 0.001
         const origin = this.FootSize
         this.part['left_foot'].scale
-            .divideScalar(origin * fixedScale)
-            .multiplyScalar(size * fixedScale)
+            .divideScalar(origin * FootScale)
+            .multiplyScalar(size * FootScale)
         this.part['right_foot'].scale
-            .divideScalar(origin * fixedScale)
-            .multiplyScalar(size * fixedScale)
+            .divideScalar(origin * FootScale)
+            .multiplyScalar(size * FootScale)
     }
 }
