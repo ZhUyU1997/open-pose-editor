@@ -6,11 +6,6 @@ export const options: Record<string, any> = {
     autoSize: true,
     Width: 0,
     Height: 0,
-    changeLanguage() {
-        const url = new URL(window.location.href)
-        url.searchParams.set('lng', i18n.language === 'zh' ? 'en' : 'zh')
-        window.location.assign(url)
-    },
     async setBackground() {
         const dataUrl = await uploadImage()
         const div = document.getElementById('background')

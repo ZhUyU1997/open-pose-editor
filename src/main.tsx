@@ -5,6 +5,7 @@ import { options } from './config'
 import { BodyEditor } from './editor'
 import i18n from './i18n'
 import { CreateBodyParamsControls } from './body-params'
+import { CreateLanguageFolder } from './language'
 
 const editor = new BodyEditor(
     document.querySelector<HTMLCanvasElement>('#canvas')!
@@ -32,7 +33,7 @@ window.addEventListener('keyup', function (event) {
     }
 })
 
-gui.add(options, 'changeLanguage').name('English/中文')
+CreateLanguageFolder(gui)
 gui.add(options, 'setBackground').name(i18n.t('Set Background Image'))
 
 gui.add(editor, 'SaveScene').name(i18n.t('Save Scene'))
