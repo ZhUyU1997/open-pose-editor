@@ -355,7 +355,6 @@ export class BodyEditor {
             intersects.length > 0 ? intersects[0].object : null
         const name = intersectedObject ? intersectedObject.name : ''
         let obj: Object3D | null = intersectedObject
-        console.log(intersects.map((o) => o.object.name))
 
         console.log(obj?.name)
 
@@ -571,12 +570,27 @@ export class BodyEditor {
         }
     }
 
+    // https://stackoverflow.com/questions/15696963/three-js-set-and-read-camera-look-vector?noredirect=1&lq=1
+    getCameraLookAtVector() {
+        const lookAtVector = new THREE.Vector3(0, 0, -1)
+        lookAtVector.applyQuaternion(this.camera.quaternion)
+        return lookAtVector
+    }
+
+    getZDistanceFromCamera(p: THREE.Vector3) {
+        const lookAt = this.getCameraLookAtVector().normalize()
+        const v = p.clone().sub(this.camera.position)
+        return v.dot(lookAt)
+    }
     changeCamera() {
-        const hands: THREE.Mesh[] = []
+        let hands: THREE.Mesh[] = []
         this.scene.traverse((o) => {
             if (o?.name === 'left_hand' || o?.name === 'right_hand')
                 hands.push(o as THREE.Mesh)
         })
+
+        // filter object in frustum
+        hands = this.objectInView(hands)
 
         const cameraPos = new THREE.Vector3()
         this.camera.getWorldPosition(cameraPos)
@@ -588,7 +602,7 @@ export class BodyEditor {
         })
 
         const handsDis = handsPos.map((pos) => {
-            return cameraPos.distanceTo(pos)
+            return this.getZDistanceFromCamera(pos)
         })
 
         const minDis = Math.min(...handsDis)
@@ -597,8 +611,10 @@ export class BodyEditor {
         const saveNear = this.camera.near
         const saveFar = this.camera.far
 
-        this.camera.near = minDis - 20
-        this.camera.far = maxDis + 20
+        this.camera.near = Math.max(minDis - 20, 0)
+        this.camera.far = Math.max(maxDis + 20, 20)
+        console.log('camera', this.camera.near, this.camera.far)
+
         this.camera.updateProjectionMatrix()
         return () => {
             this.camera.near = saveNear
@@ -698,6 +714,51 @@ export class BodyEditor {
             obj.removeFromParent()
             this.transformControl.detach()
         }
+    }
+
+    pointsInView(points: THREE.Vector3[]) {
+        this.camera.updateMatrix() // make sure camera's local matrix is updated
+        this.camera.updateMatrixWorld() // make sure camera's world matrix is updated
+
+        const frustum = new THREE.Frustum().setFromProjectionMatrix(
+            new THREE.Matrix4().multiplyMatrices(
+                this.camera.projectionMatrix,
+                this.camera.matrixWorldInverse
+            )
+        )
+
+        //console.log(points);
+        return points.filter((p) => frustum.containsPoint(p))
+    }
+
+    getBouningSphere(o: Object3D) {
+        const bbox = new THREE.Box3().setFromObject(o, true)
+        // const helper = new THREE.Box3Helper(bbox, new THREE.Color(0, 255, 0))
+        // this.scene.add(helper)
+
+        const center = new THREE.Vector3()
+        bbox.getCenter(center)
+
+        const bsphere = bbox.getBoundingSphere(new THREE.Sphere(center))
+
+        return bsphere
+    }
+    objectInView<T extends Object3D>(objs: T[]) {
+        this.camera.updateMatrix() // make sure camera's local matrix is updated
+        this.camera.updateMatrixWorld() // make sure camera's world matrix is updated
+
+        const frustum = new THREE.Frustum().setFromProjectionMatrix(
+            new THREE.Matrix4().multiplyMatrices(
+                this.camera.projectionMatrix,
+                this.camera.matrixWorldInverse
+            )
+        )
+
+        //console.log(points);
+        return objs.filter((obj) => {
+            const sphere = this.getBouningSphere(obj)
+            return frustum.intersectsSphere(sphere)
+        })
     }
 
     get MoveMode() {
@@ -1027,6 +1088,7 @@ export class BodyEditor {
         this.camera.far = data.far
         this.camera.zoom = data.zoom
         this.camera.updateProjectionMatrix()
+        this.orbitControls.update() // fix position change
     }
     RestoreScene(rawData: string) {
         try {
