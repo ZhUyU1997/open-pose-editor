@@ -22,6 +22,7 @@ const bodyParams = {
     ShoulderToWaist: 100,
     WaistToKnee: 100,
     LegLength: 100,
+    FootSize: 10,
 }
 
 export function CreateBodyParamsControls(editor: BodyEditor, gui: dat.GUI) {
@@ -102,7 +103,12 @@ export function CreateBodyParamsControls(editor: BodyEditor, gui: dat.GUI) {
         .onChange((value: number) => {
             if (currentControlor) currentControlor.LowerLeg = value
         })
-
+    params
+        .add(bodyParams, 'FootSize', 0.1, 10)
+        .name(i18n.t('Foot Size'))
+        .onChange((value: number) => {
+            if (currentControlor) currentControlor.FootSize = value
+        })
     params.hide()
 
     editor.RegisterEvent({
@@ -126,6 +132,9 @@ export function CreateBodyParamsControls(editor: BodyEditor, gui: dat.GUI) {
             bodyParams.LegLength = currentControlor.LegLength
             bodyParams.Thigh = currentControlor.Thigh
             bodyParams.LowerLeg = currentControlor.LowerLeg
+
+            bodyParams.FootSize = currentControlor.FootSize
+
             params.updateDisplay()
             params.show()
             // params.open()

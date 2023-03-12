@@ -32,7 +32,7 @@ window.addEventListener('keyup', function (event) {
     }
 })
 
-gui.add(options, 'changeLanguage').name('Change Language/切换语言')
+gui.add(options, 'changeLanguage').name('English/中文')
 gui.add(options, 'setBackground').name(i18n.t('Set Background Image'))
 
 gui.add(editor, 'SaveScene').name(i18n.t('Save Scene'))
@@ -72,6 +72,7 @@ gui.add(editor, 'RemoveBody').name(
     i18n.t('Delete Selected Skeleton (Press D key)')
 )
 gui.add(editor, 'MoveMode').name(i18n.t('Move Mode (Press X key)'))
+gui.add(editor, 'OnlyHand').name(i18n.t('Only Hand'))
 
 // gui.add(editor, 'enableComposer').name(i18n.t('Show Edge Map'))
 gui.add(editor, 'enablePreview').name(i18n.t('Show Preview'))

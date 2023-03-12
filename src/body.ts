@@ -357,7 +357,7 @@ export function CloneBody() {
     return null
 }
 
-export function CreateTemplateBody(hand: Object3D) {
+export function CreateTemplateBody(hand: Object3D, foot: Object3D) {
     const { torso, right_shoulder, left_shoulder, right_hip, left_hip, neck } =
         Torso(0, 115, 0)
     const { nose, left_ear, right_ear, right_eye, left_eye } = Head(0, 20, 14)
@@ -411,18 +411,68 @@ export function CreateTemplateBody(hand: Object3D) {
     right_wrist.add(right_hand)
     left_wrist.add(left_hand)
 
+    const right_foot = SkeletonUtils.clone(foot)
+    const left_foot = SkeletonUtils.clone(foot)
+
+    right_foot.name = 'right_foot'
+    right_foot.translateY(-11)
+    right_foot.scale.setX(-right_foot.scale.x)
+
+    left_foot.name = 'left_foot'
+    left_foot.translateY(-11)
+
+    right_ankle.add(right_foot)
+    left_ankle.add(left_foot)
     templateBody = torso
 }
 
 export function IsNeedSaveObject(name: string) {
     if (coco_body_keypoints.includes(name)) return true
     if (name === 'right_hand' || name === 'left_hand') return true
+    if (name === 'right_foot' || name === 'left_foot') return true
     if (name === 'shoulder' || name === 'hip') return true // virtual point
     if (name.startsWith('shoujoint')) return true
+    if (name === 'Bone' || name === 'Bone001') return true
+
     if (name.includes('_link_')) return true
     return false
 }
 
+const pickableObjectNames: string[] = [
+    'torso',
+    'neck',
+    'right_shoulder',
+    'left_shoulder',
+    'right_elbow',
+    'left_elbow',
+    'right_hip',
+    'left_hip',
+    'right_knee',
+    'left_knee',
+    // virtual point for better control
+    'shoulder',
+    'hip',
+]
+
+export function IsPickable(name: string) {
+    return (
+        pickableObjectNames.includes(name) ||
+        name.startsWith('shoujoint') ||
+        name.startsWith('Bone')
+    )
+}
+
+export function IsHand(name: string) {
+    return ['left_hand', 'right_hand'].includes(name)
+}
+
+export function IsFoot(name: string) {
+    return ['left_foot', 'right_foot'].includes(name)
+}
+
+export function IsExtremities(name: string) {
+    return ['left_hand', 'right_hand', 'left_foot', 'right_foot'].includes(name)
+}
 export class BodyControlor {
     body: Object3D
     part: Record<
@@ -431,7 +481,9 @@ export class BodyControlor {
         | 'shoulder'
         | 'five'
         | 'right_hand'
-        | 'left_hand',
+        | 'left_hand'
+        | 'left_foot'
+        | 'right_foot',
         Object3D
     > = {} as any
     constructor(o: Object3D) {
@@ -448,6 +500,8 @@ export class BodyControlor {
         this.part['five'] = this.body.getObjectByName('five')!
         this.part['right_hand'] = this.body.getObjectByName('right_hand')!
         this.part['left_hand'] = this.body.getObjectByName('left_hand')!
+        this.part['right_foot'] = this.body.getObjectByName('right_foot')!
+        this.part['left_foot'] = this.body.getObjectByName('left_foot')!
     }
     findObjectItem<T extends Object3D>(
         object: Object3D,
@@ -626,5 +680,20 @@ export class BodyControlor {
         const origin = this.LegLength
         this.Thigh = (length * this.Thigh) / origin
         this.LowerLeg = (length * this.LowerLeg) / origin
+    }
+
+    get FootSize() {
+        const fixedScale = 0.001
+        return Math.abs(this.part['left_foot'].scale.x) / fixedScale
+    }
+    set FootSize(size: number) {
+        const fixedScale = 0.001
+        const origin = this.FootSize
+        this.part['left_foot'].scale
+            .divideScalar(origin * fixedScale)
+            .multiplyScalar(size * fixedScale)
+        this.part['right_foot'].scale
+            .divideScalar(origin * fixedScale)
+            .multiplyScalar(size * fixedScale)
     }
 }

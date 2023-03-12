@@ -23,15 +23,19 @@ import {
     BodyControlor,
     CloneBody,
     CreateTemplateBody,
+    IsExtremities,
+    IsFoot,
+    IsHand,
     IsNeedSaveObject,
+    IsPickable,
 } from './body'
 import { options } from './config'
 import { SetScreenShot } from './image'
 import { LoadFBXFile, LoadGLTFile, LoadObjFile } from './loader'
 import { download, downloadJson, getCurrentTime, uploadJson } from './util'
-import handObjFileUrl from '../models/hand.obj?url'
-import xbotFileUrl from '../models/hand2.glb?url'
+
 import handFBXFileUrl from '../models/hand.fbx?url'
+import footFBXFileUrl from '../models/foot.fbx?url'
 
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
@@ -42,22 +46,6 @@ import { SobelOperatorShader } from 'three/examples/jsm/shaders/SobelOperatorSha
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils'
 import Swal from 'sweetalert2'
 import i18n from './i18n'
-
-const pickableObjectNames: string[] = [
-    'torso',
-    'neck',
-    'right_shoulder',
-    'left_shoulder',
-    'right_elbow',
-    'left_elbow',
-    'right_hip',
-    'left_hip',
-    'right_knee',
-    'left_knee',
-    // virtual point for better control
-    'shoulder',
-    'hip',
-]
 
 interface BodyData {
     position: ReturnType<THREE.Vector3['toArray']>
@@ -376,16 +364,12 @@ export class BodyEditor {
                     this.triggerSelectEvent(obj)
                 }
             } else {
-                const isOk =
-                    pickableObjectNames.includes(name) ||
-                    name.startsWith('shoujoint')
+                const isOk = IsPickable(name)
 
                 if (!isOk) {
                     obj =
-                        this.getAncestors(obj).find(
-                            (o) =>
-                                pickableObjectNames.includes(o.name) ||
-                                o.name.startsWith('shoujoint')
+                        this.getAncestors(obj).find((o) =>
+                            IsPickable(o.name)
                         ) ?? null
                 }
 
@@ -417,6 +401,33 @@ export class BodyEditor {
             })
     }
 
+    traverseExtremities(handle: (o: THREE.Mesh) => void) {
+        this.scene.children
+            .filter((o) => o?.name === 'torso')
+            .forEach((o) => {
+                o.traverse((child) => {
+                    if (IsExtremities(child.name)) {
+                        handle(child as THREE.Mesh)
+                    }
+                })
+            })
+    }
+
+    hideExtremities() {
+        const recoveryArr: Object3D[] = []
+        this.traverseExtremities((o) => {
+            if (o.visible == true) {
+                o.visible = false
+
+                recoveryArr.push(o)
+            }
+        })
+
+        return () => {
+            recoveryArr.forEach((o) => (o.visible = true))
+        }
+    }
+
     hideSkeleten() {
         const map = new Map<Object3D, Object3D | null>()
 
@@ -424,10 +435,7 @@ export class BodyEditor {
             .filter((o) => o?.name === 'torso')
             .forEach((o) => {
                 o.traverse((child) => {
-                    if (
-                        child?.name === 'left_hand' ||
-                        child?.name === 'right_hand'
-                    ) {
+                    if (IsExtremities(child?.name)) {
                         map.set(child, child.parent)
                         this.scene.attach(child)
                     } else if (child?.name === 'red_point') {
@@ -465,10 +473,12 @@ export class BodyEditor {
 
     changeHandMaterial(type: 'depth' | 'normal' | 'phone') {
         let initType = 'depth'
-        this.traverseHandObjecct((child) => {
+        this.traverseExtremities((child) => {
             const o = this.findObjectItem<THREE.SkinnedMesh>(
                 child,
-                'shoupolySurface1'
+                child.name.includes('hand')
+                    ? 'shoupolySurface1'
+                    : 'Foot_retopo001'
             )!
             if (o.material) {
                 if (o.material instanceof MeshNormalMaterial)
@@ -482,10 +492,12 @@ export class BodyEditor {
         })
 
         return () => {
-            this.traverseHandObjecct((child) => {
+            this.traverseExtremities((child) => {
                 const o = this.findObjectItem<THREE.SkinnedMesh>(
                     child,
-                    'shoupolySurface1'
+                    child.name.includes('hand')
+                        ? 'shoupolySurface1'
+                        : 'Foot_retopo001'
                 )!
 
                 if (initType == 'depth') o.material = new MeshDepthMaterial()
@@ -494,79 +506,6 @@ export class BodyEditor {
                 else if (initType == 'phone')
                     o.material = new MeshPhongMaterial()
             })
-        }
-    }
-
-    Capture() {
-        this.transformControl.detach()
-
-        this.axesHelper.visible = false
-        this.gridHelper.visible = false
-
-        this.traverseHandObjecct((o) => (o.visible = false))
-
-        this.renderOutput()
-        const imgData = this.getOutputPNG()
-        const fileName = 'pose_' + getCurrentTime()
-        this.axesHelper.visible = true
-        this.gridHelper.visible = true
-
-        this.traverseHandObjecct((o) => (o.visible = true))
-
-        return {
-            imgData,
-            fileName,
-        }
-    }
-
-    CaptureCanny() {
-        this.transformControl.detach()
-
-        this.axesHelper.visible = false
-        this.gridHelper.visible = false
-
-        const map = this.hideSkeleten()
-
-        const restore = this.changeComposer(true)
-        this.renderOutput()
-
-        const imgData = this.getOutputPNG()
-        const fileName = 'canny_' + getCurrentTime()
-        this.axesHelper.visible = true
-        this.gridHelper.visible = true
-
-        this.showSkeleten(map)
-        restore()
-
-        return {
-            imgData,
-            fileName,
-        }
-    }
-
-    CaptureNormal() {
-        this.transformControl.detach()
-
-        this.axesHelper.visible = false
-        this.gridHelper.visible = false
-
-        const restoreHand = this.changeHandMaterial('normal')
-        const map = this.hideSkeleten()
-        const restore = this.changeComposer(false)
-        this.renderOutput()
-
-        const imgData = this.getOutputPNG()
-        const fileName = 'normal_' + getCurrentTime()
-        this.axesHelper.visible = true
-        this.gridHelper.visible = true
-
-        this.showSkeleten(map)
-        restore()
-        restoreHand()
-
-        return {
-            imgData,
-            fileName,
         }
     }
 
@@ -585,8 +524,11 @@ export class BodyEditor {
     changeCamera() {
         let hands: THREE.Mesh[] = []
         this.scene.traverse((o) => {
-            if (o?.name === 'left_hand' || o?.name === 'right_hand')
-                hands.push(o as THREE.Mesh)
+            if (this.OnlyHand) {
+                if (IsHand(o?.name)) hands.push(o as THREE.Mesh)
+            } else {
+                if (IsExtremities(o?.name)) hands.push(o as THREE.Mesh)
+            }
         })
 
         // filter object in frustum
@@ -622,12 +564,60 @@ export class BodyEditor {
             this.camera.updateProjectionMatrix()
         }
     }
+
+    Capture() {
+        const restoreExtremities = this.hideExtremities()
+
+        this.renderOutput()
+        const imgData = this.getOutputPNG()
+        const fileName = 'pose_' + getCurrentTime()
+
+        restoreExtremities()
+
+        return {
+            imgData,
+            fileName,
+        }
+    }
+
+    CaptureCanny() {
+        const map = this.hideSkeleten()
+
+        const restore = this.changeComposer(true)
+        this.renderOutput()
+
+        const imgData = this.getOutputPNG()
+        const fileName = 'canny_' + getCurrentTime()
+
+        this.showSkeleten(map)
+        restore()
+
+        return {
+            imgData,
+            fileName,
+        }
+    }
+
+    CaptureNormal() {
+        const restoreHand = this.changeHandMaterial('normal')
+        const map = this.hideSkeleten()
+        const restore = this.changeComposer(false)
+        this.renderOutput()
+
+        const imgData = this.getOutputPNG()
+        const fileName = 'normal_' + getCurrentTime()
+
+        this.showSkeleten(map)
+        restore()
+        restoreHand()
+
+        return {
+            imgData,
+            fileName,
+        }
+    }
+
     CaptureDepth() {
-        this.transformControl.detach()
-
-        this.axesHelper.visible = false
-        this.gridHelper.visible = false
-
         const restoreHand = this.changeHandMaterial('depth')
         const map = this.hideSkeleten()
         const restore = this.changeComposer(false)
@@ -638,8 +628,6 @@ export class BodyEditor {
 
         const imgData = this.getOutputPNG()
         const fileName = 'depth_' + getCurrentTime()
-        this.axesHelper.visible = true
-        this.gridHelper.visible = true
 
         this.showSkeleten(map)
         restore()
@@ -653,6 +641,11 @@ export class BodyEditor {
 
     MakeImages() {
         this.renderer.setClearColor(0x000000)
+
+        this.axesHelper.visible = false
+        this.gridHelper.visible = false
+
+        this.transformControl.detach()
 
         {
             const { imgData, fileName } = this.Capture()
@@ -671,7 +664,10 @@ export class BodyEditor {
             const { imgData, fileName } = this.CaptureCanny()
             SetScreenShot('canny', imgData, fileName)
         }
+
         this.renderer.setClearColor(0x000000, 0)
+        this.axesHelper.visible = true
+        this.gridHelper.visible = true
     }
 
     CopyBodyZ() {
@@ -685,6 +681,7 @@ export class BodyEditor {
 
         if (list.length > 0) body.translateZ((Math.min(...list) - 1) * 30)
         this.scene.add(body)
+        this.fixFootVisible()
     }
 
     CopyBodyX() {
@@ -698,6 +695,7 @@ export class BodyEditor {
 
         if (list.length > 0) body.translateX((Math.min(...list) - 1) * 50)
         this.scene.add(body)
+        this.fixFootVisible()
     }
 
     getSelectedBody() {
@@ -780,6 +778,28 @@ export class BodyEditor {
         return this.renderer.domElement.clientHeight
     }
 
+    onlyHand = false
+    get OnlyHand() {
+        return this.onlyHand
+    }
+
+    set OnlyHand(value: boolean) {
+        this.onlyHand = value
+        this.setFootVisible(!this.onlyHand)
+    }
+
+    setFootVisible(value: boolean) {
+        this.traverseExtremities((o) => {
+            if (IsFoot(o.name)) {
+                o.visible = value
+            }
+        })
+    }
+
+    fixFootVisible() {
+        this.setFootVisible(!this.OnlyHand)
+    }
+
     handleResize() {
         const size = new THREE.Vector2()
         this.renderer.getSize(size)
@@ -793,6 +813,7 @@ export class BodyEditor {
 
         console.log(canvas.clientWidth, canvas.clientHeight)
         this.renderer.setSize(canvas.clientWidth, canvas.clientHeight, false)
+        console.log(this.Width, this.Height)
     }
 
     initEdgeComposer() {
@@ -865,6 +886,49 @@ export class BodyEditor {
 
         return fbx
     }
+
+    async loadFoot() {
+        const fbx = await LoadFBXFile(footFBXFileUrl, (loaded) => {
+            if (loaded >= 100) {
+                Swal.hideLoading()
+                Swal.close()
+            } else if (Swal.isVisible() == false) {
+                Swal.fire({
+                    title: i18n.t('Downloading Foot Model') ?? '',
+                    didOpen: () => {
+                        Swal.showLoading()
+                    },
+                })
+            }
+        })
+
+        fbx.scale.multiplyScalar(0.001)
+
+        const mesh = this.findObjectItem<THREE.SkinnedMesh>(
+            fbx,
+            'Foot_retopo001'
+        )!
+        mesh.material = new MeshPhongMaterial()
+        // this.scene.add();
+        // const helper = new THREE.SkeletonHelper(mesh.parent!);
+        // this.scene.add(helper);
+
+        console.log(mesh.skeleton.bones)
+        mesh.skeleton.bones.forEach((o) => {
+            if (o.name !== 'Bone001') return
+            const point = new THREE.Mesh(
+                new THREE.SphereGeometry(0.05),
+                new THREE.MeshBasicMaterial({ color: 0xff0000 })
+            )
+
+            point.name = 'red_point'
+            point.position.copy(o.position)
+            point.translateX(0.3)
+            o.add(point)
+        })
+
+        return fbx
+    }
     async loadBodyData() {
         // const object = await LoadObjFile(handObjFileUrl)
         // object.traverse(function (child) {
@@ -875,72 +939,14 @@ export class BodyEditor {
         //     }
         // });
 
-        const object = await this.loadHand()
-        CreateTemplateBody(object)
+        const hand = await this.loadHand()
+        const foot = await this.loadFoot()
+        CreateTemplateBody(hand, foot)
         // scene.add( object );
         const body = CloneBody()!
 
         this.scene.add(body)
         this.dlight.target = body
-
-        // await this.loadHand()
-        // test
-
-        // const { scene: xbot } = await LoadGLTFile(xbotFileUrl)
-        // xbot.scale.multiplyScalar(100)
-        // xbot.translateZ(30)
-        // console.log('gltf对象场景属性', xbot);
-        // xbot.visible = true
-        // this.scene.add(xbot);
-
-        // xbot.traverse((child) => {
-        //     if (child.type === 'Object3D' || child.type === 'SkinnedMesh') {
-        //         if(child.name)
-        //         console.log("traverse: ", child.name, child.type)
-        //         child.frustumCulled = false;
-        //     }
-        // })
-
-        // const mesh: SkinnedMesh = await this.findObjectItem(xbot, "Bodybaked") as SkinnedMesh;
-        // console.log(mesh.skeleton.bones)
-        // const helper = new THREE.SkeletonHelper(mesh.parent!);
-        // this.scene.add(helper);
-
-        // const iks: IKS[] = [
-        //     {
-        //         target: 45, // "target"
-        //         effector: 61, // "bone3"
-        //         iteration: 1,
-        //         links: [
-        //             {
-        //                 enabled: true,
-        //                 index: 60
-        //             },
-        //             {
-        //                 enabled: true,
-        //                 index: 59
-        //             },
-        //             {
-        //                 enabled: true,
-        //                 index: 58
-        //             },
-        //             {
-        //                 enabled: true,
-        //                 index: 57
-        //             },
-        //         ], // "bone2", "bone1", "bone0"
-        //         minAngle: -Math.PI,
-        //         maxAngle: Math.PI,
-        //     }
-        // ];
-        // const xhelper = new CCDIKHelper(mesh, iks)
-        // this.scene.add(xhelper)
-
-        // this.transformControl.setMode("translate")
-        // this.transformControl.attach(mesh.skeleton.bones[60])
-
-        // console.log(xbot)
-        // this.ikSolver = new CCDIKSolver(mesh, iks)
     }
 
     findObjectItem<T extends Object3D>(

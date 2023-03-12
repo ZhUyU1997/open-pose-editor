@@ -11,8 +11,8 @@ body {
 
 canvas {
     display: block;
-    width: inherit;
-    height: inherit;
+    width: 100vw;
+    height: 100vh;
 }
 
 .gallery {

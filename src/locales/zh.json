@@ -34,5 +34,8 @@
     "Lower Leg": "小腿",
     "Nose To Neck": "鼻子到颈部",
     "Head Size": "头部大小",
-    "Show Preview": "显示预览图"
+    "Show Preview": "显示预览图",
+    "Only Hand": "仅显示手",
+    "Foot Size": "脚部尺寸",
+    "Downloading Foot Model": "正在下载脚部模型"
 }
