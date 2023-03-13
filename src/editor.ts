@@ -23,19 +23,18 @@ import {
     BodyControlor,
     CloneBody,
     CreateTemplateBody,
+    GetExtremityMesh,
     IsExtremities,
     IsFoot,
     IsHand,
     IsNeedSaveObject,
     IsPickable,
+    LoadFoot,
+    LoadHand,
 } from './body'
 import { options } from './config'
 import { SetScreenShot } from './image'
-import { LoadFBXFile, LoadGLTFile, LoadObjFile } from './loader'
 import { download, downloadJson, getCurrentTime, uploadJson } from './util'
-
-import handFBXFileUrl from '../models/hand.fbx?url'
-import footFBXFileUrl from '../models/foot.fbx?url'
 
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
@@ -46,6 +45,7 @@ import { SobelOperatorShader } from 'three/examples/jsm/shaders/SobelOperatorSha
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils'
 import Swal from 'sweetalert2'
 import i18n from './i18n'
+import { FindObjectItem } from './three-utils'
 
 interface BodyData {
     position: ReturnType<THREE.Vector3['toArray']>
@@ -391,10 +391,7 @@ export class BodyEditor {
             .filter((o) => o?.name === 'torso')
             .forEach((o) => {
                 o.traverse((child) => {
-                    if (
-                        child?.name === 'left_hand' ||
-                        child?.name === 'right_hand'
-                    ) {
+                    if (IsHand(child?.name)) {
                         handle(child as THREE.Mesh)
                     }
                 })
@@ -474,12 +471,8 @@ export class BodyEditor {
     changeHandMaterial(type: 'depth' | 'normal' | 'phone') {
         let initType = 'depth'
         this.traverseExtremities((child) => {
-            const o = this.findObjectItem<THREE.SkinnedMesh>(
-                child,
-                child.name.includes('hand')
-                    ? 'shoupolySurface1'
-                    : 'Foot_retopo001'
-            )!
+            const o = GetExtremityMesh(child)
+            if (!o) return
             if (o.material) {
                 if (o.material instanceof MeshNormalMaterial)
                     initType = 'normal'
@@ -493,12 +486,8 @@ export class BodyEditor {
 
         return () => {
             this.traverseExtremities((child) => {
-                const o = this.findObjectItem<THREE.SkinnedMesh>(
-                    child,
-                    child.name.includes('hand')
-                        ? 'shoupolySurface1'
-                        : 'Foot_retopo001'
-                )!
+                const o = GetExtremityMesh(child)
+                if (!o) return
 
                 if (initType == 'depth') o.material = new MeshDepthMaterial()
                 else if (initType == 'normal')
@@ -849,8 +838,8 @@ export class BodyEditor {
         }
     }
 
-    async loadHand() {
-        const fbx = await LoadFBXFile(handFBXFileUrl, (loaded) => {
+    async loadBodyData() {
+        const hand = await LoadHand((loaded) => {
             if (loaded >= 100) {
                 Swal.hideLoading()
                 Swal.close()
@@ -863,32 +852,7 @@ export class BodyEditor {
                 })
             }
         })
-
-        // fbx.scale.multiplyScalar(10)
-        const mesh = this.findObjectItem<THREE.SkinnedMesh>(
-            fbx,
-            'shoupolySurface1'
-        )!
-        mesh.material = new MeshPhongMaterial()
-        // this.scene.add();
-        // const helper = new THREE.SkeletonHelper(mesh.parent!);
-        // this.scene.add(helper);
-        mesh.skeleton.bones.forEach((o) => {
-            const point = new THREE.Mesh(
-                new THREE.SphereGeometry(0.5),
-                new THREE.MeshBasicMaterial({ color: 0xff0000 })
-            )
-            point.name = 'red_point'
-            point.scale.setX(0.2)
-            point.position.copy(o.position)
-            o.add(point)
-        })
-
-        return fbx
-    }
-
-    async loadFoot() {
-        const fbx = await LoadFBXFile(footFBXFileUrl, (loaded) => {
+        const foot = await LoadFoot((loaded) => {
             if (loaded >= 100) {
                 Swal.hideLoading()
                 Swal.close()
@@ -901,67 +865,12 @@ export class BodyEditor {
                 })
             }
         })
-
-        // fbx.scale.multiplyScalar(0.001)
-
-        const mesh = this.findObjectItem<THREE.SkinnedMesh>(
-            fbx,
-            'Foot_retopo001'
-        )!
-        mesh.material = new MeshPhongMaterial()
-        // this.scene.add();
-        // const helper = new THREE.SkeletonHelper(mesh.parent!);
-        // this.scene.add(helper);
-
-        console.log(mesh.skeleton.bones)
-        mesh.skeleton.bones.forEach((o) => {
-            if (o.name !== 'Bone001') return
-            const point = new THREE.Mesh(
-                new THREE.SphereGeometry(0.05),
-                new THREE.MeshBasicMaterial({ color: 0xff0000 })
-            )
-
-            point.name = 'red_point'
-            point.position.copy(o.position)
-            point.translateX(0.3)
-            o.add(point)
-        })
-
-        return fbx
-    }
-    async loadBodyData() {
-        // const object = await LoadObjFile(handObjFileUrl)
-        // object.traverse(function (child) {
-
-        //     if (child instanceof THREE.Mesh) {
-
-        //         child.material = new MeshPhongMaterial();
-        //     }
-        // });
-
-        const hand = await this.loadHand()
-        const foot = await this.loadFoot()
         CreateTemplateBody(hand, foot)
         // scene.add( object );
         const body = CloneBody()!
 
         this.scene.add(body)
         this.dlight.target = body
-    }
-
-    findObjectItem<T extends Object3D>(
-        object: Object3D,
-        name: string
-    ): T | null {
-        //console.log(object);
-        let result = null
-        object.traverse((child) => {
-            //console.log("child", child);
-            if (child.name == name) {
-                result = child
-            }
-        })
-        return result
     }
 
     get CameraNear() {

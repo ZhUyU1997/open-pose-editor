@@ -6,7 +6,7 @@ import * as THREE from 'three'
 const fbxLoader = new FBXLoader()
 export async function LoadFBXFile(
     url: string,
-    onLoadding?: (loaded: number) => void
+    onLoading?: (loaded: number) => void
 ): Promise<THREE.Group> {
     return new Promise((resolve, reject) => {
         // load a resource
@@ -20,7 +20,7 @@ export async function LoadFBXFile(
             // called when loading is in progresses
             function (xhr) {
                 console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
-                onLoadding?.((xhr.loaded / xhr.total) * 100)
+                onLoading?.((xhr.loaded / xhr.total) * 100)
             },
             // called when loading has errors
             function (error) {

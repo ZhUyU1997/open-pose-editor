@@ -2,6 +2,10 @@ import * as THREE from 'three'
 import { Object3D } from 'three'
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils'
 import type { TupleToUnion } from 'type-fest'
+import handFBXFileUrl from '../models/hand.fbx?url'
+import footFBXFileUrl from '../models/foot.fbx?url'
+import { LoadFBXFile, LoadGLTFile, LoadObjFile } from './loader'
+import { FindObjectItem } from './three-utils'
 
 const coco_body_keypoints_const = [
     'nose',
@@ -358,7 +362,7 @@ export function CloneBody() {
 }
 
 const HandScale = 2.2
-const FootScale = 0.0008
+const FootScale = 0.25
 
 export function CreateTemplateBody(hand: Object3D, foot: Object3D) {
     const { torso, right_shoulder, left_shoulder, right_hip, left_hip, neck } =
@@ -418,12 +422,10 @@ export function CreateTemplateBody(hand: Object3D, foot: Object3D) {
     const left_foot = SkeletonUtils.clone(foot)
 
     right_foot.name = 'right_foot'
-    right_foot.translateY(-11)
     right_foot.scale.setX(-1)
     right_foot.scale.multiplyScalar(FootScale)
 
     left_foot.name = 'left_foot'
-    left_foot.translateY(-11)
     left_foot.scale.multiplyScalar(FootScale)
 
     right_ankle.add(right_foot)
@@ -431,13 +433,96 @@ export function CreateTemplateBody(hand: Object3D, foot: Object3D) {
     templateBody = torso
 }
 
+const handModelInfo = {
+    meshName: 'shoupolySurface1',
+    bonePrefix: 'shoujoint',
+}
+const footModelInfo = {
+    meshName: 'FootObject',
+    bonePrefix: 'FootBone',
+}
+
+const ExtremitiesMapping: Record<
+    string,
+    {
+        meshName: string
+        bonePrefix: string
+    }
+> = {
+    left_hand: handModelInfo,
+    right_hand: handModelInfo,
+    left_foot: footModelInfo,
+    right_foot: footModelInfo,
+}
+export async function LoadHand(onLoading?: (loaded: number) => void) {
+    const fbx = await LoadFBXFile(handFBXFileUrl, onLoading)
+
+    // fbx.scale.multiplyScalar(10)
+    const mesh = FindObjectItem<THREE.SkinnedMesh>(fbx, 'shoupolySurface1')!
+    mesh.material = new THREE.MeshPhongMaterial()
+    // this.scene.add();
+    // const helper = new THREE.SkeletonHelper(mesh.parent!);
+    // this.scene.add(helper);
+    mesh.skeleton.bones.forEach((o) => {
+        const point = new THREE.Mesh(
+            new THREE.SphereGeometry(0.5),
+            new THREE.MeshBasicMaterial({ color: 0xff0000 })
+        )
+        point.name = 'red_point'
+        point.scale.setX(0.2)
+        point.position.copy(o.position)
+        o.add(point)
+    })
+
+    return fbx
+}
+
+export async function LoadFoot(onLoading?: (loaded: number) => void) {
+    const fbx = await LoadFBXFile(footFBXFileUrl, onLoading)
+
+    console.log(fbx)
+    // fbx.scale.multiplyScalar(0.001)
+
+    const mesh = FindObjectItem<THREE.SkinnedMesh>(fbx, 'FootObject')!
+    mesh.material = new THREE.MeshPhongMaterial()
+    // this.scene.add();
+    // const helper = new THREE.SkeletonHelper(mesh.parent!);
+    // this.scene.add(helper);
+
+    console.log(mesh.skeleton.bones)
+    mesh.skeleton.bones.forEach((o) => {
+        if (o.name !== 'FootBone2') return
+        const point = new THREE.Mesh(
+            new THREE.SphereGeometry(0.1),
+            new THREE.MeshBasicMaterial({ color: 0xff0000 })
+        )
+
+        point.name = 'red_point'
+        point.position.copy(o.position)
+        point.translateX(-0.3)
+        o.add(point)
+    })
+
+    return fbx
+}
+
+export function GetExtremityMesh(o: Object3D) {
+    if (!(o.name in ExtremitiesMapping)) {
+        return null
+    }
+    return FindObjectItem<THREE.SkinnedMesh>(
+        o,
+        ExtremitiesMapping[o.name].meshName
+    )
+}
+
 export function IsNeedSaveObject(name: string) {
     if (coco_body_keypoints.includes(name)) return true
     if (name === 'right_hand' || name === 'left_hand') return true
     if (name === 'right_foot' || name === 'left_foot') return true
     if (name === 'shoulder' || name === 'hip') return true // virtual point
-    if (name.startsWith('shoujoint')) return true
-    if (name === 'Bone' || name === 'Bone001') return true
+    if (name.startsWith(handModelInfo.bonePrefix)) return true
+    if (name.startsWith(footModelInfo.bonePrefix)) return true
 
     if (name.includes('_link_')) return true
     return false
@@ -460,11 +545,11 @@ const pickableObjectNames: string[] = [
 ]
 
 export function IsPickable(name: string) {
-    return (
-        pickableObjectNames.includes(name) ||
-        name.startsWith('shoujoint') ||
-        name.startsWith('Bone')
-    )
+    if (pickableObjectNames.includes(name)) return true
+    if (name.startsWith(handModelInfo.bonePrefix)) return true
+    if (name.startsWith(footModelInfo.bonePrefix)) return true
+
+    return false
 }
 
 export function IsHand(name: string) {
@@ -507,20 +592,6 @@ export class BodyControlor {
         this.part['left_hand'] = this.body.getObjectByName('left_hand')!
         this.part['right_foot'] = this.body.getObjectByName('right_foot')!
         this.part['left_foot'] = this.body.getObjectByName('left_foot')!
-    }
-    findObjectItem<T extends Object3D>(
-        object: Object3D,
-        name: string
-    ): T | null {
-        //console.log(object);
-        let result = null
-        object.traverse((child) => {
-            //console.log("child", child);
-            if (child.name == name) {
-                result = child
-            }
-        })
-        return result
     }
 
     getWorldPosition(o: Object3D) {
