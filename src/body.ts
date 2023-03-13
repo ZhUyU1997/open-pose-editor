@@ -726,8 +726,8 @@ export class BodyControlor {
         return Math.abs(this.part['left_hip'].position.x) * 2
     }
     set Hips(width: number) {
-        this.part['left_hip'].position.setX(-width / 2)
-        this.part['right_hip'].position.setX(width / 2)
+        this.part['left_hip'].position.setX(width / 2)
+        this.part['right_hip'].position.setX(-width / 2)
         UpdateLink4(this.part['hip'], this.part['left_hip'], 'neck', 'left_hip')
         UpdateLink4(
             this.part['hip'],
