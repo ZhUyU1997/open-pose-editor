@@ -458,7 +458,7 @@ export async function LoadHand(onLoading?: (loaded: number) => void) {
     const fbx = await LoadFBXFile(handFBXFileUrl, onLoading)
 
     // fbx.scale.multiplyScalar(10)
-    const mesh = FindObjectItem<THREE.SkinnedMesh>(fbx, 'shoupolySurface1')!
+    const mesh = FindObjectItem<THREE.SkinnedMesh>(fbx, handModelInfo.meshName)!
     mesh.material = new THREE.MeshPhongMaterial()
     // this.scene.add();
     // const helper = new THREE.SkeletonHelper(mesh.parent!);
@@ -483,7 +483,7 @@ export async function LoadFoot(onLoading?: (loaded: number) => void) {
     console.log(fbx)
     // fbx.scale.multiplyScalar(0.001)
 
-    const mesh = FindObjectItem<THREE.SkinnedMesh>(fbx, 'FootObject')!
+    const mesh = FindObjectItem<THREE.SkinnedMesh>(fbx, footModelInfo.meshName)!
     mesh.material = new THREE.MeshPhongMaterial()
     // this.scene.add();
     // const helper = new THREE.SkeletonHelper(mesh.parent!);
