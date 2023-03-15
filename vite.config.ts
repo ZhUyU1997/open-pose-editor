@@ -12,7 +12,6 @@ export default defineConfig({
     __APP_BUILD_TIME__: Date.now()
   },
   build: {
-    target: "chrome84"
   },
   plugins: [react(), VitePWA({
     workbox: {
