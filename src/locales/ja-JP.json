@@ -37,5 +37,8 @@
     "Show Preview": "プレビューを表示",
     "Only Hand": "手だけ",
     "Foot Size": "足のサイズ",
-    "Downloading Foot Model": "足のモデルをダウンロード中"
+    "Downloading Foot Model": "足のモデルをダウンロード中",
+    "Please select a skeleton!!": "骨格を選択してください！",
+    "Downloading Poses Library": "ポーズライブラリをダウンロード中",
+    "Set Random Pose [NEW]": "ランダムポーズを設定 [NEW]"
 }

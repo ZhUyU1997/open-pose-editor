@@ -37,5 +37,8 @@
     "Show Preview": "Show Preview",
     "Only Hand": "Only Hand",
     "Foot Size": "Foot Size",
-    "Downloading Foot Model": "Downloading Foot Model"
+    "Downloading Foot Model": "Downloading Foot Model",
+    "Please select a skeleton!!": "Please select a skeleton!!",
+    "Downloading Poses Library": "Downloading Poses Library",
+    "Set Random Pose [NEW]": "Set Random Pose [NEW]"
 }

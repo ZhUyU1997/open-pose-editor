@@ -16,6 +16,7 @@
     "dayjs": "^1.11.7",
     "eslint": "^8.35.0",
     "eslint-config-prettier": "^8.7.0",
+    "fs-extra": "^11.1.0",
     "i18next": "^22.4.11",
     "i18next-browser-languagedetector": "^7.0.1",
     "prettier": "^2.8.4",
@@ -24,6 +25,7 @@
     "rollup-plugin-visualizer": "^5.9.0",
     "sweetalert2": "^11.7.3",
     "three": "^0.150.1",
+    "tsx": "^3.12.5",
     "type-fest": "^3.6.1",
     "vite-plugin-pwa": "^0.14.4",
     "workbox-window": "^6.5.4"

@@ -24,6 +24,7 @@ import {
     CloneBody,
     CreateTemplateBody,
     GetExtremityMesh,
+    GetRandomPose,
     IsExtremities,
     IsFoot,
     IsHand,
@@ -31,6 +32,7 @@ import {
     IsPickable,
     LoadFoot,
     LoadHand,
+    LoadPosesLibrary,
 } from './body'
 import { options } from './config'
 import { SetScreenShot } from './image'
@@ -72,6 +74,17 @@ interface CameraData {
 
 type EditorSelectEventHandler = (controlor: BodyControlor) => void
 type EditorUnselectEventHandler = () => void
+
+function Oops(error: any) {
+    Swal.fire({
+        icon: 'error',
+        title: i18n.t('Oops...')!,
+        text: i18n.t('Something went wrong!')! + '\n' + error?.stack ?? error,
+        footer: `<a href="https://github.com/ZhUyU1997/open-pose-editor/issues">${i18n.t(
+            'If the problem persists, please click here to ask a question.'
+        )}</a>`,
+    })
+}
 
 export class BodyEditor {
     renderer: THREE.WebGLRenderer
@@ -837,6 +850,52 @@ export class BodyEditor {
                 height * window.devicePixelRatio
         }
     }
+    async SetRandomPose() {
+        const bodies = this.scene.children.filter((o) => o.name == 'torso')
+        const body = bodies.length == 1 ? bodies[0] : this.getSelectedBody()
+        if (!body) {
+            await Swal.fire(i18n.t('Please select a skeleton!!'))
+            return
+        }
+
+        try {
+            let poseData = GetRandomPose()
+            if (poseData) {
+                new BodyControlor(body).SetPose(poseData)
+                return
+            }
+
+            let loading = true
+
+            setTimeout(() => {
+                if (loading)
+                    Swal.fire({
+                        title: i18n.t('Downloading Poses Library') ?? '',
+                        didOpen: () => {
+                            Swal.showLoading()
+                        },
+                    })
+            }, 500)
+
+            await LoadPosesLibrary()
+            loading = false
+            Swal.hideLoading()
+            Swal.close()
+
+            poseData = GetRandomPose()
+            if (poseData) {
+                new BodyControlor(body).SetPose(poseData)
+                return
+            }
+        } catch (error) {
+            Swal.hideLoading()
+            Swal.close()
+
+            Oops(error)
+            console.error(error)
+            return
+        }
+    }
 
     async loadBodyData() {
         const hand = await LoadHand((loaded) => {
@@ -1022,16 +1081,7 @@ export class BodyEditor {
             if (bodiesObject.length > 0) this.scene.add(...bodiesObject)
             this.RestoreCamera(camera)
         } catch (error: any) {
-            Swal.fire({
-                icon: 'error',
-                title: i18n.t('Oops...')!,
-                text:
-                    i18n.t('Something went wrong!')! + '\n' + error?.stack ??
-                    error,
-                footer: `<a href="https://github.com/ZhUyU1997/open-pose-editor/issues">${i18n.t(
-                    'If the problem persists, please click here to ask a question.'
-                )}</a>`,
-            })
+            Oops(error)
             console.error(error)
         }
     }

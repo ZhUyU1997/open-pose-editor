@@ -563,19 +563,20 @@ export function IsFoot(name: string) {
 export function IsExtremities(name: string) {
     return ['left_hand', 'right_hand', 'left_foot', 'right_foot'].includes(name)
 }
+
+type ControlPartName =
+    | TupleToUnion<typeof coco_body_keypoints_const>
+    | 'hip'
+    | 'shoulder'
+    | 'five'
+    | 'right_hand'
+    | 'left_hand'
+    | 'left_foot'
+    | 'right_foot'
+    | 'torso'
 export class BodyControlor {
     body: Object3D
-    part: Record<
-        | TupleToUnion<typeof coco_body_keypoints_const>
-        | 'hip'
-        | 'shoulder'
-        | 'five'
-        | 'right_hand'
-        | 'left_hand'
-        | 'left_foot'
-        | 'right_foot',
-        Object3D
-    > = {} as any
+    part: Record<ControlPartName, Object3D> = {} as any
     constructor(o: Object3D) {
         this.body = o
         this.body.traverse((o) => {
@@ -592,6 +593,7 @@ export class BodyControlor {
         this.part['left_hand'] = this.body.getObjectByName('left_hand')!
         this.part['right_foot'] = this.body.getObjectByName('right_foot')!
         this.part['left_foot'] = this.body.getObjectByName('left_foot')!
+        this.part['torso'] = this.body
     }
 
     getWorldPosition(o: Object3D) {
@@ -599,12 +601,72 @@ export class BodyControlor {
         o.getWorldPosition(pos)
         return pos
     }
+
+    UpdateLink(name: ControlPartName) {
+        switch (name) {
+            case 'left_hip':
+                UpdateLink4(
+                    this.part['hip'],
+                    this.part['left_hip'],
+                    'neck',
+                    'left_hip'
+                )
+                break
+            case 'right_hip':
+                UpdateLink4(
+                    this.part['hip'],
+                    this.part['right_hip'],
+                    'neck',
+                    'right_hip'
+                )
+                break
+            case 'right_shoulder':
+                UpdateLink4(
+                    this.part['shoulder'],
+                    this.part['right_shoulder'],
+                    'neck',
+                    'right_shoulder'
+                )
+                break
+            case 'left_shoulder':
+                UpdateLink4(
+                    this.part['shoulder'],
+                    this.part['left_shoulder'],
+                    'neck',
+                    'left_shoulder'
+                )
+                break
+            case 'torso':
+                break
+            case 'five':
+                break
+            case 'neck':
+                break
+            case 'shoulder':
+                break
+            case 'right_hand':
+                break
+            case 'left_hand':
+                break
+            case 'hip':
+                break
+            case 'right_foot':
+                break
+            case 'left_foot':
+                break
+            default:
+                UpdateLink2(this.part[name].parent!, this.part[name])
+                break
+        }
+    }
+
     get HeadSize() {
         const size = this.getWorldPosition(this.part['right_ear']).distanceTo(
             this.getWorldPosition(this.part['left_ear'])
         )
         return size
     }
+
     set HeadSize(value: number) {
         const scale = value / this.HeadSize
 
@@ -616,17 +678,17 @@ export class BodyControlor {
         this.part['left_eye'].position.normalize().multiplyScalar(eyeLength)
         this.part['right_eye'].position.normalize().multiplyScalar(eyeLength)
 
-        UpdateLink2(this.part['nose'], this.part['left_eye'])
-        UpdateLink2(this.part['nose'], this.part['right_eye'])
-        UpdateLink2(this.part['left_eye'], this.part['left_ear'])
-        UpdateLink2(this.part['right_eye'], this.part['right_ear'])
+        this.UpdateLink('left_eye')
+        this.UpdateLink('right_eye')
+        this.UpdateLink('left_ear')
+        this.UpdateLink('right_ear')
     }
     get NoseToNeck() {
         return this.part['nose'].position.length()
     }
     set NoseToNeck(value: number) {
         this.part['nose'].position.normalize().multiplyScalar(value)
-        UpdateLink2(this.part['neck'], this.part['nose'])
+        this.UpdateLink('nose')
     }
     get ShoulderToHip() {
         return this.part['five'].position.length() * 2
@@ -636,13 +698,8 @@ export class BodyControlor {
         this.part['left_hip'].position.setY(-value)
         this.part['right_hip'].position.setY(-value)
 
-        UpdateLink4(this.part['hip'], this.part['left_hip'], 'neck', 'left_hip')
-        UpdateLink4(
-            this.part['hip'],
-            this.part['right_hip'],
-            'neck',
-            'right_hip'
-        )
+        this.UpdateLink('left_hip')
+        this.UpdateLink('right_hip')
     }
     get ShoulderWidth() {
         return this.part['left_shoulder'].position.distanceTo(
@@ -655,18 +712,8 @@ export class BodyControlor {
         const left_shoulder = this.part['left_shoulder']
         left_shoulder.position.x = width / 2
 
-        UpdateLink4(
-            this.part['shoulder'],
-            this.part['right_shoulder'],
-            'neck',
-            'right_shoulder'
-        )
-        UpdateLink4(
-            this.part['shoulder'],
-            this.part['left_shoulder'],
-            'neck',
-            'left_shoulder'
-        )
+        this.UpdateLink('right_shoulder')
+        this.UpdateLink('left_shoulder')
     }
 
     get UpperArm() {
@@ -675,8 +722,8 @@ export class BodyControlor {
     set UpperArm(length: number) {
         this.part['left_elbow'].position.normalize().multiplyScalar(length)
         this.part['right_elbow'].position.normalize().multiplyScalar(length)
-        UpdateLink2(this.part['left_shoulder'], this.part['left_elbow'])
-        UpdateLink2(this.part['right_shoulder'], this.part['right_elbow'])
+        this.UpdateLink('left_elbow')
+        this.UpdateLink('right_elbow')
     }
     get Forearm() {
         return this.part['left_wrist'].position.length()
@@ -685,8 +732,8 @@ export class BodyControlor {
         this.part['left_wrist'].position.normalize().multiplyScalar(length)
         this.part['right_wrist'].position.normalize().multiplyScalar(length)
 
-        UpdateLink2(this.part['left_elbow'], this.part['left_wrist'])
-        UpdateLink2(this.part['right_elbow'], this.part['right_wrist'])
+        this.UpdateLink('left_wrist')
+        this.UpdateLink('right_wrist')
     }
 
     get ArmLength() {
@@ -705,8 +752,8 @@ export class BodyControlor {
         this.part['left_knee'].position.normalize().multiplyScalar(length)
         this.part['right_knee'].position.normalize().multiplyScalar(length)
 
-        UpdateLink2(this.part['left_hip'], this.part['left_knee'])
-        UpdateLink2(this.part['right_hip'], this.part['right_knee'])
+        this.UpdateLink('left_knee')
+        this.UpdateLink('right_knee')
     }
 
     get HandSize() {
@@ -728,13 +775,8 @@ export class BodyControlor {
     set Hips(width: number) {
         this.part['left_hip'].position.setX(width / 2)
         this.part['right_hip'].position.setX(-width / 2)
-        UpdateLink4(this.part['hip'], this.part['left_hip'], 'neck', 'left_hip')
-        UpdateLink4(
-            this.part['hip'],
-            this.part['right_hip'],
-            'neck',
-            'right_hip'
-        )
+        this.UpdateLink('left_hip')
+        this.UpdateLink('right_hip')
     }
     get LowerLeg() {
         return this.part['left_ankle'].position.length()
@@ -743,8 +785,8 @@ export class BodyControlor {
         this.part['left_ankle'].position.normalize().multiplyScalar(length)
         this.part['right_ankle'].position.normalize().multiplyScalar(length)
 
-        UpdateLink2(this.part['left_knee'], this.part['left_ankle'])
-        UpdateLink2(this.part['right_knee'], this.part['right_ankle'])
+        this.UpdateLink('left_ankle')
+        this.UpdateLink('right_ankle')
     }
 
     get LegLength() {
@@ -767,5 +809,218 @@ export class BodyControlor {
         this.part['right_foot'].scale
             .divideScalar(origin * FootScale)
             .multiplyScalar(size * FootScale)
+    }
+    getLocalPosition(obj: Object3D, postion: THREE.Vector3) {
+        return obj.worldToLocal(postion.clone())
+    }
+
+    getDirectionVectorByParentOf(
+        name: ControlPartName,
+        from: THREE.Vector3,
+        to: THREE.Vector3
+    ) {
+        const parent = this.part[name].parent!
+        const localFrom = this.getLocalPosition(parent, from)
+        const localTo = this.getLocalPosition(parent, to)
+
+        return localTo.clone().sub(localFrom).normalize()
+    }
+
+    rotateTo(name: ControlPartName, dir: THREE.Vector3) {
+        const obj = this.part[name]
+        const unit = obj.position.clone().normalize()
+        const axis = unit.clone().cross(dir)
+        const angle = unit.clone().angleTo(dir)
+        obj.parent?.setRotationFromAxisAngle(axis.normalize(), angle)
+    }
+    setDirectionVector(name: ControlPartName, v: THREE.Vector3) {
+        const len = this.part[name].position.length()
+        this.part[name].position.copy(v).multiplyScalar(len)
+        this.UpdateLink(name)
+    }
+
+    getDistanceOf(from: THREE.Vector3, to: THREE.Vector3) {
+        return from.distanceTo(to)
+    }
+    ResetPose() {
+        templateBody?.traverse((o) => {
+            if (o.name in this.part) {
+                const name = o.name as ControlPartName
+                this.part[name].position.copy(o.position)
+                this.part[name].rotation.copy(o.rotation)
+                this.part[name].scale.copy(o.scale)
+                this.UpdateLink(name)
+            }
+        })
+    }
+    SetPose(rawData: [number, number, number][]) {
+        this.ResetPose()
+
+        const data = Object.fromEntries(
+            Object.entries(PartIndexMappingOfPoseModel).map(([name, index]) => {
+                return [
+                    name,
+                    new THREE.Vector3().fromArray(rawData[index] ?? [0, 0, 0]),
+                ]
+            })
+        ) as Record<keyof typeof PartIndexMappingOfPoseModel, THREE.Vector3>
+
+        this.part['torso'].position.copy(
+            data['Hips'].clone().add(data['Chest']).multiplyScalar(0.5)
+        )
+
+        this.Hips = this.getDistanceOf(data['Hips'], data['UpLeg_L']) * 2
+        this.Thigh = this.getDistanceOf(data['UpLeg_L'], data['Leg_L'])
+        this.LowerLeg = this.getDistanceOf(data['Leg_L'], data['Foot_L'])
+        this.UpperArm = this.getDistanceOf(data['Arm_L'], data['ForeArm_L'])
+        this.Forearm = this.getDistanceOf(data['ForeArm_L'], data['Hand_L'])
+        this.ShoulderWidth =
+            2 *
+            (this.getDistanceOf(data['Shoulder_L'], data['Arm_L']) +
+                this.getDistanceOf(data['Chest'], data['Shoulder_L']) /
+                    Math.SQRT2)
+
+        const map: [
+            ControlPartName,
+            [
+                keyof typeof PartIndexMappingOfPoseModel,
+                keyof typeof PartIndexMappingOfPoseModel
+            ]
+        ][] = [
+            ['five', ['Hips', 'Chest']],
+            ['left_elbow', ['Arm_L', 'ForeArm_L']],
+            ['left_wrist', ['ForeArm_L', 'Hand_L']],
+            ['left_knee', ['UpLeg_L', 'Leg_L']],
+            ['left_ankle', ['Leg_L', 'Foot_L']],
+            ['right_elbow', ['Arm_R', 'ForeArm_R']],
+            ['right_wrist', ['ForeArm_R', 'Hand_R']],
+            ['right_knee', ['UpLeg_R', 'Leg_R']],
+            ['right_ankle', ['Leg_R', 'Foot_R']],
+        ]
+
+        for (const [name, [from, to]] of map)
+            this.rotateTo(
+                name,
+                this.getDirectionVectorByParentOf(name, data[from], data[to])
+            )
+    }
+}
+
+const PartIndexMappingOfPoseModel = {
+    Root: 0,
+    Hips: 1,
+    Spine: 2,
+    Spine1: 3,
+    Spine2: 4,
+    Chest: 5,
+    Neck: 6,
+    Head: 7,
+    Eye_R: 8,
+    Eye_L: 9,
+    Head_Null: 10, // maybe null
+    Shoulder_L: 11,
+    Arm_L: 12,
+    ForeArm_L: 13,
+    Hand_L: 14,
+    HandPinky1_L: 15,
+    HandPinky2_L: 16,
+    HandPinky3_L: 17,
+    HandRing1_L: 18,
+    HandRing2_L: 19,
+    HandRing3_L: 20,
+    HandMiddle1_L: 21,
+    HandMiddle2_L: 22,
+    HandMiddle3_L: 23,
+    HandIndex1_L: 24,
+    HandIndex2_L: 25,
+    HandIndex3_L: 26,
+    HandThumb1_L: 27,
+    HandThumb2_L: 28,
+    HandThumb3_L: 29,
+    Elbow_L: 30,
+    ForeArmTwist_L: 31,
+    ArmTwist_L: 32,
+    Shoulder_R: 33,
+    Arm_R: 34,
+    ForeArm_R: 35,
+    Hand_R: 36,
+    HandPinky1_R: 37,
+    HandPinky2_R: 38,
+    HandPinky3_R: 39,
+    HandRing1_R: 40,
+    HandRing2_R: 41,
+    HandRing3_R: 42,
+    HandMiddle1_R: 43,
+    HandMiddle2_R: 44,
+    HandMiddle3_R: 45,
+    HandIndex1_R: 46,
+    HandIndex2_R: 47,
+    HandIndex3_R: 48,
+    HandThumb1_R: 49,
+    HandThumb2_R: 50,
+    HandThumb3_R: 51,
+    Elbow_R: 52,
+    ForeArmTwist_R: 53,
+    ArmTwist_R: 54,
+    UpLeg_L: 55,
+    Leg_L: 56,
+    Knee_L: 57,
+    Foot_L: 58,
+    FootPinky1_L: 59,
+    FootRing_L: 60,
+    FootMiddle_L: 61,
+    FootIndex_L: 62,
+    FootThumb_L: 63,
+    UpLegTwist_L: 64,
+    ThighFront_L: 65,
+    UpLeg_R: 66,
+    Leg_R: 67,
+    Knee_R: 68,
+    Foot_R: 69,
+    FootPinky1_R: 70,
+    FootRing_R: 71,
+    FootMiddle_R: 72,
+    FootIndex_R: 73,
+    FootThumb_R: 74,
+    UpLegTwist_R: 75,
+    ThighFront_R: 76,
+}
+
+const PosesLibraryUrl = new URL('./poses/data.bin', import.meta.url).href
+
+const PosesLibrary: [number, number, number][][] | null = []
+
+function getRandomInt(min: number, max: number) {
+    min = Math.ceil(min)
+    max = Math.floor(max)
+    return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+export function GetRandomPose() {
+    if (PosesLibrary)
+        return PosesLibrary[getRandomInt(0, PosesLibrary.length - 1)]
+    return null
+}
+
+export async function LoadPosesLibrary() {
+    const response = await fetch(PosesLibraryUrl)
+    const buffer = await response.arrayBuffer()
+
+    console.log(buffer.byteLength)
+    const int16Array = new Int32Array(buffer)
+
+    const num = Object.keys(PartIndexMappingOfPoseModel).length
+
+    for (let i = 0; i < int16Array.length / (num * 3); i++) {
+        const temp: [number, number, number][] = []
+        for (let j = 0; j < num; j++) {
+            const a = int16Array[i * (num * 3) + j * 3 + 0]
+            const b = int16Array[i * (num * 3) + j * 3 + 1]
+            const c = int16Array[i * (num * 3) + j * 3 + 2]
+
+            temp.push([a / 1000.0, b / 1000.0, c / 1000.0])
+        }
+
+        PosesLibrary?.push(temp)
     }
 }

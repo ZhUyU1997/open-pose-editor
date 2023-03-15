@@ -16,7 +16,7 @@ export default defineConfig({
   },
   plugins: [react(), VitePWA({
     workbox: {
-      globPatterns: ['**/*.{js,css,html,ico,png,svg,mp3,obj,fbx}']
+      globPatterns: ['**/*.{js,css,html,ico,png,svg,mp3,obj,fbx,bin}']
     },
     manifest: {
       name: 'open pose editor',

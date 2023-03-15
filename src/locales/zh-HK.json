@@ -37,5 +37,8 @@
     "Show Preview": "顯示預覽",
     "Only Hand": "只顯示手部",
     "Foot Size": "腳部尺寸",
-    "Downloading Foot Model": "正在下載腳部模型"
+    "Downloading Foot Model": "正在下載腳部模型",
+    "Please select a skeleton!!": "請選擇骨架！",
+    "Downloading Poses Library": "下載姿勢庫中",
+    "Set Random Pose [NEW]": "設定隨機姿勢 [新]"
 }
