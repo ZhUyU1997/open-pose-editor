@@ -1,7 +1,7 @@
 {
     "Width": "寬度",
     "Height": "高度",
-    "Skeleton Map/Depth Map/Normal Map/Edge Map": "骨架圖/深度圖/法向圖/邊緣圖",
+    "Generate Skeleton/Depth/Normal/Canny Map": "生成骨架/深度/法線/Canny圖",
     "Duplicate Skeleton (Z-axis)": "複製骨架(Z軸向)",
     "Duplicate Skeleton (X-axis)": "複製骨架(X軸向)",
     "Delete Selected Skeleton (Press D key)": "刪除選定骨架(按D鍵)",

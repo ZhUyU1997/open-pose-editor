@@ -1,7 +1,7 @@
 {
     "Width": "幅",
     "Height": "高さ",
-    "Skeleton Map/Depth Map/Normal Map/Edge Map": "スケルトンマップ/デプスマップ/ノーマルマップ/エッジマップ",
+    "Generate Skeleton/Depth/Normal/Canny Map": "スケルトン/深度/法線/Cannyマップを生成",
     "Duplicate Skeleton (Z-axis)": "スケルトンの複製（Z軸）",
     "Duplicate Skeleton (X-axis)": "スケルトンの複製（X軸）",
     "Delete Selected Skeleton (Press D key)": "選択したスケルトンの削除（Dキーを押してください）",

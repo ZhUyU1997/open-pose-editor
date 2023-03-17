@@ -1,7 +1,7 @@
 {
     "Width": "Width",
     "Height": "Height",
-    "Skeleton Map/Depth Map/Normal Map/Edge Map": "Skeleton Map/Depth Map/Normal Map/Edge Map",
+    "Generate Skeleton/Depth/Normal/Canny Map": "Generate Skeleton/Depth/Normal/Canny Map",
     "Duplicate Skeleton (Z-axis)": "Duplicate Skeleton (Z-axis)",
     "Duplicate Skeleton (X-axis)": "Duplicate Skeleton (X-axis)",
     "Delete Selected Skeleton (Press D key)": "Delete Selected Skeleton (Press D key)",

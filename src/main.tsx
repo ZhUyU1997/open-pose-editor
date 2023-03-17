@@ -33,7 +33,14 @@ window.addEventListener('keyup', function (event) {
     }
 })
 
+gui.width = 300
+
 CreateLanguageFolder(gui)
+
+gui.add(editor, 'MakeImages').name(
+    i18n.t('Generate Skeleton/Depth/Normal/Canny Map')
+)
+
 gui.add(options, 'setBackground').name(i18n.t('Set Background Image'))
 
 gui.add(editor, 'SaveScene').name(i18n.t('Save Scene'))
@@ -69,9 +76,6 @@ function UpdateSize() {
 
 UpdateSize()
 
-gui.add(editor, 'MakeImages').name(
-    i18n.t('Skeleton Map/Depth Map/Normal Map/Edge Map')
-)
 gui.add(editor, 'CopyBodyZ').name(i18n.t('Duplicate Skeleton (Z-axis)'))
 gui.add(editor, 'CopyBodyX').name(i18n.t('Duplicate Skeleton (X-axis)'))
 gui.add(editor, 'RemoveBody').name(
