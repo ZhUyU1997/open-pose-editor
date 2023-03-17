@@ -86,6 +86,25 @@ function Oops(error: any) {
     })
 }
 
+interface TransformValue {
+    scale: Object3D['scale']
+    rotation: Object3D['rotation']
+    position: Object3D['position']
+}
+
+function GetTransformValue(obj: Object3D): TransformValue {
+    return {
+        scale: obj.scale.clone(),
+        rotation: obj.rotation.clone(),
+        position: obj.position.clone(),
+    }
+}
+
+export interface Command {
+    execute: () => void
+    undo: () => void
+}
+
 export class BodyEditor {
     renderer: THREE.WebGLRenderer
     outputRenderer: THREE.WebGLRenderer
@@ -152,19 +171,9 @@ export class BodyEditor {
         )
 
         this.transformControl.setMode('rotate') //旋转
-        // transformControl.setSize(0.4);
+        // this.transformControl.setSize(0.4);
         this.transformControl.setSpace('local')
-        this.transformControl.addEventListener('change', () => {
-            // this.renderer.render(this.scene, this.camera)
-        })
-
-        this.transformControl.addEventListener('mouseDown', () => {
-            this.orbitControls.enabled = false
-        })
-        this.transformControl.addEventListener('mouseUp', () => {
-            this.orbitControls.enabled = true
-        })
-
+        this.registerTranformControlEvent()
         this.scene.add(this.transformControl)
 
         // Light
@@ -195,6 +204,10 @@ export class BodyEditor {
             this.handleResize.bind(this)
         )
 
+        // When changing the body parameter, the canvas focus is lost, so we have to listen to the documentation for a better experience.
+        // But need to find a better way if run on webui
+        document.addEventListener('keydown', this.handleKeyDown.bind(this))
+
         this.initEdgeComposer()
 
         // // Create a render target with depth texture
@@ -209,7 +222,123 @@ export class BodyEditor {
         this.handleResize()
         this.AutoSaveScene()
     }
+    commandHistory: Command[] = []
+    historyIndex = -1
+    pushCommand(cmd: Command) {
+        console.log('pushCommand')
+        if (this.historyIndex != this.commandHistory.length - 1)
+            this.commandHistory = this.commandHistory.slice(
+                0,
+                this.historyIndex + 1
+            )
+        this.commandHistory.push(cmd)
+        this.historyIndex = this.commandHistory.length - 1
+    }
 
+    CreateTransformCommand(obj: Object3D, _old: TransformValue): Command {
+        const oldValue = _old
+        const newValue = GetTransformValue(obj)
+        return {
+            execute() {
+                obj.position.copy(newValue.position)
+                obj.rotation.copy(newValue.rotation)
+                obj.scale.copy(newValue.scale)
+            },
+            undo() {
+                obj.position.copy(oldValue.position)
+                obj.rotation.copy(oldValue.rotation)
+                obj.scale.copy(oldValue.scale)
+            },
+        }
+    }
+
+    CreateAddBodyCommand(obj: Object3D): Command {
+        return {
+            execute: () => {
+                this.scene.add(obj)
+            },
+            undo: () => {
+                obj.removeFromParent()
+                this.transformControl.detach()
+            },
+        }
+    }
+
+    CreateRemoveBodyCommand(obj: Object3D): Command {
+        return {
+            execute: () => {
+                obj.removeFromParent()
+                this.transformControl.detach()
+            },
+            undo: () => {
+                this.scene.add(obj)
+            },
+        }
+    }
+
+    Undo() {
+        console.log('Undo', this.historyIndex)
+
+        if (this.historyIndex >= 0) {
+            const cmd = this.commandHistory[this.historyIndex]
+            cmd.undo()
+            this.historyIndex--
+        }
+    }
+
+    Redo() {
+        console.log('Redo', this.historyIndex)
+
+        if (this.historyIndex < this.commandHistory.length - 1) {
+            const cmd = this.commandHistory[this.historyIndex + 1]
+            cmd.execute()
+            this.historyIndex++
+        }
+    }
+
+    handleKeyDown(e: KeyboardEvent) {
+        if (e.code === 'KeyZ' && (e.ctrlKey || e.metaKey) && e.shiftKey) {
+            this.Redo()
+        } else if (e.code === 'KeyR' && (e.ctrlKey || e.metaKey)) {
+            this.Redo()
+            // prevent brower refresh
+            e.preventDefault()
+        } else if (e.code === 'KeyZ' && (e.ctrlKey || e.metaKey)) {
+            this.Undo()
+        }
+    }
+
+    registerTranformControlEvent() {
+        let oldTransformValue: TransformValue = {
+            scale: new THREE.Vector3(),
+            rotation: new THREE.Euler(),
+            position: new THREE.Vector3(),
+        }
+        this.transformControl.addEventListener('change', () => {
+            // console.log('change')
+            // this.renderer.render(this.scene, this.camera)
+        })
+
+        this.transformControl.addEventListener('objectChange', () => {
+            // console.log('objectChange')
+            // this.renderer.render(this.scene, this.camera)
+        })
+
+        this.transformControl.addEventListener('mouseDown', () => {
+            const part = this.getSelectedPart()
+            if (part) oldTransformValue = GetTransformValue(part)
+            this.orbitControls.enabled = false
+        })
+        this.transformControl.addEventListener('mouseUp', () => {
+            const part = this.getSelectedPart()
+            if (part) {
+                this.pushCommand(
+                    this.CreateTransformCommand(part, oldTransformValue)
+                )
+            }
+            this.orbitControls.enabled = true
+        })
+    }
     render(width: number = this.Width, height: number = this.Height) {
         // this.ikSolver?.update()
 
@@ -682,6 +811,9 @@ export class BodyEditor {
             .map((o) => Math.ceil(o.position.z / 30))
 
         if (list.length > 0) body.translateZ((Math.min(...list) - 1) * 30)
+
+        this.pushCommand(this.CreateAddBodyCommand(body))
+
         this.scene.add(body)
         this.fixFootVisible()
     }
@@ -696,6 +828,9 @@ export class BodyEditor {
             .map((o) => Math.ceil(o.position.x / 50))
 
         if (list.length > 0) body.translateX((Math.min(...list) - 1) * 50)
+
+        this.pushCommand(this.CreateAddBodyCommand(body))
+
         this.scene.add(body)
         this.fixFootVisible()
     }
@@ -706,10 +841,14 @@ export class BodyEditor {
 
         return obj
     }
+    getSelectedPart() {
+        return this.transformControl.object
+    }
     RemoveBody() {
         const obj = this.getSelectedBody()
 
         if (obj) {
+            this.pushCommand(this.CreateRemoveBodyCommand(obj))
             console.log(obj.name)
             obj.removeFromParent()
             this.transformControl.detach()

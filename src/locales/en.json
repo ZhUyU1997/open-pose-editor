@@ -40,5 +40,7 @@
     "Downloading Foot Model": "Downloading Foot Model",
     "Please select a skeleton!!": "Please select a skeleton!!",
     "Downloading Poses Library": "Downloading Poses Library",
-    "Set Random Pose [NEW]": "Set Random Pose [NEW]"
+    "Set Random Pose [NEW]": "Set Random Pose [NEW]",
+    "Redo": "Redo",
+    "Undo": "Undo"
 }

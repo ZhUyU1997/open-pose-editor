@@ -1,114 +1,97 @@
-import { BodyEditor } from './editor'
+import { BodyEditor, Command } from './editor'
 import * as dat from 'dat.gui'
 import i18n from './i18n'
 import { BodyControlor } from './body'
 
-const bodyParams = {
-    HeadCircumference: 100,
+const BodyParamsInit = {
     HeadSize: 100,
     NoseToNeck: 100,
     ShoulderWidth: 100,
-    ChestWidth: 100,
-    Belly: 100,
-    Waist: 100,
-    Hips: 100,
+    ShoulderToHip: 100,
     ArmLength: 100,
-    UpperArm: 100,
     Forearm: 100,
+    UpperArm: 100,
     HandSize: 10,
+    Hips: 100,
+    LegLength: 100,
     Thigh: 100,
     LowerLeg: 100,
-    ShoulderToHip: 100,
-    ShoulderToWaist: 100,
-    WaistToKnee: 100,
-    LegLength: 100,
     FootSize: 10,
 }
 
+function PushExecuteBodyParamsCommand(
+    editor: BodyEditor,
+    controlor: BodyControlor,
+    name: keyof typeof BodyParamsInit,
+    oldValue: number,
+    value: number
+) {
+    console.log(oldValue, value)
+    const cmd = {
+        execute: () => {
+            controlor[name] = value
+        },
+        undo: () => {
+            controlor[name] = oldValue
+        },
+    }
+    cmd.execute()
+    editor.pushCommand(cmd)
+}
+
 export function CreateBodyParamsControls(editor: BodyEditor, gui: dat.GUI) {
+    const bodyParams = {
+        ...BodyParamsInit,
+    }
+
     let currentControlor: BodyControlor | null = null
     const params = gui.addFolder(i18n.t('Body Parameters'))
-    params
-        .add(bodyParams, 'HeadSize', 0.1, 100)
-        .name(i18n.t('Head Size'))
-        .onChange((value: number) => {
-            if (currentControlor) currentControlor.HeadSize = value
-        })
-    params
-        .add(bodyParams, 'NoseToNeck', 0.1, 100)
-        .name(i18n.t('Nose To Neck'))
-        .onChange((value: number) => {
-            if (currentControlor) currentControlor.NoseToNeck = value
-        })
-    params
-        .add(bodyParams, 'ShoulderWidth', 0.1, 100)
-        .name(i18n.t('Shoulder Width'))
-        .onChange((value: number) => {
-            if (currentControlor) currentControlor.ShoulderWidth = value
-        })
-    params
-        .add(bodyParams, 'ShoulderToHip', 0.1, 100)
-        .name(i18n.t('Shoulder To Hip'))
-        .onChange((value: number) => {
-            if (currentControlor) currentControlor.ShoulderToHip = value
-        })
-    params
-        .add(bodyParams, 'ArmLength', 0.1, 100)
-        .name(i18n.t('Arm Length'))
-        .onChange((value: number) => {
-            if (currentControlor) currentControlor.ArmLength = value
-        })
-    params
-        .add(bodyParams, 'Forearm', 0.1, 100)
-        .name(i18n.t('Forearm'))
-        .onChange((value: number) => {
-            if (currentControlor) currentControlor.Forearm = value
-        })
-    params
-        .add(bodyParams, 'UpperArm', 0.1, 100)
-        .name(i18n.t('Upper Arm'))
-        .onChange((value: number) => {
-            if (currentControlor) currentControlor.UpperArm = value
-        })
-    params
-        .add(bodyParams, 'HandSize', 0.1, 10)
-        .name(i18n.t('Hand Size'))
-        .onChange((value: number) => {
-            if (currentControlor) currentControlor.HandSize = value
-        })
 
-    params
-        .add(bodyParams, 'Hips', 0.1, 100)
-        .name(i18n.t('Hips'))
-        .onChange((value: number) => {
-            if (currentControlor) currentControlor.Hips = value
-        })
+    const describeMapping: Record<keyof typeof BodyParamsInit, string> = {
+        HeadSize: i18n.t('Head Size'),
+        NoseToNeck: i18n.t('Nose To Neck'),
+        ShoulderWidth: i18n.t('Shoulder Width'),
+        ShoulderToHip: i18n.t('Shoulder To Hip'),
+        ArmLength: i18n.t('Arm Length'),
+        Forearm: i18n.t('Forearm'),
+        UpperArm: i18n.t('Upper Arm'),
+        HandSize: i18n.t('Hand Size'),
+        Hips: i18n.t('Hips'),
+        LegLength: i18n.t('Leg Length'),
+        Thigh: i18n.t('Thigh'),
+        LowerLeg: i18n.t('Lower Leg'),
+        FootSize: i18n.t('Foot Size'),
+    }
 
-    params
-        .add(bodyParams, 'LegLength', 0.1, 200)
-        .name(i18n.t('Leg Length'))
-        .onChange((value: number) => {
-            if (currentControlor) currentControlor.LegLength = value
-        })
+    Object.entries(BodyParamsInit).forEach(([_name, maxValue]) => {
+        const name = _name as keyof typeof BodyParamsInit
+        let oldValue = 0
+        let changing = false
+        params
+            .add(bodyParams, name, 0.1, maxValue)
+            .name(describeMapping[name])
+            .onChange((value: number) => {
+                if (currentControlor) {
+                    // the first time
+                    if (changing == false) oldValue = currentControlor[name]
+                    changing = true
+                    currentControlor[name] = value
+                }
+            })
+            .onFinishChange((value: number) => {
+                if (currentControlor) {
+                    changing = false
+                    PushExecuteBodyParamsCommand(
+                        editor,
+                        currentControlor,
+                        name,
+                        oldValue,
+                        value
+                    )
+                }
+            })
+    })
 
-    params
-        .add(bodyParams, 'Thigh', 0.1, 100)
-        .name(i18n.t('Thigh'))
-        .onChange((value: number) => {
-            if (currentControlor) currentControlor.Thigh = value
-        })
-    params
-        .add(bodyParams, 'LowerLeg', 0.1, 100)
-        .name(i18n.t('Lower Leg'))
-        .onChange((value: number) => {
-            if (currentControlor) currentControlor.LowerLeg = value
-        })
-    params
-        .add(bodyParams, 'FootSize', 0.1, 10)
-        .name(i18n.t('Foot Size'))
-        .onChange((value: number) => {
-            if (currentControlor) currentControlor.FootSize = value
-        })
     params.hide()
 
     editor.RegisterEvent({

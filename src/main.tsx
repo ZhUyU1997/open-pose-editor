@@ -40,6 +40,9 @@ gui.add(editor, 'SaveScene').name(i18n.t('Save Scene'))
 gui.add(editor, 'LoadScene').name(i18n.t('Load Scene'))
 gui.add(editor, 'RestoreLastSavedScene').name(i18n.t('Restore Last Scene'))
 
+gui.add(editor, 'Undo').name(i18n.t('Undo'))
+gui.add(editor, 'Redo').name(i18n.t('Redo'))
+
 gui.add(editor, 'SetRandomPose').name(i18n.t('Set Random Pose [NEW]'))
 
 options['Width'] = editor.Width
