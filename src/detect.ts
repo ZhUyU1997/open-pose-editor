@@ -1,5 +1,7 @@
-import { Pose, Results } from '@mediapipe/pose'
+import * as MediapipePose from '@mediapipe/pose'
+import { Results } from '@mediapipe/pose'
 
+const { Pose } = MediapipePose
 // https://github.com/google/mediapipe/blob/master/docs/solutions/pose.md#resources
 
 const pose = new Pose({
