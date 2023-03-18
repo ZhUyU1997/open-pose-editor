@@ -224,6 +224,13 @@ function Torso(x: number, y: number, z: number) {
     const object = new THREE.Group()
     object.name = 'torso'
 
+    // for debug
+    // const torso = new THREE.Mesh(
+    //     new THREE.SphereGeometry(JointRadius),
+    //     new THREE.MeshBasicMaterial({ color: 0x888888 })
+    // )
+    // object.add(torso)
+
     object.translateX(x)
     object.translateY(y)
     object.translateZ(z)
@@ -236,9 +243,21 @@ function Torso(x: number, y: number, z: number) {
     const neck = Joint('neck')
     five.add(neck)
 
-    const shoulder = new THREE.Group()
-    shoulder.name = 'shoulder'
-    five.add(shoulder)
+    const left_shoulder_inner = new THREE.Group()
+    left_shoulder_inner.name = 'left_shoulder_inner'
+    five.add(left_shoulder_inner)
+
+    const right_shoulder_inner = new THREE.Group()
+    right_shoulder_inner.name = 'right_shoulder_inner'
+    five.add(right_shoulder_inner)
+
+    const right_hip_inner = new THREE.Group()
+    right_hip_inner.name = 'right_hip_inner'
+    five.add(right_hip_inner)
+
+    const left_hip_inner = new THREE.Group()
+    left_hip_inner.name = 'left_hip_inner'
+    five.add(left_hip_inner)
 
     const right_shoulder = Joint('right_shoulder')
     right_shoulder.translateX(-width / 2)
@@ -246,13 +265,9 @@ function Torso(x: number, y: number, z: number) {
     const left_shoulder = Joint('left_shoulder')
 
     left_shoulder.translateX(width / 2)
-    x
-    shoulder.add(right_shoulder)
-    shoulder.add(left_shoulder)
 
-    const hip = new THREE.Group()
-    hip.name = 'hip'
-    five.add(hip)
+    right_shoulder_inner.add(right_shoulder)
+    left_shoulder_inner.add(left_shoulder)
 
     const right_hip = Joint('right_hip')
 
@@ -264,13 +279,13 @@ function Torso(x: number, y: number, z: number) {
     left_hip.translateX(width / 2 - 10)
     left_hip.translateY(-height)
 
-    hip.add(right_hip)
-    hip.add(left_hip)
+    right_hip_inner.add(right_hip)
+    left_hip_inner.add(left_hip)
 
-    CreateLink4(hip, right_hip, 'neck', 'right_hip')
-    CreateLink4(hip, left_hip, 'neck', 'left_hip')
-    CreateLink4(shoulder, right_shoulder, 'neck', 'right_shoulder')
-    CreateLink4(shoulder, left_shoulder, 'neck', 'left_shoulder')
+    CreateLink4(right_hip_inner, right_hip, 'neck', 'right_hip')
+    CreateLink4(left_hip_inner, left_hip, 'neck', 'left_hip')
+    CreateLink4(right_shoulder_inner, right_shoulder, 'neck', 'right_shoulder')
+    CreateLink4(left_shoulder_inner, left_shoulder, 'neck', 'left_shoulder')
 
     return {
         neck,
@@ -516,11 +531,21 @@ export function GetExtremityMesh(o: Object3D) {
     )
 }
 
+export function IsVirtualPoint(name: string) {
+    return [
+        'right_shoulder_inner',
+        'left_shoulder_inner',
+        'right_hip_inner',
+        'left_hip_inner',
+        'five',
+    ].includes(name)
+}
+
 export function IsNeedSaveObject(name: string) {
     if (coco_body_keypoints.includes(name)) return true
     if (name === 'right_hand' || name === 'left_hand') return true
     if (name === 'right_foot' || name === 'left_foot') return true
-    if (name === 'shoulder' || name === 'hip') return true // virtual point
+    if (IsVirtualPoint(name)) return true // virtual point
     if (name.startsWith(handModelInfo.bonePrefix)) return true
     if (name.startsWith(footModelInfo.bonePrefix)) return true
 
@@ -540,8 +565,10 @@ const pickableObjectNames: string[] = [
     'right_knee',
     'left_knee',
     // virtual point for better control
-    'shoulder',
-    'hip',
+    'right_shoulder_inner',
+    'left_shoulder_inner',
+    'right_hip_inner',
+    'left_hip_inner',
 ]
 
 export function IsPickable(name: string) {
@@ -566,8 +593,10 @@ export function IsExtremities(name: string) {
 
 type ControlPartName =
     | TupleToUnion<typeof coco_body_keypoints_const>
-    | 'hip'
-    | 'shoulder'
+    | 'left_shoulder_inner'
+    | 'right_shoulder_inner'
+    | 'left_hip_inner'
+    | 'right_hip_inner'
     | 'five'
     | 'right_hand'
     | 'left_hand'
@@ -586,16 +615,30 @@ export class BodyControlor {
                 ] = o
             }
         })
-        this.part['hip'] = this.body.getObjectByName('hip')!
-        this.part['shoulder'] = this.body.getObjectByName('shoulder')!
-        this.part['five'] = this.body.getObjectByName('five')!
-        this.part['right_hand'] = this.body.getObjectByName('right_hand')!
-        this.part['left_hand'] = this.body.getObjectByName('left_hand')!
-        this.part['right_foot'] = this.body.getObjectByName('right_foot')!
-        this.part['left_foot'] = this.body.getObjectByName('left_foot')!
+
+        this.part['left_shoulder_inner'] = this.getObjectByName(
+            'left_shoulder_inner'
+        )
+        this.part['right_shoulder_inner'] = this.getObjectByName(
+            'right_shoulder_inner'
+        )
+        this.part['left_hip_inner'] = this.getObjectByName('left_hip_inner')
+        this.part['right_hip_inner'] = this.getObjectByName('right_hip_inner')
+        this.part['five'] = this.getObjectByName('five')
+        this.part['right_hand'] = this.getObjectByName('right_hand')
+        this.part['left_hand'] = this.getObjectByName('left_hand')
+        this.part['right_foot'] = this.getObjectByName('right_foot')
+        this.part['left_foot'] = this.getObjectByName('left_foot')
         this.part['torso'] = this.body
     }
 
+    getObjectByName(name: string) {
+        const part = this.body.getObjectByName(name)
+
+        if (!part) throw new Error(`Not found part: ${name}`)
+
+        return part
+    }
     getWorldPosition(o: Object3D) {
         const pos = new THREE.Vector3()
         o.getWorldPosition(pos)
@@ -606,7 +649,7 @@ export class BodyControlor {
         switch (name) {
             case 'left_hip':
                 UpdateLink4(
-                    this.part['hip'],
+                    this.part['left_hip_inner'],
                     this.part['left_hip'],
                     'neck',
                     'left_hip'
@@ -614,7 +657,7 @@ export class BodyControlor {
                 break
             case 'right_hip':
                 UpdateLink4(
-                    this.part['hip'],
+                    this.part['right_hip_inner'],
                     this.part['right_hip'],
                     'neck',
                     'right_hip'
@@ -622,7 +665,7 @@ export class BodyControlor {
                 break
             case 'right_shoulder':
                 UpdateLink4(
-                    this.part['shoulder'],
+                    this.part['right_shoulder_inner'],
                     this.part['right_shoulder'],
                     'neck',
                     'right_shoulder'
@@ -630,7 +673,7 @@ export class BodyControlor {
                 break
             case 'left_shoulder':
                 UpdateLink4(
-                    this.part['shoulder'],
+                    this.part['left_shoulder_inner'],
                     this.part['left_shoulder'],
                     'neck',
                     'left_shoulder'
@@ -642,13 +685,17 @@ export class BodyControlor {
                 break
             case 'neck':
                 break
-            case 'shoulder':
+            case 'left_shoulder_inner':
+                break
+            case 'right_shoulder_inner':
                 break
             case 'right_hand':
                 break
             case 'left_hand':
                 break
-            case 'hip':
+            case 'left_hip_inner':
+                break
+            case 'right_hip_inner':
                 break
             case 'right_foot':
                 break
@@ -691,12 +738,20 @@ export class BodyControlor {
         this.UpdateLink('nose')
     }
     get ShoulderToHip() {
-        return this.part['five'].position.length() * 2
+        return this.getDistanceOf(
+            this.getWorldPosition(this.part['five']),
+            this.getMidpoint(
+                this.getWorldPosition(this.part['left_hip']),
+                this.getWorldPosition(this.part['right_hip'])
+            )
+        )
     }
     set ShoulderToHip(value: number) {
-        this.part['five'].position.setY(value / 2)
-        this.part['left_hip'].position.setY(-value)
-        this.part['right_hip'].position.setY(-value)
+        const origin = this.ShoulderToHip
+
+        this.part['five'].position.normalize().multiplyScalar(value / 2)
+        this.part['left_hip'].position.multiplyScalar(value / origin)
+        this.part['right_hip'].position.multiplyScalar(value / origin)
 
         this.UpdateLink('left_hip')
         this.UpdateLink('right_hip')
@@ -770,11 +825,33 @@ export class BodyControlor {
     }
 
     get Hips() {
-        return Math.abs(this.part['left_hip'].position.x) * 2
+        return this.getDistanceOf(
+            this.getWorldPosition(this.part['left_hip']),
+            this.getWorldPosition(this.part['right_hip'])
+        )
     }
     set Hips(width: number) {
-        this.part['left_hip'].position.setX(width / 2)
-        this.part['right_hip'].position.setX(-width / 2)
+        const left = this.getWorldPosition(this.part['left_hip'])
+        const right = this.getWorldPosition(this.part['right_hip'])
+
+        const mid = this.getMidpoint(left, right)
+
+        // newLLeft = normalize(left - mid) * width + mid
+
+        const newLeft = left
+            .sub(mid)
+            .normalize()
+            .multiplyScalar(width / 2.0)
+            .add(mid)
+        const newRight = right
+            .sub(mid)
+            .normalize()
+            .multiplyScalar(width / 2.0)
+            .add(mid)
+
+        this.setPositionFromWorld(this.part['left_hip'], newLeft)
+        this.setPositionFromWorld(this.part['right_hip'], newRight)
+
         this.UpdateLink('left_hip')
         this.UpdateLink('right_hip')
     }
@@ -814,6 +891,10 @@ export class BodyControlor {
         return obj.worldToLocal(postion.clone())
     }
 
+    setPositionFromWorld(obj: Object3D, postion: THREE.Vector3) {
+        return obj.position.copy(this.getLocalPosition(obj.parent!, postion))
+    }
+
     getDirectionVectorByParentOf(
         name: ControlPartName,
         from: THREE.Vector3,
@@ -831,8 +912,22 @@ export class BodyControlor {
         const unit = obj.position.clone().normalize()
         const axis = unit.clone().cross(dir)
         const angle = unit.clone().angleTo(dir)
-        obj.parent?.setRotationFromAxisAngle(axis.normalize(), angle)
+        obj.parent?.rotateOnAxis(axis.normalize(), angle)
     }
+
+    rotateTo3(name: ControlPartName, from: THREE.Vector3, to: THREE.Vector3) {
+        this.rotateTo(name, this.getDirectionVectorByParentOf(name, from, to))
+    }
+
+    setPositionByDistance(
+        name: ControlPartName,
+        from: THREE.Vector3,
+        to: THREE.Vector3
+    ) {
+        const dis = this.getDistanceOf(from, to)
+        this.part[name].position.normalize().multiplyScalar(dis)
+    }
+
     setDirectionVector(name: ControlPartName, v: THREE.Vector3) {
         const len = this.part[name].position.length()
         this.part[name].position.copy(v).multiplyScalar(len)
@@ -841,6 +936,10 @@ export class BodyControlor {
 
     getDistanceOf(from: THREE.Vector3, to: THREE.Vector3) {
         return from.distanceTo(to)
+    }
+
+    getMidpoint(from: THREE.Vector3, to: THREE.Vector3) {
+        return from.clone().add(to).multiplyScalar(0.5)
     }
     ResetPose() {
         templateBody?.traverse((o) => {
@@ -852,6 +951,157 @@ export class BodyControlor {
                 this.UpdateLink(name)
             }
         })
+    }
+
+    SetBlazePose(rawData: [number, number, number][]) {
+        this.ResetPose()
+
+        const data = Object.fromEntries(
+            Object.entries(PartIndexMappingOfBlazePoseModel).map(
+                ([name, index]) => {
+                    return [
+                        name,
+                        new THREE.Vector3().fromArray(
+                            rawData[index] ?? [0, 0, 0]
+                        ),
+                    ]
+                }
+            )
+        ) as Record<
+            keyof typeof PartIndexMappingOfBlazePoseModel,
+            THREE.Vector3
+        >
+
+        // this.Hips = this.getDistanceOf(data['right_hip'], data['left_hip'])
+        // this.Thigh = this.getDistanceOf(data['left_knee'], data['left_hip'])
+        // this.LowerLeg = this.getDistanceOf(
+        //     data['left_ankle'],
+        //     data['left_knee']
+        // )
+        // this.UpperArm = this.getDistanceOf(
+        //     data['left_shoulder'],
+        //     data['left_elbow']
+        // )
+        // this.Forearm = this.getDistanceOf(
+        //     data['left_elbow'],
+        //     data['left_wrist']
+        // )
+        // this.ShoulderWidth = this.getDistanceOf(
+        //     data['left_shoulder'],
+        //     data['right_shoulder']
+        // )
+
+        // this.NoseToNeck = this.getDistanceOf(
+        //     data['nose'],
+        //     this.getMidpoint(data['left_shoulder'], data['right_shoulder'])
+        // )
+
+        const map: [
+            ControlPartName,
+            [
+                THREE.Vector3 | keyof typeof PartIndexMappingOfBlazePoseModel,
+                THREE.Vector3 | keyof typeof PartIndexMappingOfBlazePoseModel
+            ]
+        ][] = [
+            [
+                'five',
+                [
+                    this.getMidpoint(
+                        this.getMidpoint(data['left_hip'], data['right_hip']),
+                        this.getMidpoint(
+                            data['left_shoulder'],
+                            data['right_shoulder']
+                        )
+                    ),
+                    this.getMidpoint(
+                        data['left_shoulder'],
+                        data['right_shoulder']
+                    ),
+                ],
+            ],
+
+            [
+                'left_shoulder',
+                [
+                    this.getMidpoint(
+                        data['left_shoulder'],
+                        data['right_shoulder']
+                    ),
+                    'left_shoulder',
+                ],
+            ],
+            ['left_elbow', ['left_shoulder', 'left_elbow']],
+            ['left_wrist', ['left_elbow', 'left_wrist']],
+            [
+                'left_hip',
+                [
+                    this.getMidpoint(
+                        data['left_shoulder'],
+                        data['right_shoulder']
+                    ),
+                    'left_hip',
+                ],
+            ],
+            ['left_knee', ['left_hip', 'left_knee']],
+            ['left_ankle', ['left_knee', 'left_ankle']],
+
+            [
+                'right_shoulder',
+                [
+                    this.getMidpoint(
+                        data['left_shoulder'],
+                        data['right_shoulder']
+                    ),
+                    'right_shoulder',
+                ],
+            ],
+            ['right_elbow', ['right_shoulder', 'right_elbow']],
+            ['right_wrist', ['right_elbow', 'right_wrist']],
+
+            [
+                'right_hip',
+                [
+                    this.getMidpoint(
+                        data['left_shoulder'],
+                        data['right_shoulder']
+                    ),
+                    'right_hip',
+                ],
+            ],
+            ['right_knee', ['right_hip', 'right_knee']],
+            ['right_ankle', ['right_knee', 'right_ankle']],
+
+            [
+                'nose',
+                [
+                    this.getMidpoint(
+                        data['left_shoulder'],
+                        data['right_shoulder']
+                    ),
+                    'nose',
+                ],
+            ],
+            ['left_eye', ['nose', 'left_eye']],
+            ['right_eye', ['nose', 'right_eye']],
+            ['left_ear', ['left_eye', 'left_ear']],
+            ['right_ear', ['right_eye', 'right_ear']],
+        ]
+
+        for (const [name, [from, to]] of map) {
+            this.rotateTo3(
+                name,
+                from instanceof THREE.Vector3 ? from : data[from],
+                to instanceof THREE.Vector3 ? to : data[to]
+            )
+
+            this.setPositionByDistance(
+                name,
+                from instanceof THREE.Vector3 ? from : data[from],
+                to instanceof THREE.Vector3 ? to : data[to]
+            )
+
+            this.UpdateLink(name)
+        }
     }
     SetPose(rawData: [number, number, number][]) {
         this.ResetPose()
@@ -866,7 +1116,7 @@ export class BodyControlor {
         ) as Record<keyof typeof PartIndexMappingOfPoseModel, THREE.Vector3>
 
         this.part['torso'].position.copy(
-            data['Hips'].clone().add(data['Chest']).multiplyScalar(0.5)
+            this.getMidpoint(data['Hips'], data['Chest'])
         )
 
         this.Hips = this.getDistanceOf(data['Hips'], data['UpLeg_L']) * 2
@@ -984,6 +1234,42 @@ const PartIndexMappingOfPoseModel = {
     FootThumb_R: 74,
     UpLegTwist_R: 75,
     ThighFront_R: 76,
+}
+
+export const PartIndexMappingOfBlazePoseModel = {
+    nose: 0,
+    left_eye_inner: 1,
+    left_eye: 2,
+    left_eye_outer: 3,
+    right_eye_inner: 4,
+    right_eye: 5,
+    right_eye_outer: 6,
+    left_ear: 7,
+    right_ear: 8,
+    mouth_left: 9,
+    mouth_right: 10,
+    left_shoulder: 11,
+    right_shoulder: 12,
+    left_elbow: 13,
+    right_elbow: 14,
+    left_wrist: 15,
+    right_wrist: 16,
+    left_pinky: 17,
+    right_pinky: 18,
+    left_index: 19,
+    right_index: 20,
+    left_thumb: 21,
+    right_thumb: 22,
+    left_hip: 23,
+    right_hip: 24,
+    left_knee: 25,
+    right_knee: 26,
+    left_ankle: 27,
+    right_ankle: 28,
+    left_heel: 29,
+    right_heel: 30,
+    left_foot_index: 31,
+    right_foot_index: 32,
 }
 
 const PosesLibraryUrl = new URL('./poses/data.bin', import.meta.url).href

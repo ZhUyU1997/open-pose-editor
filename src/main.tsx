@@ -41,6 +41,8 @@ gui.add(editor, 'MakeImages').name(
     i18n.t('Generate Skeleton/Depth/Normal/Canny Map')
 )
 
+gui.add(editor, 'DetectFromImage').name(i18n.t('Detect From Image'))
+
 gui.add(options, 'setBackground').name(i18n.t('Set Background Image'))
 
 gui.add(editor, 'SaveScene').name(i18n.t('Save Scene'))

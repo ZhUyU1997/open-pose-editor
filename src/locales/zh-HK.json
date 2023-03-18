@@ -42,5 +42,6 @@
     "Downloading Poses Library": "下載姿勢庫中",
     "Set Random Pose [NEW]": "設定隨機姿勢 [新]",
     "Redo": "重做",
-    "Undo": "撤銷"
+    "Undo": "撤銷",
+    "Detect From Image": "從圖片中偵測 [新]"
 }

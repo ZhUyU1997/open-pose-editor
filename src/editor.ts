@@ -33,10 +33,19 @@ import {
     LoadFoot,
     LoadHand,
     LoadPosesLibrary,
+    PartIndexMappingOfBlazePoseModel,
 } from './body'
 import { options } from './config'
 import { SetScreenShot } from './image'
-import { download, downloadJson, getCurrentTime, uploadJson } from './util'
+import {
+    download,
+    downloadJson,
+    getCurrentTime,
+    getImage,
+    setBackgroundImage,
+    uploadImage,
+    uploadJson,
+} from './util'
 
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
@@ -48,6 +57,7 @@ import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils'
 import Swal from 'sweetalert2'
 import i18n from './i18n'
 import { FindObjectItem } from './three-utils'
+import { DetectPosefromImage } from './detect'
 
 interface BodyData {
     position: ReturnType<THREE.Vector3['toArray']>
@@ -1231,5 +1241,133 @@ export class BodyEditor {
     async LoadScene() {
         const rawData = await uploadJson()
         if (rawData) this.RestoreScene(rawData)
+    }
+
+    // drawPoseData(positions: THREE.Vector3[]) {
+    //     const objects: Record<
+    //         keyof typeof PartIndexMappingOfBlazePoseModel,
+    //         Object3D
+    //     > = Object.fromEntries(
+    //         Object.keys(PartIndexMappingOfBlazePoseModel).map((name) => {
+    //             const p = positions[PartIndexMappingOfBlazePoseModel[name]]
+    //             const material = new THREE.MeshBasicMaterial({
+    //                 color: 0xff0000,
+    //             })
+    //             const mesh = new THREE.Mesh(
+    //                 new THREE.SphereGeometry(1),
+    //                 material
+    //             )
+    //             mesh.position.copy(p)
+    //             this.scene.add(mesh)
+    //             return [name, mesh]
+    //         })
+    //     )
+
+    //     const CreateLink2 = (
+    //         startObject: THREE.Object3D,
+    //         endObject: THREE.Object3D
+    //     ) => {
+    //         const startPosition = startObject.position
+    //         const endPostion = endObject.position
+    //         const distance = startPosition.distanceTo(endPostion)
+
+    //         const material = new THREE.MeshBasicMaterial({
+    //             color: 0x666666,
+    //             opacity: 0.6,
+    //             transparent: true,
+    //         })
+    //         const mesh = new THREE.Mesh(new THREE.SphereGeometry(1), material)
+
+    //         // 将拉伸后的球体放在中点，并计算旋转轴和角度
+    //         const origin = startPosition
+    //             .clone()
+    //             .add(endPostion)
+    //             .multiplyScalar(0.5)
+    //         const v = endPostion.clone().sub(startPosition)
+    //         const unit = new THREE.Vector3(1, 0, 0)
+    //         const axis = unit.clone().cross(v)
+    //         const angle = unit.clone().angleTo(v)
+
+    //         mesh.scale.copy(new THREE.Vector3(distance / 2, 1, 1))
+    //         mesh.position.copy(origin)
+    //         mesh.setRotationFromAxisAngle(axis.normalize(), angle)
+    //         this.scene.add(mesh)
+    //     }
+
+    //     CreateLink2(objects['left_shoulder'], objects['left_elbow'])
+    //     CreateLink2(objects['left_elbow'], objects['left_wrist'])
+    //     CreateLink2(objects['left_hip'], objects['left_knee'])
+    //     CreateLink2(objects['left_knee'], objects['left_ankle'])
+    //     CreateLink2(objects['right_shoulder'], objects['right_elbow'])
+    //     CreateLink2(objects['right_elbow'], objects['right_wrist'])
+    //     CreateLink2(objects['right_hip'], objects['right_knee'])
+    //     CreateLink2(objects['right_knee'], objects['right_ankle'])
+
+    //     CreateLink2(objects['left_shoulder'], objects['right_shoulder'])
+    //     CreateLink2(objects['nose'], objects['right_eye'])
+    //     CreateLink2(objects['nose'], objects['left_eye'])
+    //     CreateLink2(objects['left_eye'], objects['left_ear'])
+
+    //     CreateLink2(objects['right_eye'], objects['right_ear'])
+    // }
+
+    async DetectFromImage() {
+        const bodies = this.scene.children.filter((o) => o.name == 'torso')
+        const body = bodies.length == 1 ? bodies[0] : this.getSelectedBody()
+        if (!body) {
+            await Swal.fire(i18n.t('Please select a skeleton!!'))
+            return
+        }
+
+        try {
+            let loading = true
+
+            const dataUrl = await uploadImage()
+
+            if (!dataUrl) return
+
+            const image = await getImage(dataUrl)
+            setBackgroundImage(dataUrl)
+
+            setTimeout(() => {
+                if (loading)
+                    Swal.fire({
+                        title: i18n.t('Downloading Poses Library') ?? '',
+                        didOpen: () => {
+                            Swal.showLoading()
+                        },
+                    })
+            }, 500)
+
+            const result = await DetectPosefromImage(image)
+            loading = false
+            Swal.hideLoading()
+            Swal.close()
+
+            if (result) {
+                const positions: [number, number, number][] =
+                    result.poseWorldLandmarks.map(({ x, y, z }) => [
+                        x * 100,
+                        -y * 100,
+                        -z * 100,
+                    ])
+
+                // this.drawPoseData(
+                //     result.poseWorldLandmarks.map(({ x, y, z }) =>
+                //         new THREE.Vector3().fromArray([x * 100, -y * 100, -z * 100])
+                //     )
+                // )
+
+                new BodyControlor(body!).SetBlazePose(positions)
+                return
+            }
+        } catch (error) {
+            Swal.hideLoading()
+            Swal.close()
+
+            Oops(error)
+            console.error(error)
+            return
+        }
     }
 }

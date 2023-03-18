@@ -42,5 +42,6 @@
     "Downloading Poses Library": "ポーズライブラリをダウンロード中",
     "Set Random Pose [NEW]": "ランダムポーズを設定 [NEW]",
     "Redo": "やり直し",
-    "Undo": "元に戻す"
+    "Undo": "元に戻す",
+    "Detect From Image": "画像から検出 [NEW]"
 }
