@@ -1,10 +1,17 @@
-import * as MediapipePose from '@mediapipe/pose'
-import { Results } from '@mediapipe/pose'
+import { Class } from 'type-fest'
 
-const { Pose } = MediapipePose
 // https://github.com/google/mediapipe/blob/master/docs/solutions/pose.md#resources
+import type { Results, Pose, PoseConfig } from '@mediapipe/pose'
+import * as MediapipePose from '@mediapipe/pose'
 
-const pose = new Pose({
+// @mediapipe/pose is not an es module ??
+// Extract Pose from the window to solve the problem
+// To prevent optimization, just print it
+console.log('@mediapipe/pose', MediapipePose)
+const MyPose = (window as any).Pose as Class<Pose, [PoseConfig]>
+console.log('MyPose', MyPose)
+
+const pose = new MyPose({
     locateFile: (file) => {
         const url = `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
 
@@ -13,6 +20,7 @@ const pose = new Pose({
     },
 })
 
+// https://github.com/google/mediapipe/blob/master/docs/solutions/pose.md#solution-apis
 pose.setOptions({
     modelComplexity: 1,
     smoothLandmarks: true,
