@@ -43,5 +43,6 @@
     "Set Random Pose [NEW]": "设置随机姿势 [新]",
     "Redo": "重做",
     "Undo": "撤销",
-    "Detect From Image": "从图片中检测 [新]"
+    "Detect From Image": "从图片中检测 [新]",
+    "Downloading MediaPipe Pose Model": "正在下载 MediaPipe 姿势模型"
 }

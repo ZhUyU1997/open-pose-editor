@@ -43,5 +43,6 @@
     "Set Random Pose [NEW]": "ランダムポーズを設定 [NEW]",
     "Redo": "やり直し",
     "Undo": "元に戻す",
-    "Detect From Image": "画像から検出 [NEW]"
+    "Detect From Image": "画像から検出 [NEW]",
+    "Downloading MediaPipe Pose Model": "MediaPipeポーズモデルをダウンロード中"
 }

@@ -43,5 +43,6 @@
     "Set Random Pose [NEW]": "Set Random Pose [NEW]",
     "Redo": "Redo",
     "Undo": "Undo",
-    "Detect From Image": "Detect From Image [NEW]"
+    "Detect From Image": "Detect From Image [NEW]",
+    "Downloading MediaPipe Pose Model": "Downloading MediaPipe Pose Model"
 }

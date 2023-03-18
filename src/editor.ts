@@ -1332,7 +1332,7 @@ export class BodyEditor {
             setTimeout(() => {
                 if (loading)
                     Swal.fire({
-                        title: i18n.t('Downloading Poses Library') ?? '',
+                        title: i18n.t('Downloading MediaPipe Pose Model') ?? '',
                         didOpen: () => {
                             Swal.showLoading()
                         },
