@@ -37,6 +37,7 @@ export function DetectPosefromImage(image: HTMLImageElement): Promise<Results> {
         pose.reset()
         pose.send({ image: image })
         pose.onResults((result) => {
+            console.log(result)
             resolve(result)
         })
     })

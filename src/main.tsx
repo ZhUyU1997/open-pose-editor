@@ -46,19 +46,30 @@ gui.add(editor, 'SaveScene').name(i18n.t('Save Scene'))
 gui.add(editor, 'LoadScene').name(i18n.t('Load Scene'))
 gui.add(editor, 'RestoreLastSavedScene').name(i18n.t('Restore Last Scene'))
 
-gui.add(editor, 'Undo').name(i18n.t('Undo'))
-gui.add(editor, 'Redo').name(i18n.t('Redo'))
-
 gui.add(editor, 'SetRandomPose').name(i18n.t('Set Random Pose [NEW]'))
+
+const edit = gui.addFolder(i18n.t('Edit'))
+edit.add(editor, 'Undo').name(i18n.t('Undo'))
+edit.add(editor, 'Redo').name(i18n.t('Redo'))
+
+edit.add(editor, 'CopySelectedBody').name(
+    i18n.t('Duplicate Skeleton (Shift + D)')
+)
+// gui.add(editor, 'CopyBodyX').name(i18n.t('Duplicate Skeleton (X-axis)'))
+edit.add(editor, 'RemoveBody').name(i18n.t('Delete Skeleton (Del)'))
+
+const setting = gui.addFolder(i18n.t('Setting'))
 
 options['Width'] = editor.Width
 options['Height'] = editor.Height
-gui.add(options, 'Width', 128, 5000)
+setting
+    .add(options, 'Width', 128, 5000)
     .name(i18n.t('Width'))
     .onChange(() => {
         options.autoSize = false
     })
-gui.add(options, 'Height', 128, 5000)
+setting
+    .add(options, 'Height', 128, 5000)
     .name(i18n.t('Height'))
     .onChange(() => {
         options.autoSize = false
@@ -75,22 +86,17 @@ function UpdateSize() {
 
 UpdateSize()
 
-gui.add(editor, 'CopySelectedBody').name(
-    i18n.t('Duplicate Skeleton (Shift + D)')
-)
-// gui.add(editor, 'CopyBodyX').name(i18n.t('Duplicate Skeleton (X-axis)'))
-gui.add(editor, 'RemoveBody').name(i18n.t('Delete Skeleton (Del)'))
-gui.add(editor, 'MoveMode').name(i18n.t('Move Mode (Press X key)'))
-gui.add(editor, 'OnlyHand').name(i18n.t('Only Hand'))
+setting.add(editor, 'MoveMode').name(i18n.t('Move Mode (Press X key)'))
+setting.add(editor, 'OnlyHand').name(i18n.t('Only Hand'))
 
 // gui.add(editor, 'enableComposer').name(i18n.t('Show Edge Map'))
-gui.add(editor, 'enablePreview').name(i18n.t('Show Preview'))
+setting.add(editor, 'enablePreview').name(i18n.t('Show Preview'))
 
-gui.add(editor, 'CameraNear', 0.1, 1000).name(i18n.t('Camera Near'))
-gui.add(editor, 'CameraFar', 0.1, 1000).name(i18n.t('Camera Far'))
-gui.add(editor, 'CameraFocalLength', 0.1, 100).name(
-    i18n.t('Camera Focal Length')
-)
+setting.add(editor, 'CameraNear', 0.1, 1000).name(i18n.t('Camera Near'))
+setting.add(editor, 'CameraFar', 0.1, 1000).name(i18n.t('Camera Far'))
+setting
+    .add(editor, 'CameraFocalLength', 0.1, 100)
+    .name(i18n.t('Camera Focal Length'))
 
 CreateBodyParamsControls(editor, gui)
 

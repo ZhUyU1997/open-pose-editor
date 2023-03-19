@@ -40,8 +40,10 @@
     "Please select a skeleton!!": "請選擇骨架！",
     "Downloading Poses Library": "下載姿勢庫中",
     "Set Random Pose [NEW]": "設定隨機姿勢 [新]",
-    "Redo": "重做",
-    "Undo": "撤銷",
+    "Redo": "重做（Ctrl + R）",
+    "Undo": "撤銷（Ctrl + Z）",
     "Detect From Image": "從圖片中偵測 [新]",
-    "Downloading MediaPipe Pose Model": "下載 MediaPipe 姿勢模型"
+    "Downloading MediaPipe Pose Model": "下載 MediaPipe 姿勢模型",
+    "Edit": "編輯",
+    "Setting": "設定"
 }
