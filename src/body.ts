@@ -2,10 +2,16 @@ import * as THREE from 'three'
 import { Object3D } from 'three'
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils'
 import type { TupleToUnion } from 'type-fest'
-import handFBXFileUrl from '../models/hand.fbx?url'
-import footFBXFileUrl from '../models/foot.fbx?url'
+// import handFBXFileUrl from '../models/hand.fbx?url'
+// import footFBXFileUrl from '../models/foot.fbx?url'
+// import PosesLibraryUrl from ‘./poses/data.bin?url
+
 import { LoadFBXFile, LoadGLTFile, LoadObjFile } from './loader'
 import { FindObjectItem } from './three-utils'
+import assets from './assets'
+const handFBXFileUrl = assets['models/hand.fbx']
+const footFBXFileUrl = assets['models/foot.fbx']
+const PosesLibraryUrl = assets['src/poses/data.bin']
 
 const coco_body_keypoints_const = [
     'nose',
@@ -1273,8 +1279,6 @@ export const PartIndexMappingOfBlazePoseModel = {
     left_foot_index: 31,
     right_foot_index: 32,
 }
-
-const PosesLibraryUrl = new URL('./poses/data.bin', import.meta.url).href
 
 const PosesLibrary: [number, number, number][][] | null = []
 

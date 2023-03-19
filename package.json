@@ -5,12 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsx ./generate_assets && tsc && vite build",
     "preview": "vite preview",
     "format": "prettier --write src"
   },
   "dependencies": {
     "@mediapipe/pose": "^0.5.1675469404",
+    "@types/fs-extra": "^11.0.1",
     "@typescript-eslint/eslint-plugin": "^5.54.1",
     "@typescript-eslint/parser": "^5.54.1",
     "dat.gui": "^0.7.9",
