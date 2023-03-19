@@ -18,9 +18,6 @@ window.addEventListener('keydown', function (event) {
             editor.MoveMode = true
             gui.updateDisplay()
             break
-        case 'KeyD':
-            editor.RemoveBody()
-            break
     }
 })
 
@@ -78,11 +75,11 @@ function UpdateSize() {
 
 UpdateSize()
 
-gui.add(editor, 'CopyBodyZ').name(i18n.t('Duplicate Skeleton (Z-axis)'))
-gui.add(editor, 'CopyBodyX').name(i18n.t('Duplicate Skeleton (X-axis)'))
-gui.add(editor, 'RemoveBody').name(
-    i18n.t('Delete Selected Skeleton (Press D key)')
+gui.add(editor, 'CopySelectedBody').name(
+    i18n.t('Duplicate Skeleton (Shift + D)')
 )
+// gui.add(editor, 'CopyBodyX').name(i18n.t('Duplicate Skeleton (X-axis)'))
+gui.add(editor, 'RemoveBody').name(i18n.t('Delete Skeleton (Del)'))
 gui.add(editor, 'MoveMode').name(i18n.t('Move Mode (Press X key)'))
 gui.add(editor, 'OnlyHand').name(i18n.t('Only Hand'))
 

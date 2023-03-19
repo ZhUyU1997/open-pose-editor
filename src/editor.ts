@@ -315,6 +315,10 @@ export class BodyEditor {
             e.preventDefault()
         } else if (e.code === 'KeyZ' && (e.ctrlKey || e.metaKey)) {
             this.Undo()
+        } else if (e.code === 'KeyD' && e.shiftKey) {
+            this.CopySelectedBody()
+        } else if (e.key === 'Delete') {
+            this.RemoveBody()
         }
     }
 
@@ -811,6 +815,22 @@ export class BodyEditor {
         this.gridHelper.visible = true
     }
 
+    CopySelectedBody() {
+        const selectedBody = this.getSelectedBody()
+
+        if (!selectedBody) return
+
+        const body = SkeletonUtils.clone(selectedBody)
+        this.pushCommand(this.CreateAddBodyCommand(body))
+
+        this.scene.add(body)
+        this.fixFootVisible()
+        this.transformControl.setMode('translate')
+        this.transformControl.setSpace('world')
+
+        this.transformControl.attach(body)
+    }
+
     CopyBodyZ() {
         const body = CloneBody()
         if (!body) return
@@ -909,13 +929,15 @@ export class BodyEditor {
             return frustum.intersectsSphere(sphere)
         })
     }
-
+    isMoveMode = false
     get MoveMode() {
-        return this.transformControl.mode == 'translate'
+        return this.isMoveMode
     }
     set MoveMode(move: boolean) {
         this.transformControl.setMode(move ? 'translate' : 'rotate')
+        this.transformControl.setSpace(move ? 'world' : 'local')
 
+        this.isMoveMode = move
         if (move) {
             const obj = this.getSelectedBody()
             if (obj) this.transformControl.attach(obj)
@@ -962,9 +984,9 @@ export class BodyEditor {
 
         this.camera.updateProjectionMatrix()
 
-        console.log(canvas.clientWidth, canvas.clientHeight)
+        // console.log(canvas.clientWidth, canvas.clientHeight)
         this.renderer.setSize(canvas.clientWidth, canvas.clientHeight, false)
-        console.log(this.Width, this.Height)
+        // console.log(this.Width, this.Height)
     }
 
     initEdgeComposer() {

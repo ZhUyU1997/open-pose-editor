@@ -945,7 +945,10 @@ export class BodyControlor {
         templateBody?.traverse((o) => {
             if (o.name in this.part) {
                 const name = o.name as ControlPartName
-                this.part[name].position.copy(o.position)
+
+                if (name == 'torso') this.part[name].position.setY(o.position.y)
+                else this.part[name].position.copy(o.position)
+
                 this.part[name].rotation.copy(o.rotation)
                 this.part[name].scale.copy(o.scale)
                 this.UpdateLink(name)
@@ -1115,10 +1118,9 @@ export class BodyControlor {
             })
         ) as Record<keyof typeof PartIndexMappingOfPoseModel, THREE.Vector3>
 
-        this.part['torso'].position.copy(
-            this.getMidpoint(data['Hips'], data['Chest'])
+        this.part['torso'].position.setY(
+            this.getMidpoint(data['Hips'], data['Chest']).y
         )
-
         this.Hips = this.getDistanceOf(data['Hips'], data['UpLeg_L']) * 2
         this.Thigh = this.getDistanceOf(data['UpLeg_L'], data['Leg_L'])
         this.LowerLeg = this.getDistanceOf(data['Leg_L'], data['Foot_L'])
