@@ -816,11 +816,17 @@ export class BodyEditor {
     }
 
     CopySelectedBody() {
+        const list = this.scene.children.filter((o) => o?.name === 'torso')
+
         const selectedBody = this.getSelectedBody()
 
-        if (!selectedBody) return
+        if (!selectedBody && list.length !== 0) return
 
-        const body = SkeletonUtils.clone(selectedBody)
+        const body =
+            list.length === 0 ? CloneBody() : SkeletonUtils.clone(selectedBody!)
+
+        if (!body) return
+
         this.pushCommand(this.CreateAddBodyCommand(body))
 
         this.scene.add(body)
