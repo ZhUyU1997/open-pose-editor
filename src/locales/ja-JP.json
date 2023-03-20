@@ -40,7 +40,7 @@
     "Please select a skeleton!!": "骨格を選択してください！",
     "Downloading Poses Library": "ポーズライブラリをダウンロード中",
     "Set Random Pose [NEW]": "ランダムポーズを設定 [NEW]",
-    "Redo": "やり直し（Ctrl + R）",
+    "Redo": "やり直し（Ctrl + Y / Shift + Ctrl + Z）",
     "Undo": "元に戻す（Ctrl + Z）",
     "Detect From Image": "画像から検出 [NEW]",
     "Downloading MediaPipe Pose Model": "MediaPipeポーズモデルをダウンロード中",

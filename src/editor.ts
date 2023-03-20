@@ -309,7 +309,7 @@ export class BodyEditor {
     handleKeyDown(e: KeyboardEvent) {
         if (e.code === 'KeyZ' && (e.ctrlKey || e.metaKey) && e.shiftKey) {
             this.Redo()
-        } else if (e.code === 'KeyR' && (e.ctrlKey || e.metaKey)) {
+        } else if (e.code === 'KeyY' && (e.ctrlKey || e.metaKey)) {
             this.Redo()
             // prevent brower refresh
             e.preventDefault()

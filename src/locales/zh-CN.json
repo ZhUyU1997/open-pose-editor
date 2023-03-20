@@ -40,7 +40,7 @@
     "Please select a skeleton!!": "请选择骨架！",
     "Downloading Poses Library": "正在下载姿势库",
     "Set Random Pose [NEW]": "设置随机姿势 [新]",
-    "Redo": "重做（Ctrl + R）",
+    "Redo": "重做（Ctrl + Y / Shift + Ctrl + Z）",
     "Undo": "撤销（Ctrl + Z）",
     "Detect From Image": "从图片中检测 [新]",
     "Downloading MediaPipe Pose Model": "正在下载 MediaPipe 姿势模型",
