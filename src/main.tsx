@@ -100,6 +100,17 @@ setting
 
 CreateBodyParamsControls(editor, gui)
 
+gui.add(
+    {
+        Feedback() {
+            window.open(
+                'https://github.com/ZhUyU1997/open-pose-editor/issues/new'
+            )
+        },
+    },
+    'Feedback'
+).name(i18n.t('Feedback'))
+
 window.addEventListener('resize', () => {
     UpdateSize()
 })
