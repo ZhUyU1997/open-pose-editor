@@ -4,6 +4,7 @@ import i18n from './i18n'
 import { BodyControlor } from './body'
 
 const BodyParamsInit = {
+    BoneThickness: 3,
     HeadSize: 100,
     NoseToNeck: 100,
     ShoulderWidth: 100,
@@ -48,6 +49,7 @@ export function CreateBodyParamsControls(editor: BodyEditor, gui: dat.GUI) {
     const params = gui.addFolder(i18n.t('Body Parameters'))
 
     const describeMapping: Record<keyof typeof BodyParamsInit, string> = {
+        BoneThickness: i18n.t('Bone Thickness'),
         HeadSize: i18n.t('Head Size'),
         NoseToNeck: i18n.t('Nose To Neck'),
         ShoulderWidth: i18n.t('Shoulder Width'),
@@ -63,12 +65,22 @@ export function CreateBodyParamsControls(editor: BodyEditor, gui: dat.GUI) {
         FootSize: i18n.t('Foot Size'),
     }
 
+    const proxy = new Proxy(
+        {},
+        {
+            get: function (obj, prop: keyof typeof BodyParamsInit) {
+                if (!(prop in BodyParamsInit)) return -1
+                if (!currentControlor) return BodyParamsInit[prop]
+                return currentControlor[prop]
+            },
+        }
+    )
     Object.entries(BodyParamsInit).forEach(([_name, maxValue]) => {
         const name = _name as keyof typeof BodyParamsInit
         let oldValue = 0
         let changing = false
         params
-            .add(bodyParams, name, 0.1, maxValue)
+            .add(proxy, name, 0.1, maxValue)
             .name(describeMapping[name])
             .onChange((value: number) => {
                 if (currentControlor) {
@@ -88,6 +100,7 @@ export function CreateBodyParamsControls(editor: BodyEditor, gui: dat.GUI) {
                         oldValue,
                         value
                     )
+                    params.updateDisplay()
                 }
             })
     })
@@ -98,6 +111,8 @@ export function CreateBodyParamsControls(editor: BodyEditor, gui: dat.GUI) {
         select(controlor) {
             currentControlor = controlor
             console.log('select')
+            bodyParams.BoneThickness = currentControlor.BoneThickness
+
             bodyParams.HeadSize = currentControlor.HeadSize
 
             bodyParams.NoseToNeck = currentControlor.NoseToNeck

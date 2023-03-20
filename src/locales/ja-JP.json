@@ -45,5 +45,7 @@
     "Detect From Image": "画像から検出 [NEW]",
     "Downloading MediaPipe Pose Model": "MediaPipeポーズモデルをダウンロード中",
     "Edit": "編集",
-    "Setting": "設定"
+    "Setting": "設定",
+    "Bone Thickness": "ボーンの太さ",
+    "Feedback": "フィードバック"
 }

@@ -45,5 +45,7 @@
     "Detect From Image": "从图片中检测 [新]",
     "Downloading MediaPipe Pose Model": "正在下载 MediaPipe 姿势模型",
     "Edit": "编辑",
-    "Setting": "设置"
+    "Setting": "设置",
+    "Bone Thickness": "骨骼厚度",
+    "Feedback": "反馈"
 }

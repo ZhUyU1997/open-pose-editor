@@ -45,5 +45,7 @@
     "Detect From Image": "Detect From Image [NEW]",
     "Downloading MediaPipe Pose Model": "Downloading MediaPipe Pose Model",
     "Edit": "Edit",
-    "Setting": "Setting"
+    "Setting": "Setting",
+    "Bone Thickness": "Bone Thickness",
+    "Feedback": "Feedback"
 }

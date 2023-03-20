@@ -71,7 +71,7 @@ const connect_color = [
     [255, 0, 85], // 17
 ] as const
 
-const JointRadius = 1
+const BoneThickness = 1
 
 function ToHexColor([r, g, b]: readonly [number, number, number]) {
     return (r << 16) + (g << 8) + b
@@ -119,7 +119,8 @@ function CreateLink(parent: Object3D, endObject: THREE.Object3D) {
 function CreateLink2(
     parent: Object3D,
     endObject: THREE.Object3D,
-    start: THREE.Object3D | THREE.Vector3
+    start: THREE.Object3D | THREE.Vector3,
+    thickness: number = BoneThickness
 ) {
     const startPosition =
         start instanceof THREE.Vector3 ? start.clone() : start.position.clone()
@@ -135,7 +136,7 @@ function CreateLink2(
         opacity: 0.6,
         transparent: true,
     })
-    const mesh = new THREE.Mesh(new THREE.SphereGeometry(JointRadius), material)
+    const mesh = new THREE.Mesh(new THREE.SphereGeometry(thickness), material)
     mesh.name = parent.name + '_link_' + endObject.name
 
     // 将拉伸后的球体放在中点，并计算旋转轴和jiaodu
@@ -155,7 +156,8 @@ function CreateLink4(
     startObject: THREE.Object3D,
     endObject: THREE.Object3D,
     startName: string,
-    endName: string
+    endName: string,
+    thickness: number = BoneThickness
 ) {
     const startPosition = new THREE.Vector3(0, 0, 0)
     const endPostion = endObject.position
@@ -167,7 +169,7 @@ function CreateLink4(
         opacity: 0.6,
         transparent: true,
     })
-    const mesh = new THREE.Mesh(new THREE.SphereGeometry(JointRadius), material)
+    const mesh = new THREE.Mesh(new THREE.SphereGeometry(thickness), material)
     mesh.name = startName + '_link_' + endName
 
     // 将拉伸后的球体放在中点，并计算旋转轴和角度
@@ -183,11 +185,17 @@ function CreateLink4(
     startObject.add(mesh)
 }
 
+function UpdateJointSphere(obj: Object3D, thickness = BoneThickness) {
+    const name = obj.name + '_joint_sphere'
+    obj.getObjectByName(name)?.scale.setScalar(thickness)
+}
+
 function UpdateLink4(
     startObject: Object3D,
     endObject: Object3D,
     startName: string,
-    endName: string
+    endName: string,
+    thickness = BoneThickness
 ) {
     const startPosition = new THREE.Vector3(0, 0, 0)
     const endPostion = endObject.position
@@ -199,21 +207,45 @@ function UpdateLink4(
     const axis = unit.clone().cross(v)
     const angle = unit.clone().angleTo(v)
     const mesh = startObject.getObjectByName(startName + '_link_' + endName)!
-    mesh.scale.copy(new THREE.Vector3(distance / 2, 1, 1))
+    mesh.scale.copy(
+        new THREE.Vector3(
+            distance / 2,
+            thickness / BoneThickness,
+            thickness / BoneThickness
+        )
+    )
     mesh.position.copy(origin)
     mesh.setRotationFromAxisAngle(axis.normalize(), angle)
+
+    UpdateJointSphere(startObject, thickness)
+    UpdateJointSphere(endObject, thickness)
 }
 
-function UpdateLink2(startObject: Object3D, endObject: Object3D) {
-    UpdateLink4(startObject, endObject, startObject.name, endObject.name)
+function UpdateLink2(
+    startObject: Object3D,
+    endObject: Object3D,
+    thickness = BoneThickness
+) {
+    UpdateLink4(
+        startObject,
+        endObject,
+        startObject.name,
+        endObject.name,
+        thickness
+    )
 }
 
-function Joint(name: string) {
-    const object = new THREE.Mesh(
-        new THREE.SphereGeometry(JointRadius),
+function Joint(name: string, thickness: number = BoneThickness) {
+    const object = new THREE.Group()
+    object.name = name
+
+    const sphere = new THREE.Mesh(
+        new THREE.SphereGeometry(thickness),
         new THREE.MeshBasicMaterial({ color: GetPresetColorOfJoint(name) })
     )
-    object.name = name
+
+    sphere.name = name + '_joint_sphere'
+    object.add(sphere)
     return object
 }
 
@@ -226,7 +258,7 @@ function Torso(x: number, y: number, z: number) {
 
     // for debug
     // const torso = new THREE.Mesh(
-    //     new THREE.SphereGeometry(JointRadius),
+    //     new THREE.SphereGeometry(BoneThickness),
     //     new THREE.MeshBasicMaterial({ color: 0x888888 })
     // )
     // object.add(torso)
@@ -548,7 +580,7 @@ export function IsNeedSaveObject(name: string) {
     if (IsVirtualPoint(name)) return true // virtual point
     if (name.startsWith(handModelInfo.bonePrefix)) return true
     if (name.startsWith(footModelInfo.bonePrefix)) return true
-
+    if (name.includes('_joint_sphere')) return true
     if (name.includes('_link_')) return true
     return false
 }
@@ -645,14 +677,15 @@ export class BodyControlor {
         return pos
     }
 
-    UpdateLink(name: ControlPartName) {
+    UpdateLink(name: ControlPartName, thickness = BoneThickness) {
         switch (name) {
             case 'left_hip':
                 UpdateLink4(
                     this.part['left_hip_inner'],
                     this.part['left_hip'],
                     'neck',
-                    'left_hip'
+                    'left_hip',
+                    thickness
                 )
                 break
             case 'right_hip':
@@ -660,7 +693,8 @@ export class BodyControlor {
                     this.part['right_hip_inner'],
                     this.part['right_hip'],
                     'neck',
-                    'right_hip'
+                    'right_hip',
+                    thickness
                 )
                 break
             case 'right_shoulder':
@@ -668,7 +702,8 @@ export class BodyControlor {
                     this.part['right_shoulder_inner'],
                     this.part['right_shoulder'],
                     'neck',
-                    'right_shoulder'
+                    'right_shoulder',
+                    thickness
                 )
                 break
             case 'left_shoulder':
@@ -676,7 +711,8 @@ export class BodyControlor {
                     this.part['left_shoulder_inner'],
                     this.part['left_shoulder'],
                     'neck',
-                    'left_shoulder'
+                    'left_shoulder',
+                    thickness
                 )
                 break
             case 'torso':
@@ -702,7 +738,7 @@ export class BodyControlor {
             case 'left_foot':
                 break
             default:
-                UpdateLink2(this.part[name].parent!, this.part[name])
+                UpdateLink2(this.part[name].parent!, this.part[name], thickness)
                 break
         }
     }
@@ -1155,6 +1191,26 @@ export class BodyControlor {
                 name,
                 this.getDirectionVectorByParentOf(name, data[from], data[to])
             )
+    }
+
+    UpdateBones(thickness = BoneThickness) {
+        this.part['torso'].traverse((o) => {
+            if (o.name in this.part) {
+                const name = o.name as ControlPartName
+                this.UpdateLink(name, thickness)
+            }
+        })
+    }
+
+    get BoneThickness() {
+        return Math.abs(
+            this.part['neck'].getObjectByName('neck_joint_sphere')?.scale.x ??
+                BoneThickness
+        )
+    }
+
+    set BoneThickness(thickness: number) {
+        this.UpdateBones(thickness)
     }
 }
 
