@@ -17,7 +17,7 @@ import { TransformControls } from 'three/examples/jsm/controls/TransformControls
 //     CCDIKSolver,
 //     IKS,
 // } from 'three/examples/jsm/animate/CCDIKSolver'
-
+import { CCDIKSolver } from './CCDIKSolver'
 import Stats from 'three/examples/jsm/libs/stats.module'
 import {
     BodyControlor,
@@ -31,6 +31,7 @@ import {
     IsNeedSaveObject,
     IsPickable,
     IsSkeleton,
+    IsTranslate,
     LoadFoot,
     LoadHand,
     LoadPosesLibrary,
@@ -352,10 +353,31 @@ export class BodyEditor {
                 )
             }
             this.orbitControls.enabled = true
+
+            this.saveSelectedBodyControlor?.ResetAllTargetsPosition()
         })
     }
+
+    ikSolver?: CCDIKSolver
+    saveSelectedBodyControlor?: BodyControlor
+
+    updateSelectedBodyIKSolver() {
+        const body = this.getSelectedBody() ?? undefined
+
+        if (body !== this.saveSelectedBodyControlor) {
+            this.saveSelectedBodyControlor = body
+                ? new BodyControlor(body!)
+                : undefined
+            this.ikSolver = body
+                ? this.saveSelectedBodyControlor?.GetIKSolver()
+                : undefined
+        }
+
+        this.ikSolver?.update()
+    }
+
     render(width: number = this.Width, height: number = this.Height) {
-        // this.ikSolver?.update()
+        this.updateSelectedBodyIKSolver()
 
         this.renderer.setViewport(0, 0, width, height)
         this.renderer.setScissor(0, 0, width, height)
@@ -537,8 +559,15 @@ export class BodyEditor {
 
                 if (obj) {
                     console.log(obj.name)
-                    this.transformControl.setMode('rotate')
-                    this.transformControl.setSpace('local')
+
+                    if (IsTranslate(obj.name)) {
+                        this.transformControl.setMode('translate')
+                        this.transformControl.setSpace('world')
+                    } else {
+                        this.transformControl.setMode('rotate')
+                        this.transformControl.setSpace('local')
+                    }
+
                     this.transformControl.attach(obj)
 
                     const body = this.getBodyByPart(obj)
@@ -957,13 +986,24 @@ export class BodyEditor {
         return this.isMoveMode
     }
     set MoveMode(move: boolean) {
-        this.transformControl.setMode(move ? 'translate' : 'rotate')
-        this.transformControl.setSpace(move ? 'world' : 'local')
-
+        let IsTranslateMode = move
         this.isMoveMode = move
-        if (move) {
+
+        const name = this.getSelectedPart()?.name
+
+        if (name && IsTranslate(name)) {
+            IsTranslateMode = true
+        } else if (move) {
             const obj = this.getSelectedBody()
             if (obj) this.transformControl.attach(obj)
+        }
+
+        if (IsTranslateMode) {
+            this.transformControl.setMode('translate')
+            this.transformControl.setSpace('world')
+        } else {
+            this.transformControl.setMode('rotate')
+            this.transformControl.setSpace('local')
         }
     }
     get Width() {
@@ -1052,6 +1092,8 @@ export class BodyEditor {
             return
         }
 
+        // if not detach it, skeleten will shake
+        this.transformControl.detach()
         try {
             let poseData = GetRandomPose()
             if (poseData) {
@@ -1403,6 +1445,7 @@ export class BodyEditor {
                 //     )
                 // )
 
+                this.transformControl.detach()
                 new BodyControlor(body!).SetBlazePose(positions)
                 return
             }

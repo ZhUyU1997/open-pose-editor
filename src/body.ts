@@ -5,7 +5,12 @@ import type { TupleToUnion } from 'type-fest'
 import handFBXFileUrl from '../models/hand.fbx?url'
 import footFBXFileUrl from '../models/foot.fbx?url'
 import { LoadFBXFile, LoadGLTFile, LoadObjFile } from './loader'
-import { FindObjectItem } from './three-utils'
+import {
+    FindObjectItem,
+    GetLocalPosition,
+    GetWorldPosition,
+} from './three-utils'
+import { CCDIKSolver } from './CCDIKSolver'
 
 const coco_body_keypoints_const = [
     'nose',
@@ -178,6 +183,8 @@ function CreateLink4(
     const unit = new THREE.Vector3(1, 0, 0)
     const axis = unit.clone().cross(v)
     const angle = unit.clone().angleTo(v)
+    // Another method
+    //     new THREE.Quaternion().setFromUnitVectors(...)
 
     mesh.scale.copy(new THREE.Vector3(distance / 2, 1, 1))
     mesh.position.copy(origin)
@@ -480,6 +487,32 @@ export function CreateTemplateBody(hand: Object3D, foot: Object3D) {
     right_ankle.add(right_foot)
     left_ankle.add(left_foot)
     templateBody = torso
+
+    torso.add(CreateIKTarget(torso, left_wrist, 'left_wrist_target'))
+    torso.add(CreateIKTarget(torso, right_wrist, 'right_wrist_target'))
+    torso.add(CreateIKTarget(torso, left_ankle, 'left_ankle_target'))
+    torso.add(CreateIKTarget(torso, right_ankle, 'right_ankle_target'))
+}
+
+function CreateIKTarget(body: Object3D, effector: Object3D, name: string) {
+    const target = new THREE.Mesh(
+        new THREE.BoxGeometry(
+            BoneThickness * 5,
+            BoneThickness * 5,
+            BoneThickness * 5
+        ),
+        new THREE.MeshBasicMaterial({
+            color: 0x0088ff,
+            transparent: true,
+            opacity: 0.5,
+        })
+    )
+
+    const effector_pos = GetWorldPosition(effector)
+    target.position.copy(GetLocalPosition(body, effector_pos))
+    target.name = name
+
+    return target
 }
 
 const handModelInfo = {
@@ -612,6 +645,10 @@ const pickableObjectNames: string[] = [
     'left_shoulder_inner',
     'right_hip_inner',
     'left_hip_inner',
+    'left_wrist_target',
+    'right_wrist_target',
+    'left_ankle_target',
+    'right_ankle_target',
 ]
 
 export function IsPickable(name: string) {
@@ -619,6 +656,11 @@ export function IsPickable(name: string) {
     if (name.startsWith(handModelInfo.bonePrefix)) return true
     if (name.startsWith(footModelInfo.bonePrefix)) return true
 
+    return false
+}
+
+export function IsTranslate(name: string) {
+    if (name.endsWith('_target')) return true
     return false
 }
 
@@ -643,28 +685,35 @@ export function IsExtremities(name: string) {
     return ['left_hand', 'right_hand', 'left_foot', 'right_foot'].includes(name)
 }
 
-type ControlPartName =
-    | TupleToUnion<typeof coco_body_keypoints_const>
-    | 'left_shoulder_inner'
-    | 'right_shoulder_inner'
-    | 'left_hip_inner'
-    | 'right_hip_inner'
-    | 'five'
-    | 'right_hand'
-    | 'left_hand'
-    | 'left_foot'
-    | 'right_foot'
-    | 'torso'
+const ControlablePart = [
+    ...coco_body_keypoints_const,
+    'left_shoulder_inner',
+    'right_shoulder_inner',
+    'left_hip_inner',
+    'right_hip_inner',
+    'five',
+    'right_hand',
+    'left_hand',
+    'left_foot',
+    'right_foot',
+    'torso',
+
+    'left_wrist_target',
+    'right_wrist_target',
+    'left_ankle_target',
+    'right_ankle_target',
+] as const
+
+type ControlPartName = TupleToUnion<typeof ControlablePart>
+
 export class BodyControlor {
     body: Object3D
     part: Record<ControlPartName, Object3D> = {} as any
     constructor(o: Object3D) {
         this.body = o
         this.body.traverse((o) => {
-            if (coco_body_keypoints.includes(o.name as any)) {
-                this.part[
-                    o.name as TupleToUnion<typeof coco_body_keypoints_const>
-                ] = o
+            if (ControlablePart.includes(o.name as ControlPartName)) {
+                this.part[o.name as ControlPartName] = o
             }
         })
 
@@ -698,68 +747,23 @@ export class BodyControlor {
     }
 
     UpdateLink(name: ControlPartName, thickness = BoneThickness) {
-        switch (name) {
-            case 'left_hip':
-                UpdateLink4(
-                    this.part['left_hip_inner'],
-                    this.part['left_hip'],
-                    'neck',
-                    'left_hip',
-                    thickness
-                )
-                break
-            case 'right_hip':
-                UpdateLink4(
-                    this.part['right_hip_inner'],
-                    this.part['right_hip'],
-                    'neck',
-                    'right_hip',
-                    thickness
-                )
-                break
-            case 'right_shoulder':
-                UpdateLink4(
-                    this.part['right_shoulder_inner'],
-                    this.part['right_shoulder'],
-                    'neck',
-                    'right_shoulder',
-                    thickness
-                )
-                break
-            case 'left_shoulder':
-                UpdateLink4(
-                    this.part['left_shoulder_inner'],
-                    this.part['left_shoulder'],
-                    'neck',
-                    'left_shoulder',
-                    thickness
-                )
-                break
-            case 'torso':
-                break
-            case 'five':
-                break
-            case 'neck':
-                break
-            case 'left_shoulder_inner':
-                break
-            case 'right_shoulder_inner':
-                break
-            case 'right_hand':
-                break
-            case 'left_hand':
-                break
-            case 'left_hip_inner':
-                break
-            case 'right_hip_inner':
-                break
-            case 'right_foot':
-                break
-            case 'left_foot':
-                break
-            default:
-                UpdateLink2(this.part[name].parent!, this.part[name], thickness)
-                break
+        if (
+            [
+                'left_hip',
+                'right_hip',
+                'right_shoulder',
+                'left_shoulder',
+            ].includes(name)
+        )
+            UpdateLink4(
+                this.part[`${name}_inner` as ControlPartName],
+                this.part[name],
+                'neck',
+                name,
+                thickness
+            )
+        else if (name !== 'neck' && coco_body_keypoints.includes(name)) {
+            UpdateLink2(this.part[name].parent!, this.part[name], thickness)
         }
     }
 
@@ -1161,6 +1165,7 @@ export class BodyControlor {
 
             this.UpdateLink(name)
         }
+        this.ResetAllTargetsPosition()
     }
     SetPose(rawData: [number, number, number][]) {
         this.ResetPose()
@@ -1211,6 +1216,7 @@ export class BodyControlor {
                 name,
                 this.getDirectionVectorByParentOf(name, data[from], data[to])
             )
+        this.ResetAllTargetsPosition()
     }
 
     UpdateBones(thickness = BoneThickness) {
@@ -1231,6 +1237,98 @@ export class BodyControlor {
 
     set BoneThickness(thickness: number) {
         this.UpdateBones(thickness)
+    }
+
+    GetIKSolver() {
+        return new CCDIKSolver([
+            {
+                target: this.part['left_wrist_target'],
+                effector: this.part['left_wrist'],
+                links: [
+                    {
+                        index: this.part['left_elbow'],
+                        enabled: true,
+                    },
+                    {
+                        index: this.part['left_shoulder'],
+                        enabled: true,
+                    },
+                ],
+                iteration: 10,
+                minAngle: 0.0,
+                maxAngle: 1.0,
+            },
+            {
+                target: this.part['right_wrist_target'],
+                effector: this.part['right_wrist'],
+                links: [
+                    {
+                        index: this.part['right_elbow'],
+                        enabled: true,
+                    },
+                    {
+                        index: this.part['right_shoulder'],
+                        enabled: true,
+                    },
+                ],
+                iteration: 10,
+                minAngle: 0.0,
+                maxAngle: 1.0,
+            },
+            {
+                target: this.part['left_ankle_target'],
+                effector: this.part['left_ankle'],
+                links: [
+                    {
+                        index: this.part['left_knee'],
+                        enabled: true,
+                    },
+                    {
+                        index: this.part['left_hip'],
+                        enabled: true,
+                    },
+                ],
+                iteration: 10,
+                minAngle: 0.0,
+                maxAngle: 1.0,
+            },
+            {
+                target: this.part['right_ankle_target'],
+                effector: this.part['right_ankle'],
+                links: [
+                    {
+                        index: this.part['right_knee'],
+                        enabled: true,
+                    },
+                    {
+                        index: this.part['right_hip'],
+                        enabled: true,
+                    },
+                ],
+                iteration: 10,
+                minAngle: 0.0,
+                maxAngle: 1.0,
+            },
+        ])
+    }
+
+    ResetTargetPosition(
+        effectorName: ControlPartName,
+        targetName: ControlPartName
+    ) {
+        const body = this.part['torso']
+        const effector = this.part[effectorName]
+        const target = this.part[targetName]
+
+        const effector_pos = GetWorldPosition(effector)
+        target.position.copy(this.getLocalPosition(body, effector_pos))
+    }
+
+    ResetAllTargetsPosition() {
+        this.ResetTargetPosition('left_wrist', 'left_wrist_target')
+        this.ResetTargetPosition('right_wrist', 'right_wrist_target')
+        this.ResetTargetPosition('left_ankle', 'left_ankle_target')
+        this.ResetTargetPosition('right_ankle', 'right_ankle_target')
     }
 }
 
