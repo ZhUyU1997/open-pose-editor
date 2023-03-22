@@ -257,11 +257,13 @@ function Torso(x: number, y: number, z: number) {
     object.name = 'torso'
 
     // for debug
-    // const torso = new THREE.Mesh(
-    //     new THREE.SphereGeometry(BoneThickness),
-    //     new THREE.MeshBasicMaterial({ color: 0x888888 })
-    // )
-    // object.add(torso)
+    const torso = new THREE.Mesh(
+        new THREE.SphereGeometry(BoneThickness),
+        new THREE.MeshBasicMaterial({ color: 0x888888 })
+    )
+
+    torso.name = 'center'
+    object.add(torso)
 
     object.translateX(x)
     object.translateY(y)
@@ -617,6 +619,15 @@ export function IsHand(name: string) {
 
 export function IsFoot(name: string) {
     return ['left_foot', 'right_foot'].includes(name)
+}
+
+export function IsSkeleton(name: string) {
+    if (name == 'torso') return true
+    if (coco_body_keypoints.includes(name)) return true
+    if (IsVirtualPoint(name)) return true // virtual point
+    if (name.includes('_joint_sphere')) return true
+    if (name.includes('_link_')) return true
+    return false
 }
 
 export function IsExtremities(name: string) {

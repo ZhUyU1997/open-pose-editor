@@ -30,6 +30,7 @@ import {
     IsHand,
     IsNeedSaveObject,
     IsPickable,
+    IsSkeleton,
     LoadFoot,
     LoadHand,
     LoadPosesLibrary,
@@ -554,6 +555,16 @@ export class BodyEditor {
             })
     }
 
+    traverseBodies(handle: (o: Object3D) => void) {
+        this.scene.children
+            .filter((o) => o?.name === 'torso')
+            .forEach((o) => {
+                o.traverse((child) => {
+                    handle(child)
+                })
+            })
+    }
+
     traverseExtremities(handle: (o: THREE.Mesh) => void) {
         this.scene.children
             .filter((o) => o?.name === 'torso')
@@ -566,13 +577,14 @@ export class BodyEditor {
             })
     }
 
-    hideExtremities() {
+    onlyShowSkeleton() {
         const recoveryArr: Object3D[] = []
-        this.traverseExtremities((o) => {
-            if (o.visible == true) {
-                o.visible = false
-
-                recoveryArr.push(o)
+        this.traverseBodies((o) => {
+            if (IsSkeleton(o.name) === false) {
+                if (o.visible == true) {
+                    o.visible = false
+                    recoveryArr.push(o)
+                }
             }
         })
 
@@ -711,13 +723,13 @@ export class BodyEditor {
     }
 
     Capture() {
-        const restoreExtremities = this.hideExtremities()
+        const restore = this.onlyShowSkeleton()
 
         this.renderOutput()
         const imgData = this.getOutputPNG()
         const fileName = 'pose_' + getCurrentTime()
 
-        restoreExtremities()
+        restore()
 
         return {
             imgData,
