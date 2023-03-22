@@ -496,8 +496,13 @@ export class BodyEditor {
                 this.scene.children.filter((o) => o?.name === 'torso'),
                 true
             )
-        const intersectedObject: THREE.Object3D | null =
-            intersects.length > 0 ? intersects[0].object : null
+        // If read_point is found, choose it first
+        const point = intersects.find((o) => o.object.name === 'red_point')
+        const intersectedObject: THREE.Object3D | null = point
+            ? point.object
+            : intersects.length > 0
+            ? intersects[0].object
+            : null
         const name = intersectedObject ? intersectedObject.name : ''
         let obj: Object3D | null = intersectedObject
 

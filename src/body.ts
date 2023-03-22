@@ -514,11 +514,18 @@ export async function LoadHand(onLoading?: (loaded: number) => void) {
     // this.scene.add(helper);
     mesh.skeleton.bones.forEach((o) => {
         const point = new THREE.Mesh(
-            new THREE.SphereGeometry(0.5),
-            new THREE.MeshBasicMaterial({ color: 0xff0000 })
+            new THREE.SphereGeometry(0.2),
+            new THREE.MeshBasicMaterial({
+                color: 0xff0000,
+                //  vertexColors: true,
+                depthTest: false,
+                // depthWrite: false,
+                // toneMapped: false,
+                // transparent: true,
+            })
         )
         point.name = 'red_point'
-        point.scale.setX(0.2)
+        // point.scale.setX(0.2)
         point.position.copy(o.position)
         o.add(point)
     })
@@ -543,7 +550,7 @@ export async function LoadFoot(onLoading?: (loaded: number) => void) {
         if (o.name !== 'FootBone2') return
         const point = new THREE.Mesh(
             new THREE.SphereGeometry(0.1),
-            new THREE.MeshBasicMaterial({ color: 0xff0000 })
+            new THREE.MeshBasicMaterial({ color: 0xff0000, depthTest: false })
         )
 
         point.name = 'red_point'
