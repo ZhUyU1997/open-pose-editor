@@ -373,7 +373,9 @@ export class BodyEditor {
                 : undefined
         }
 
-        this.ikSolver?.update()
+        if (IsTranslate(this.getSelectedPart()?.name ?? ''))
+            this.ikSolver?.update()
+        else this.saveSelectedBodyControlor?.ResetAllTargetsPosition()
     }
 
     render(width: number = this.Width, height: number = this.Height) {
