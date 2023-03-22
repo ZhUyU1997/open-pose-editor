@@ -512,6 +512,8 @@ export async function LoadHand(onLoading?: (loaded: number) => void) {
     // this.scene.add();
     // const helper = new THREE.SkeletonHelper(mesh.parent!);
     // this.scene.add(helper);
+
+    // console.log(mesh.skeleton.bones)
     mesh.skeleton.bones.forEach((o) => {
         const point = new THREE.Mesh(
             new THREE.SphereGeometry(0.2),
@@ -526,7 +528,7 @@ export async function LoadHand(onLoading?: (loaded: number) => void) {
         )
         point.name = 'red_point'
         // point.scale.setX(0.2)
-        point.position.copy(o.position)
+        // point.position.copy(o.position)
         o.add(point)
     })
 
@@ -554,7 +556,7 @@ export async function LoadFoot(onLoading?: (loaded: number) => void) {
         )
 
         point.name = 'red_point'
-        point.position.copy(o.position)
+        // point.position.copy(o.position)
         point.translateX(-0.3)
         o.add(point)
     })
