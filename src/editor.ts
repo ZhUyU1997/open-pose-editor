@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import {
     Bone,
+    Material,
     MeshDepthMaterial,
     MeshNormalMaterial,
     MeshPhongMaterial,
@@ -653,6 +654,8 @@ export class BodyEditor {
             v?.attach(k)
         }
 
+        map.clear()
+
         this.scene.children
             .filter((o) => o?.name === 'torso')
             .forEach((o) => {
@@ -673,32 +676,23 @@ export class BodyEditor {
     }
 
     changeHandMaterial(type: 'depth' | 'normal' | 'phone') {
-        let initType = 'depth'
+        const map = new Map<THREE.Mesh, Material | Material[]>()
         this.traverseExtremities((child) => {
             const o = GetExtremityMesh(child)
             if (!o) return
-            if (o.material) {
-                if (o.material instanceof MeshNormalMaterial)
-                    initType = 'normal'
-                if (o.material instanceof MeshPhongMaterial) initType = 'phone'
-            }
 
+            map.set(o, o.material)
             if (type == 'depth') o.material = new MeshDepthMaterial()
             else if (type == 'normal') o.material = new MeshNormalMaterial()
             else if (type == 'phone') o.material = new MeshPhongMaterial()
         })
 
         return () => {
-            this.traverseExtremities((child) => {
-                const o = GetExtremityMesh(child)
-                if (!o) return
+            for (const [k, v] of map.entries()) {
+                k.material = v
+            }
 
-                if (initType == 'depth') o.material = new MeshDepthMaterial()
-                else if (initType == 'normal')
-                    o.material = new MeshNormalMaterial()
-                else if (initType == 'phone')
-                    o.material = new MeshPhongMaterial()
-            })
+            map.clear()
         }
     }
 
