@@ -521,15 +521,12 @@ export class BodyEditor {
     }
 
     onMouseDown(event: MouseEvent) {
+        const x = event.offsetX - this.renderer.domElement.offsetLeft
+        const y = event.offsetY - this.renderer.domElement.offsetTop
         this.raycaster.setFromCamera(
             {
-                x:
-                    (event.clientX / this.renderer.domElement.clientWidth) * 2 -
-                    1,
-                y:
-                    -(event.clientY / this.renderer.domElement.clientHeight) *
-                        2 +
-                    1,
+                x: (x / this.renderer.domElement.clientWidth) * 2 - 1,
+                y: -(y / this.renderer.domElement.clientHeight) * 2 + 1,
             },
             this.camera
         )
@@ -1056,6 +1053,7 @@ export class BodyEditor {
         if (size.width == this.Width && size.height === this.Height) return
 
         const canvas = this.renderer.domElement
+        if (canvas.clientWidth == 0 || canvas.clientHeight == 0) return
         this.camera.aspect = canvas.clientWidth / canvas.clientHeight
 
         this.camera.updateProjectionMatrix()
