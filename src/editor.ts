@@ -1075,6 +1075,7 @@ export class BodyEditor {
         effectSobel.uniforms['resolution'].value.y =
             this.Height * window.devicePixelRatio
         this.composer.addPass(effectSobel)
+        this.effectSobel = effectSobel
     }
 
     changeComposerResoultion(width: number, height: number) {
