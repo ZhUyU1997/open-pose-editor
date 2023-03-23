@@ -13,6 +13,9 @@ const editor = new BodyEditor(
 const gui = new dat.GUI()
 
 window.addEventListener('keydown', function (event) {
+    if (editor.paused) {
+        return
+    }
     switch (event.code) {
         case 'KeyX':
             editor.MoveMode = true
@@ -22,6 +25,9 @@ window.addEventListener('keydown', function (event) {
 })
 
 window.addEventListener('keyup', function (event) {
+    if (editor.paused) {
+        return
+    }
     switch (event.code) {
         case 'KeyX':
             editor.MoveMode = false
