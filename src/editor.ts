@@ -1311,6 +1311,9 @@ export class BodyEditor {
             this.ClearScene()
 
             if (bodiesObject.length > 0) this.scene.add(...bodiesObject)
+            for (const body of bodiesObject) {
+                new BodyControlor(body).ResetAllTargetsPosition()
+            }
             this.RestoreCamera(camera)
         } catch (error: any) {
             Oops(error)
