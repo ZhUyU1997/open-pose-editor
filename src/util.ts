@@ -33,12 +33,6 @@ export function getImage(url: string): Promise<HTMLImageElement> {
     })
 }
 
-export function setBackgroundImage(dataUrl: string) {
-    const div = document.getElementById('background')
-
-    if (div) div.style.backgroundImage = `url(${dataUrl})`
-}
-
 export function getCurrentTime(format = 'YYYY_MM_DD_HH_mm_ss') {
     return dayjs(new Date()).format(format)
 }

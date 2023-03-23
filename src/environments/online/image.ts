@@ -1,4 +1,4 @@
-import { download } from './util'
+import { download } from '../../util'
 
 document.querySelectorAll('.gallery img').forEach((img) =>
     img.addEventListener('click', (e) => {
@@ -15,5 +15,17 @@ export function SetScreenShot(id: string, url: string, name: string) {
     if (img) {
         img.src = url
         img.title = name
+    }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+export function onMakeImages() {}
+
+export function setBackgroundImage(dataUrl: string | null) {
+    const div = document.getElementById('background')
+
+    if (div) {
+        if (!dataUrl) div.style.backgroundImage = 'none'
+        else div.style.backgroundImage = `url(${dataUrl})`
     }
 }

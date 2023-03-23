@@ -1,16 +1,14 @@
-import './init'
-import * as dat from 'dat.gui'
-import './index.css'
+import 'environments/init'
+import 'environments/index.css'
 import { options } from './config'
 import { BodyEditor } from './editor'
 import i18n from './i18n'
 import { CreateBodyParamsControls } from './body-params'
 import { CreateLanguageFolder } from './language'
+import { canvasElement, createDatGui, statsElement } from 'environments/gui'
 
-const editor = new BodyEditor(
-    document.querySelector<HTMLCanvasElement>('#canvas')!
-)
-const gui = new dat.GUI()
+const editor = new BodyEditor(canvasElement, statsElement)
+const gui = createDatGui()
 
 window.addEventListener('keydown', function (event) {
     if (editor.paused) {
@@ -66,8 +64,10 @@ edit.add(editor, 'RemoveBody').name(i18n.t('Delete Skeleton (Del)'))
 
 const setting = gui.addFolder(i18n.t('Setting'))
 
-options['Width'] = editor.Width
-options['Height'] = editor.Height
+if (options['Width'] == 0 || options['Height'] == 0) {
+    options['Width'] = editor.Width
+    options['Height'] = editor.Height
+}
 setting
     .add(options, 'Width', 128, 5000)
     .name(i18n.t('Width'))
@@ -122,3 +122,5 @@ window.addEventListener('resize', () => {
 })
 
 editor.loadBodyData()
+
+export { editor }

@@ -2,8 +2,6 @@ import * as THREE from 'three'
 import { Object3D } from 'three'
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils'
 import type { TupleToUnion } from 'type-fest'
-import handFBXFileUrl from '../models/hand.fbx?url'
-import footFBXFileUrl from '../models/foot.fbx?url'
 import { LoadFBXFile, LoadGLTFile, LoadObjFile } from './loader'
 import {
     FindObjectItem,
@@ -11,6 +9,7 @@ import {
     GetWorldPosition,
 } from './three-utils'
 import { CCDIKSolver } from './CCDIKSolver'
+import assets from 'environments/assets'
 
 const coco_body_keypoints_const = [
     'nose',
@@ -537,6 +536,7 @@ const ExtremitiesMapping: Record<
     right_foot: footModelInfo,
 }
 export async function LoadHand(onLoading?: (loaded: number) => void) {
+    const handFBXFileUrl = assets['models/hand.fbx']
     const fbx = await LoadFBXFile(handFBXFileUrl, onLoading)
 
     // fbx.scale.multiplyScalar(10)
@@ -569,6 +569,7 @@ export async function LoadHand(onLoading?: (loaded: number) => void) {
 }
 
 export async function LoadFoot(onLoading?: (loaded: number) => void) {
+    const footFBXFileUrl = assets['models/foot.fbx']
     const fbx = await LoadFBXFile(footFBXFileUrl, onLoading)
 
     console.log(fbx)
@@ -1449,8 +1450,6 @@ export const PartIndexMappingOfBlazePoseModel = {
     right_foot_index: 32,
 }
 
-const PosesLibraryUrl = new URL('./poses/data.bin', import.meta.url).href
-
 const PosesLibrary: [number, number, number][][] | null = []
 
 function getRandomInt(min: number, max: number) {
@@ -1466,6 +1465,7 @@ export function GetRandomPose() {
 }
 
 export async function LoadPosesLibrary() {
+    const PosesLibraryUrl = assets['src/poses/data.bin']
     const response = await fetch(PosesLibraryUrl)
     const buffer = await response.arrayBuffer()
 
