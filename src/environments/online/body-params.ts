@@ -1,7 +1,7 @@
-import { BodyEditor, Command } from './editor'
+import { BodyEditor, Command } from '../../editor'
 import * as dat from 'dat.gui'
-import i18n from './i18n'
-import { BodyControlor } from './body'
+import i18n from '../../i18n'
+import { BodyControlor } from '../../body'
 
 const BodyParamsInit = {
     BoneThickness: 3,

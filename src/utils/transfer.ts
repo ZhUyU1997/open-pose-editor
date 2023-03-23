@@ -1,6 +1,5 @@
-import dayjs from 'dayjs'
 import Swal from 'sweetalert2'
-import i18n from './i18n'
+import i18n from '../i18n'
 
 export function download(href: string, title: string) {
     const a = document.createElement('a')
@@ -14,27 +13,6 @@ export function downloadJson(data: string, fileName: string) {
     const href = window.URL.createObjectURL(blob)
     download(href, fileName)
     URL.revokeObjectURL(href)
-}
-
-export function getImage(url: string): Promise<HTMLImageElement> {
-    return new Promise((resolve, reject) => {
-        const image = document.createElement('img')
-
-        image.src = url
-        image.addEventListener('load', () => {
-            resolve(image)
-        })
-        image.addEventListener('abort', () => {
-            reject('onabort')
-        })
-        image.addEventListener('error', () => {
-            reject('onerror')
-        })
-    })
-}
-
-export function getCurrentTime(format = 'YYYY_MM_DD_HH_mm_ss') {
-    return dayjs(new Date()).format(format)
 }
 
 export async function uploadJson() {

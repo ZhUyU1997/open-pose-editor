@@ -1,5 +1,5 @@
 import * as dat from 'dat.gui'
-import i18n, { LanguageMapping } from './i18n'
+import i18n, { LanguageMapping } from '../../i18n'
 
 export function CreateLanguageFolder(gui: dat.GUI) {
     const current = LanguageMapping[i18n.language] ?? 'English'

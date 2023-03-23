@@ -18,14 +18,12 @@ import { TransformControls } from 'three/examples/jsm/controls/TransformControls
 //     CCDIKSolver,
 //     IKS,
 // } from 'three/examples/jsm/animate/CCDIKSolver'
-import { CCDIKSolver } from './CCDIKSolver'
+import { CCDIKSolver } from './utils/CCDIKSolver'
 import Stats from 'three/examples/jsm/libs/stats.module'
 import {
     BodyControlor,
     CloneBody,
-    CreateTemplateBody,
     GetExtremityMesh,
-    GetRandomPose,
     IsExtremities,
     IsFoot,
     IsHand,
@@ -33,20 +31,9 @@ import {
     IsPickable,
     IsSkeleton,
     IsTranslate,
-    LoadFoot,
-    LoadHand,
-    LoadPosesLibrary,
-    PartIndexMappingOfBlazePoseModel,
 } from './body'
 import { options } from './config'
-import {
-    download,
-    downloadJson,
-    getCurrentTime,
-    getImage,
-    uploadImage,
-    uploadJson,
-} from './util'
+import { downloadJson, uploadJson } from './utils/transfer'
 
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
@@ -55,15 +42,8 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
 import { LuminosityShader } from 'three/examples/jsm/shaders/LuminosityShader.js'
 import { SobelOperatorShader } from 'three/examples/jsm/shaders/SobelOperatorShader.js'
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils'
-import Swal from 'sweetalert2'
-import i18n from './i18n'
-import { FindObjectItem } from './three-utils'
-import { DetectPosefromImage } from './detect'
-import {
-    onMakeImages,
-    setBackgroundImage,
-    SetScreenShot,
-} from 'environments/image'
+import { Oops } from './components'
+import { getCurrentTime } from './utils/time'
 
 interface BodyData {
     position: ReturnType<THREE.Vector3['toArray']>
@@ -90,17 +70,6 @@ interface CameraData {
 
 type EditorSelectEventHandler = (controlor: BodyControlor) => void
 type EditorUnselectEventHandler = () => void
-
-function Oops(error: any) {
-    Swal.fire({
-        icon: 'error',
-        title: i18n.t('Oops...')!,
-        text: i18n.t('Something went wrong!')! + '\n' + error?.stack ?? error,
-        footer: `<a href="https://github.com/ZhUyU1997/open-pose-editor/issues/new">${i18n.t(
-            'If the problem persists, please click here to ask a question.'
-        )}</a>`,
-    })
-}
 
 interface TransformValue {
     scale: Object3D['scale']
@@ -775,14 +744,10 @@ export class BodyEditor {
 
         this.renderOutput()
         const imgData = this.getOutputPNG()
-        const fileName = 'pose_' + getCurrentTime()
 
         restore()
 
-        return {
-            imgData,
-            fileName,
-        }
+        return imgData
     }
 
     CaptureCanny() {
@@ -792,15 +757,11 @@ export class BodyEditor {
         this.renderOutput()
 
         const imgData = this.getOutputPNG()
-        const fileName = 'canny_' + getCurrentTime()
 
         this.showSkeleten(map)
         restore()
 
-        return {
-            imgData,
-            fileName,
-        }
+        return imgData
     }
 
     CaptureNormal() {
@@ -810,16 +771,12 @@ export class BodyEditor {
         this.renderOutput()
 
         const imgData = this.getOutputPNG()
-        const fileName = 'normal_' + getCurrentTime()
 
         this.showSkeleten(map)
         restore()
         restoreHand()
 
-        return {
-            imgData,
-            fileName,
-        }
+        return imgData
     }
 
     CaptureDepth() {
@@ -832,16 +789,12 @@ export class BodyEditor {
         restoreCamera()
 
         const imgData = this.getOutputPNG()
-        const fileName = 'depth_' + getCurrentTime()
 
         this.showSkeleten(map)
         restore()
         restoreHand()
 
-        return {
-            imgData,
-            fileName,
-        }
+        return imgData
     }
 
     MakeImages() {
@@ -852,29 +805,21 @@ export class BodyEditor {
 
         this.transformControl.detach()
 
-        {
-            const { imgData, fileName } = this.Capture()
-            SetScreenShot('pose', imgData, fileName)
-        }
-        {
-            const { imgData, fileName } = this.CaptureDepth()
-            SetScreenShot('depth', imgData, fileName)
-        }
-        {
-            const { imgData, fileName } = this.CaptureNormal()
-            SetScreenShot('normal', imgData, fileName)
-        }
-
-        {
-            const { imgData, fileName } = this.CaptureCanny()
-            SetScreenShot('canny', imgData, fileName)
-        }
+        const poseImage = this.Capture()
+        const depthImage = this.CaptureDepth()
+        const normalImage = this.CaptureNormal()
+        const cannyImage = this.CaptureCanny()
 
         this.renderer.setClearColor(0x000000, 0)
         this.axesHelper.visible = true
         this.gridHelper.visible = true
 
-        onMakeImages()
+        return {
+            pose: poseImage,
+            depth: depthImage,
+            normal: normalImage,
+            canny: cannyImage,
+        }
     }
 
     CopySelectedBody() {
@@ -1102,88 +1047,14 @@ export class BodyEditor {
                 height * window.devicePixelRatio
         }
     }
-    async SetRandomPose() {
-        const bodies = this.scene.children.filter((o) => o.name == 'torso')
-        const body = bodies.length == 1 ? bodies[0] : this.getSelectedBody()
-        if (!body) {
-            await Swal.fire(i18n.t('Please select a skeleton!!'))
-            return
+
+    InitScene() {
+        const body = CloneBody()
+
+        if (body) {
+            this.scene.add(body)
+            this.dlight.target = body
         }
-
-        // if not detach it, skeleten will shake
-        this.transformControl.detach()
-        try {
-            let poseData = GetRandomPose()
-            if (poseData) {
-                new BodyControlor(body).SetPose(poseData)
-                return
-            }
-
-            let loading = true
-
-            setTimeout(() => {
-                if (loading)
-                    Swal.fire({
-                        title: i18n.t('Downloading Poses Library') ?? '',
-                        didOpen: () => {
-                            Swal.showLoading()
-                        },
-                    })
-            }, 500)
-
-            await LoadPosesLibrary()
-            loading = false
-            Swal.hideLoading()
-            Swal.close()
-
-            poseData = GetRandomPose()
-            if (poseData) {
-                new BodyControlor(body).SetPose(poseData)
-                return
-            }
-        } catch (error) {
-            Swal.hideLoading()
-            Swal.close()
-
-            Oops(error)
-            console.error(error)
-            return
-        }
-    }
-
-    async loadBodyData() {
-        const hand = await LoadHand((loaded) => {
-            if (loaded >= 100) {
-                Swal.hideLoading()
-                Swal.close()
-            } else if (Swal.isVisible() == false) {
-                Swal.fire({
-                    title: i18n.t('Downloading Hand Model') ?? '',
-                    didOpen: () => {
-                        Swal.showLoading()
-                    },
-                })
-            }
-        })
-        const foot = await LoadFoot((loaded) => {
-            if (loaded >= 100) {
-                Swal.hideLoading()
-                Swal.close()
-            } else if (Swal.isVisible() == false) {
-                Swal.fire({
-                    title: i18n.t('Downloading Foot Model') ?? '',
-                    didOpen: () => {
-                        Swal.showLoading()
-                    },
-                })
-            }
-        })
-        CreateTemplateBody(hand, foot)
-        // scene.add( object );
-        const body = CloneBody()!
-
-        this.scene.add(body)
-        this.dlight.target = body
     }
 
     get CameraNear() {
@@ -1418,65 +1289,24 @@ export class BodyEditor {
 
     //     CreateLink2(objects['right_eye'], objects['right_ear'])
     // }
-
-    async DetectFromImage() {
+    async GetBodyToSetPose() {
         const bodies = this.scene.children.filter((o) => o.name == 'torso')
         const body = bodies.length == 1 ? bodies[0] : this.getSelectedBody()
-        if (!body) {
-            await Swal.fire(i18n.t('Please select a skeleton!!'))
-            return
-        }
+        return body
+    }
+    async SetPose(poseData: [number, number, number][]) {
+        const body = await this.GetBodyToSetPose()
 
-        try {
-            let loading = true
+        if (!body) return
+        // if not detach it, skeleten will shake
+        this.transformControl.detach()
+        new BodyControlor(body).SetPose(poseData)
+    }
+    async SetBlazePose(positions: [number, number, number][]) {
+        const body = await this.GetBodyToSetPose()
+        if (!body) return
 
-            const dataUrl = await uploadImage()
-
-            if (!dataUrl) return
-
-            const image = await getImage(dataUrl)
-            setBackgroundImage(dataUrl)
-
-            setTimeout(() => {
-                if (loading)
-                    Swal.fire({
-                        title: i18n.t('Downloading MediaPipe Pose Model') ?? '',
-                        didOpen: () => {
-                            Swal.showLoading()
-                        },
-                    })
-            }, 500)
-
-            const result = await DetectPosefromImage(image)
-            loading = false
-            Swal.hideLoading()
-            Swal.close()
-
-            if (result) {
-                const positions: [number, number, number][] =
-                    result.poseWorldLandmarks.map(({ x, y, z }) => [
-                        x * 100,
-                        -y * 100,
-                        -z * 100,
-                    ])
-
-                // this.drawPoseData(
-                //     result.poseWorldLandmarks.map(({ x, y, z }) =>
-                //         new THREE.Vector3().fromArray([x * 100, -y * 100, -z * 100])
-                //     )
-                // )
-
-                this.transformControl.detach()
-                new BodyControlor(body!).SetBlazePose(positions)
-                return
-            }
-        } catch (error) {
-            Swal.hideLoading()
-            Swal.close()
-
-            Oops(error)
-            console.error(error)
-            return
-        }
+        this.transformControl.detach()
+        new BodyControlor(body).SetBlazePose(positions)
     }
 }

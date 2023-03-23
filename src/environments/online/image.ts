@@ -1,4 +1,4 @@
-import { download } from '../../util'
+import { download } from '../../utils/transfer'
 
 document.querySelectorAll('.gallery img').forEach((img) =>
     img.addEventListener('click', (e) => {

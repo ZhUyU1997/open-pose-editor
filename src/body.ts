@@ -2,14 +2,13 @@ import * as THREE from 'three'
 import { Object3D } from 'three'
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils'
 import type { TupleToUnion } from 'type-fest'
-import { LoadFBXFile, LoadGLTFile, LoadObjFile } from './loader'
+import { LoadFBXFile, LoadGLTFile, LoadObjFile } from './utils/loader'
 import {
     FindObjectItem,
     GetLocalPosition,
     GetWorldPosition,
-} from './three-utils'
-import { CCDIKSolver } from './CCDIKSolver'
-import assets from 'environments/assets'
+} from './utils/three-utils'
+import { CCDIKSolver } from './utils/CCDIKSolver'
 
 const coco_body_keypoints_const = [
     'nose',
@@ -535,8 +534,10 @@ const ExtremitiesMapping: Record<
     left_foot: footModelInfo,
     right_foot: footModelInfo,
 }
-export async function LoadHand(onLoading?: (loaded: number) => void) {
-    const handFBXFileUrl = assets['models/hand.fbx']
+export async function LoadHand(
+    handFBXFileUrl: string,
+    onLoading?: (loaded: number) => void
+) {
     const fbx = await LoadFBXFile(handFBXFileUrl, onLoading)
 
     // fbx.scale.multiplyScalar(10)
@@ -568,8 +569,10 @@ export async function LoadHand(onLoading?: (loaded: number) => void) {
     return fbx
 }
 
-export async function LoadFoot(onLoading?: (loaded: number) => void) {
-    const footFBXFileUrl = assets['models/foot.fbx']
+export async function LoadFoot(
+    footFBXFileUrl: string,
+    onLoading?: (loaded: number) => void
+) {
     const fbx = await LoadFBXFile(footFBXFileUrl, onLoading)
 
     console.log(fbx)
@@ -1464,9 +1467,8 @@ export function GetRandomPose() {
     return null
 }
 
-export async function LoadPosesLibrary() {
-    const PosesLibraryUrl = assets['src/poses/data.bin']
-    const response = await fetch(PosesLibraryUrl)
+export async function LoadPosesLibrary(posesLibraryUrl: string) {
+    const response = await fetch(posesLibraryUrl)
     const buffer = await response.arrayBuffer()
 
     console.log(buffer.byteLength)
