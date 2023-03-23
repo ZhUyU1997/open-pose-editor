@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import {
     Bone,
+    Material,
     MeshDepthMaterial,
     MeshNormalMaterial,
     MeshPhongMaterial,
@@ -141,6 +142,7 @@ export class BodyEditor {
     effectSobel?: ShaderPass
     enableComposer = false
     enablePreview = true
+    paused = false
 
     constructor(canvas: HTMLCanvasElement, statsElem?: Element) {
         this.renderer = new THREE.WebGLRenderer({
@@ -314,6 +316,9 @@ export class BodyEditor {
     }
 
     handleKeyDown(e: KeyboardEvent) {
+        if (this.paused) {
+            return
+        }
         if (e.code === 'KeyZ' && (e.ctrlKey || e.metaKey) && e.shiftKey) {
             this.Redo()
         } else if (e.code === 'KeyY' && (e.ctrlKey || e.metaKey)) {
@@ -464,11 +469,23 @@ export class BodyEditor {
         return this.outputRenderer.domElement.toDataURL('image/png')
     }
     animate() {
+        if (this.paused) {
+            return
+        }
         requestAnimationFrame(this.animate.bind(this))
         this.handleResize()
         this.render()
         if (this.enablePreview) this.renderPreview()
         this.stats?.update()
+    }
+
+    pause() {
+        this.paused = true
+    }
+
+    resume() {
+        this.paused = false
+        this.animate()
     }
 
     getAncestors(o: Object3D) {
@@ -508,15 +525,12 @@ export class BodyEditor {
     }
 
     onMouseDown(event: MouseEvent) {
+        const x = event.offsetX - this.renderer.domElement.offsetLeft
+        const y = event.offsetY - this.renderer.domElement.offsetTop
         this.raycaster.setFromCamera(
             {
-                x:
-                    (event.clientX / this.renderer.domElement.clientWidth) * 2 -
-                    1,
-                y:
-                    -(event.clientY / this.renderer.domElement.clientHeight) *
-                        2 +
-                    1,
+                x: (x / this.renderer.domElement.clientWidth) * 2 - 1,
+                y: -(y / this.renderer.domElement.clientHeight) * 2 + 1,
             },
             this.camera
         )
@@ -658,6 +672,8 @@ export class BodyEditor {
             v?.attach(k)
         }
 
+        map.clear()
+
         this.scene.children
             .filter((o) => o?.name === 'torso')
             .forEach((o) => {
@@ -678,32 +694,23 @@ export class BodyEditor {
     }
 
     changeHandMaterial(type: 'depth' | 'normal' | 'phone') {
-        let initType = 'depth'
+        const map = new Map<THREE.Mesh, Material | Material[]>()
         this.traverseExtremities((child) => {
             const o = GetExtremityMesh(child)
             if (!o) return
-            if (o.material) {
-                if (o.material instanceof MeshNormalMaterial)
-                    initType = 'normal'
-                if (o.material instanceof MeshPhongMaterial) initType = 'phone'
-            }
 
+            map.set(o, o.material)
             if (type == 'depth') o.material = new MeshDepthMaterial()
             else if (type == 'normal') o.material = new MeshNormalMaterial()
             else if (type == 'phone') o.material = new MeshPhongMaterial()
         })
 
         return () => {
-            this.traverseExtremities((child) => {
-                const o = GetExtremityMesh(child)
-                if (!o) return
+            for (const [k, v] of map.entries()) {
+                k.material = v
+            }
 
-                if (initType == 'depth') o.material = new MeshDepthMaterial()
-                else if (initType == 'normal')
-                    o.material = new MeshNormalMaterial()
-                else if (initType == 'phone')
-                    o.material = new MeshPhongMaterial()
-            })
+            map.clear()
         }
     }
 
@@ -1052,6 +1059,7 @@ export class BodyEditor {
         if (size.width == this.Width && size.height === this.Height) return
 
         const canvas = this.renderer.domElement
+        if (canvas.clientWidth == 0 || canvas.clientHeight == 0) return
         this.camera.aspect = canvas.clientWidth / canvas.clientHeight
 
         this.camera.updateProjectionMatrix()
@@ -1082,6 +1090,7 @@ export class BodyEditor {
         effectSobel.uniforms['resolution'].value.y =
             this.Height * window.devicePixelRatio
         this.composer.addPass(effectSobel)
+        this.effectSobel = effectSobel
     }
 
     changeComposerResoultion(width: number, height: number) {
@@ -1324,6 +1333,9 @@ export class BodyEditor {
             this.ClearScene()
 
             if (bodiesObject.length > 0) this.scene.add(...bodiesObject)
+            for (const body of bodiesObject) {
+                new BodyControlor(body).ResetAllTargetsPosition()
+            }
             this.RestoreCamera(camera)
         } catch (error: any) {
             Oops(error)

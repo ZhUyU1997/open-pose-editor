@@ -632,6 +632,7 @@ export function IsNeedSaveObject(name: string) {
 
 const pickableObjectNames: string[] = [
     'torso',
+    'nose',
     'neck',
     'right_shoulder',
     'left_shoulder',

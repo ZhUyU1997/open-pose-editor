@@ -11,6 +11,9 @@ const editor = new BodyEditor(canvasElement, statsElement)
 const gui = createDatGui()
 
 window.addEventListener('keydown', function (event) {
+    if (editor.paused) {
+        return
+    }
     switch (event.code) {
         case 'KeyX':
             editor.MoveMode = true
@@ -20,6 +23,9 @@ window.addEventListener('keydown', function (event) {
 })
 
 window.addEventListener('keyup', function (event) {
+    if (editor.paused) {
+        return
+    }
     switch (event.code) {
         case 'KeyX':
             editor.MoveMode = false
