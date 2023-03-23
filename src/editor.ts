@@ -139,6 +139,8 @@ export class BodyEditor {
     enableComposer = false
     enablePreview = true
 
+    paused = false
+
     constructor(canvas: HTMLCanvasElement) {
         this.renderer = new THREE.WebGLRenderer({
             canvas,
@@ -309,6 +311,9 @@ export class BodyEditor {
     }
 
     handleKeyDown(e: KeyboardEvent) {
+        if (this.paused) {
+            return
+        }
         if (e.code === 'KeyZ' && (e.ctrlKey || e.metaKey) && e.shiftKey) {
             this.Redo()
         } else if (e.code === 'KeyY' && (e.ctrlKey || e.metaKey)) {
@@ -459,11 +464,23 @@ export class BodyEditor {
         return this.outputRenderer.domElement.toDataURL('image/png')
     }
     animate() {
+        if (this.paused) {
+            return
+        }
         requestAnimationFrame(this.animate.bind(this))
         this.handleResize()
         this.render()
         if (this.enablePreview) this.renderPreview()
         this.stats.update()
+    }
+
+    pause() {
+        this.paused = true
+    }
+
+    resume() {
+        this.paused = false
+        this.animate()
     }
 
     getAncestors(o: Object3D) {
