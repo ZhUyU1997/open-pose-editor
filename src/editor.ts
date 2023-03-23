@@ -38,13 +38,11 @@ import {
     PartIndexMappingOfBlazePoseModel,
 } from './body'
 import { options } from './config'
-import { SetScreenShot } from './image'
 import {
     download,
     downloadJson,
     getCurrentTime,
     getImage,
-    setBackgroundImage,
     uploadImage,
     uploadJson,
 } from './util'
@@ -60,6 +58,11 @@ import Swal from 'sweetalert2'
 import i18n from './i18n'
 import { FindObjectItem } from './three-utils'
 import { DetectPosefromImage } from './detect'
+import {
+    onMakeImages,
+    setBackgroundImage,
+    SetScreenShot,
+} from 'environments/image'
 
 interface BodyData {
     position: ReturnType<THREE.Vector3['toArray']>
@@ -131,7 +134,7 @@ export class BodyEditor {
     alight: THREE.AmbientLight
     raycaster = new THREE.Raycaster()
     IsClick = false
-    stats: Stats
+    stats: Stats | undefined
 
     // ikSolver?: CCDIKSolver
     composer?: EffectComposer
@@ -139,7 +142,7 @@ export class BodyEditor {
     enableComposer = false
     enablePreview = true
 
-    constructor(canvas: HTMLCanvasElement) {
+    constructor(canvas: HTMLCanvasElement, statsElem?: Element) {
         this.renderer = new THREE.WebGLRenderer({
             canvas,
             antialias: true,
@@ -228,8 +231,10 @@ export class BodyEditor {
         // // Setup post-processing step
         // this.setupPost();
 
-        this.stats = Stats()
-        document.body.appendChild(this.stats.dom)
+        if (statsElem) {
+            this.stats = Stats()
+            statsElem.appendChild(this.stats.dom)
+        }
         this.animate()
         this.handleResize()
         this.AutoSaveScene()
@@ -463,7 +468,7 @@ export class BodyEditor {
         this.handleResize()
         this.render()
         if (this.enablePreview) this.renderPreview()
-        this.stats.update()
+        this.stats?.update()
     }
 
     getAncestors(o: Object3D) {
@@ -861,6 +866,8 @@ export class BodyEditor {
         this.renderer.setClearColor(0x000000, 0)
         this.axesHelper.visible = true
         this.gridHelper.visible = true
+
+        onMakeImages()
     }
 
     CopySelectedBody() {

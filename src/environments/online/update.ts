@@ -2,7 +2,7 @@
 
 import { registerSW } from 'virtual:pwa-register'
 import Swal from 'sweetalert2'
-import i18n from './i18n'
+import i18n from '../../i18n'
 
 async function PWAPopup(update: (reloadPage?: boolean) => Promise<void>) {
     const result = await Swal.fire(
