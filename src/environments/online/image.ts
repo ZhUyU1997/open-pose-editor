@@ -18,9 +18,6 @@ export function SetScreenShot(id: string, url: string, name: string) {
     }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-export function onMakeImages() {}
-
 export function setBackgroundImage(dataUrl: string | null) {
     const div = document.getElementById('background')
 

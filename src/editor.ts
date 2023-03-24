@@ -247,7 +247,7 @@ export class BodyEditor {
             },
             undo: () => {
                 obj.removeFromParent()
-                this.transformControl.detach()
+                this.DetachTransfromControl()
             },
         }
     }
@@ -256,7 +256,7 @@ export class BodyEditor {
         return {
             execute: () => {
                 obj.removeFromParent()
-                this.transformControl.detach()
+                this.DetachTransfromControl()
             },
             undo: () => {
                 this.scene.add(obj)
@@ -522,7 +522,7 @@ export class BodyEditor {
 
         if (this.IsClick) {
             if (!obj) {
-                this.transformControl.detach()
+                this.DetachTransfromControl()
                 this.triggerUnselectEvent()
                 return
             }
@@ -803,7 +803,7 @@ export class BodyEditor {
         this.axesHelper.visible = false
         this.gridHelper.visible = false
 
-        this.transformControl.detach()
+        this.DetachTransfromControl()
 
         const poseImage = this.Capture()
         const depthImage = this.CaptureDepth()
@@ -894,7 +894,7 @@ export class BodyEditor {
             this.pushCommand(this.CreateRemoveBodyCommand(obj))
             console.log(obj.name)
             obj.removeFromParent()
-            this.transformControl.detach()
+            this.DetachTransfromControl()
         }
     }
 
@@ -1299,14 +1299,19 @@ export class BodyEditor {
 
         if (!body) return
         // if not detach it, skeleten will shake
-        this.transformControl.detach()
+        this.DetachTransfromControl()
         new BodyControlor(body).SetPose(poseData)
     }
     async SetBlazePose(positions: [number, number, number][]) {
         const body = await this.GetBodyToSetPose()
         if (!body) return
 
-        this.transformControl.detach()
+        this.DetachTransfromControl()
         new BodyControlor(body).SetBlazePose(positions)
+    }
+
+    DetachTransfromControl() {
+        this.transformControl.detach()
+        this.triggerUnselectEvent()
     }
 }

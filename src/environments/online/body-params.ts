@@ -111,28 +111,6 @@ export function CreateBodyParamsControls(editor: BodyEditor, gui: dat.GUI) {
         select(controlor) {
             currentControlor = controlor
             console.log('select')
-            bodyParams.BoneThickness = currentControlor.BoneThickness
-
-            bodyParams.HeadSize = currentControlor.HeadSize
-
-            bodyParams.NoseToNeck = currentControlor.NoseToNeck
-
-            bodyParams.ShoulderWidth = currentControlor.ShoulderWidth
-            bodyParams.ShoulderToHip = currentControlor.ShoulderToHip
-
-            bodyParams.ArmLength = currentControlor.ArmLength
-            bodyParams.UpperArm = currentControlor.UpperArm
-            bodyParams.Forearm = currentControlor.Forearm
-            bodyParams.HandSize = currentControlor.HandSize
-
-            bodyParams.Hips = currentControlor.Hips
-
-            bodyParams.LegLength = currentControlor.LegLength
-            bodyParams.Thigh = currentControlor.Thigh
-            bodyParams.LowerLeg = currentControlor.LowerLeg
-
-            bodyParams.FootSize = currentControlor.FootSize
-
             params.updateDisplay()
             params.show()
             // params.open()
