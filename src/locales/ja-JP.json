@@ -47,5 +47,8 @@
     "Edit": "編集",
     "Setting": "設定",
     "Bone Thickness": "ボーンの太さ",
-    "Feedback": "フィードバック"
+    "Feedback": "フィードバック",
+    "View": "ビュー",
+    "Fix View": "ビューを固定する",
+    "Restore View": "ビューを復元する"
 }

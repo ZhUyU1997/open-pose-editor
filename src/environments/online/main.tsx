@@ -275,6 +275,10 @@ export async function Main() {
         .add(editor, 'CameraFocalLength', 0.1, 100)
         .name(i18n.t('Camera Focal Length'))
 
+    const view = gui.addFolder(i18n.t('View'))
+    view.add(editor, 'FixView').name(i18n.t('Fix View'))
+    view.add(editor, 'RestoreView').name(i18n.t('Restore View'))
+
     CreateBodyParamsControls(editor, gui)
 
     gui.add(helper, 'Feedback').name(i18n.t('Feedback'))

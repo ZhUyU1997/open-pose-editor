@@ -402,8 +402,10 @@ export class BodyEditor {
         this.renderer.setScissorTest(true)
         this.camera.aspect = width / height
         this.camera.updateProjectionMatrix()
-        this.renderer.render(this.scene, this.camera)
 
+        const restoreView = this.changeView()
+        this.renderer.render(this.scene, this.camera)
+        restoreView()
         // restore
         this.renderer.setViewport(save.viewport)
         this.renderer.setScissor(save.scissor)
@@ -797,13 +799,27 @@ export class BodyEditor {
         return imgData
     }
 
+    changeTransformControl() {
+        const part = this.getSelectedPart()
+
+        if (part) {
+            this.DetachTransfromControl()
+            return () => {
+                this.transformControl.attach(part)
+            }
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        return () => {}
+    }
     MakeImages() {
         this.renderer.setClearColor(0x000000)
 
         this.axesHelper.visible = false
         this.gridHelper.visible = false
 
-        this.DetachTransfromControl()
+        const restoreTransfromControl = this.changeTransformControl()
+        const restoreView = this.changeView()
 
         const poseImage = this.Capture()
         const depthImage = this.CaptureDepth()
@@ -813,6 +829,9 @@ export class BodyEditor {
         this.renderer.setClearColor(0x000000, 0)
         this.axesHelper.visible = true
         this.gridHelper.visible = true
+
+        restoreTransfromControl()
+        restoreView()
 
         return {
             pose: poseImage,
@@ -1180,14 +1199,15 @@ export class BodyEditor {
             return body
         })
     }
-    RestoreCamera(data: CameraData) {
+    RestoreCamera(data: CameraData, updateOrbitControl = true) {
         this.camera.position.fromArray(data.position)
         this.camera.rotation.fromArray(data.rotation as any)
         this.camera.near = data.near
         this.camera.far = data.far
         this.camera.zoom = data.zoom
         this.camera.updateProjectionMatrix()
-        this.orbitControls.update() // fix position change
+
+        if (updateOrbitControl) this.orbitControls.update() // fix position change
     }
     RestoreScene(rawData: string) {
         try {
@@ -1313,5 +1333,26 @@ export class BodyEditor {
     DetachTransfromControl() {
         this.transformControl.detach()
         this.triggerUnselectEvent()
+    }
+
+    cameraDataOfView?: CameraData
+    FixView() {
+        this.cameraDataOfView = this.GetCameraData()
+    }
+    RestoreView() {
+        if (this.cameraDataOfView) this.RestoreCamera(this.cameraDataOfView)
+    }
+
+    changeView() {
+        if (this.cameraDataOfView) {
+            const old = this.GetCameraData()
+            this.RestoreCamera(this.cameraDataOfView, false)
+            return () => {
+                this.RestoreCamera(old)
+            }
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        return () => {}
     }
 }
