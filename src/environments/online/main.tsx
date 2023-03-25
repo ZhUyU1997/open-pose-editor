@@ -6,23 +6,11 @@ import i18n from '../../i18n'
 import { CreateBodyParamsControls } from './body-params'
 import { CreateLanguageFolder } from './language'
 import { canvasElement, createDatGui, statsElement } from './gui'
-import { getImage } from '../../utils/image'
-import { uploadImage } from '../../utils/transfer'
-import { getCurrentTime } from '../../utils/time'
-
-import { setBackgroundImage, SetScreenShot } from './image'
 import Swal from 'sweetalert2'
-import { DetectPosefromImage } from '../../utils/detect'
-import {
-    CreateTemplateBody,
-    GetRandomPose,
-    LoadFoot,
-    LoadHand,
-    LoadPosesLibrary,
-} from '../../body'
+import { CreateTemplateBody, LoadFoot, LoadHand } from '../../body'
 
 import assets from './assets'
-import { Oops } from '../../components'
+import { Helper } from './helper'
 
 async function LoadBodyData() {
     const hand = await LoadHand(assets['models/hand.fbx'], (loaded) => {
@@ -57,6 +45,7 @@ async function LoadBodyData() {
 export async function Main() {
     const editor = new BodyEditor(canvasElement, statsElement)
     const gui = createDatGui()
+    gui.width = 300
 
     window.addEventListener('keydown', function (event) {
         if (editor.paused) {
@@ -82,134 +71,22 @@ export async function Main() {
         }
     })
 
-    gui.width = 300
+    const UpdateSize = () => {
+        if (options.autoSize) {
+            options['Width'] = editor.Width
+            options['Height'] = editor.Height
+
+            gui.updateDisplay()
+        }
+    }
+
+    UpdateSize()
+
+    window.addEventListener('resize', UpdateSize)
 
     CreateLanguageFolder(gui)
 
-    const helper = {
-        MakeImages() {
-            const image = editor.MakeImages()
-
-            for (const [name, imgData] of Object.entries(image)) {
-                const fileName = name + '_' + getCurrentTime()
-                SetScreenShot(name, imgData, fileName)
-            }
-        },
-        async DetectFromImage() {
-            const body = await editor.GetBodyToSetPose()
-            if (!body) {
-                await Swal.fire(i18n.t('Please select a skeleton!!'))
-                return
-            }
-
-            try {
-                let loading = true
-
-                const dataUrl = await uploadImage()
-
-                if (!dataUrl) return
-
-                const image = await getImage(dataUrl)
-                setBackgroundImage(dataUrl)
-
-                setTimeout(() => {
-                    if (loading)
-                        Swal.fire({
-                            title:
-                                i18n.t('Downloading MediaPipe Pose Model') ??
-                                '',
-                            didOpen: () => {
-                                Swal.showLoading()
-                            },
-                        })
-                }, 500)
-
-                const result = await DetectPosefromImage(image)
-                loading = false
-                Swal.hideLoading()
-                Swal.close()
-
-                if (result) {
-                    const positions: [number, number, number][] =
-                        result.poseWorldLandmarks.map(({ x, y, z }) => [
-                            x * 100,
-                            -y * 100,
-                            -z * 100,
-                        ])
-
-                    // this.drawPoseData(
-                    //     result.poseWorldLandmarks.map(({ x, y, z }) =>
-                    //         new THREE.Vector3().fromArray([x * 100, -y * 100, -z * 100])
-                    //     )
-                    // )
-
-                    await editor.SetBlazePose(positions)
-                    return
-                }
-            } catch (error) {
-                Swal.hideLoading()
-                Swal.close()
-
-                Oops(error)
-                console.error(error)
-                return null
-            }
-        },
-        async setBackground() {
-            const dataUrl = await uploadImage()
-            setBackgroundImage(dataUrl)
-        },
-        async SetRandomPose() {
-            const body = await editor.GetBodyToSetPose()
-            if (!body) {
-                await Swal.fire(i18n.t('Please select a skeleton!!'))
-                return
-            }
-
-            try {
-                let poseData = GetRandomPose()
-                if (poseData) {
-                    await editor.SetPose(poseData)
-                    return
-                }
-
-                let loading = true
-
-                setTimeout(() => {
-                    if (loading)
-                        Swal.fire({
-                            title: i18n.t('Downloading Poses Library') ?? '',
-                            didOpen: () => {
-                                Swal.showLoading()
-                            },
-                        })
-                }, 500)
-
-                await LoadPosesLibrary(assets['src/poses/data.bin'])
-                loading = false
-                Swal.hideLoading()
-                Swal.close()
-
-                poseData = GetRandomPose()
-                if (poseData) {
-                    await editor.SetPose(poseData)
-                    return
-                }
-            } catch (error) {
-                Swal.hideLoading()
-                Swal.close()
-
-                Oops(error)
-                console.error(error)
-                return
-            }
-        },
-        Feedback() {
-            window.open(
-                'https://github.com/ZhUyU1997/open-pose-editor/issues/new'
-            )
-        },
-    }
+    const helper = new Helper(gui, editor)
 
     gui.add(helper, 'MakeImages').name(
         i18n.t('Generate Skeleton/Depth/Normal/Canny Map')
@@ -252,17 +129,6 @@ export async function Main() {
             options.autoSize = false
         })
 
-    function UpdateSize() {
-        if (options.autoSize) {
-            options['Width'] = editor.Width
-            options['Height'] = editor.Height
-
-            gui.updateDisplay()
-        }
-    }
-
-    UpdateSize()
-
     setting.add(editor, 'MoveMode').name(i18n.t('Move Mode (Press X key)'))
     setting.add(editor, 'OnlyHand').name(i18n.t('Only Hand'))
 
@@ -282,10 +148,6 @@ export async function Main() {
     CreateBodyParamsControls(editor, gui)
 
     gui.add(helper, 'Feedback').name(i18n.t('Feedback'))
-
-    window.addEventListener('resize', () => {
-        UpdateSize()
-    })
 
     await LoadBodyData()
     editor.InitScene()
