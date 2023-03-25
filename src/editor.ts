@@ -63,6 +63,7 @@ interface BodyData {
 interface CameraData {
     position: ReturnType<THREE.Vector3['toArray']>
     rotation: ReturnType<THREE.Euler['toArray']>
+    target: ReturnType<THREE.Vector3['toArray']>
     near: number
     far: number
     zoom: number
@@ -1122,6 +1123,7 @@ export class BodyEditor {
         const result = {
             position: this.camera.position.toArray(),
             rotation: this.camera.rotation.toArray(),
+            target: this.orbitControls.target.toArray(),
             near: this.camera.near,
             far: this.camera.far,
             zoom: this.camera.zoom,
@@ -1207,6 +1209,7 @@ export class BodyEditor {
         this.camera.zoom = data.zoom
         this.camera.updateProjectionMatrix()
 
+        if (data.target) this.orbitControls.target.fromArray(data.target)
         if (updateOrbitControl) this.orbitControls.update() // fix position change
     }
     RestoreScene(rawData: string) {
