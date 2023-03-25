@@ -3,6 +3,7 @@ lockfileVersion: 5.4
 specifiers:
   '@mediapipe/pose': ^0.5.1675469404
   '@types/dat.gui': ^0.7.7
+  '@types/fs-extra': ^11.0.1
   '@types/react': ^18.0.27
   '@types/react-dom': ^18.0.10
   '@types/three': ^0.149.0
@@ -26,6 +27,7 @@ specifiers:
   type-fest: ^3.6.1
   typescript: ^4.9.3
   vite: ^4.1.0
+  vite-plugin-conditional-compiler: ^0.1.1
   vite-plugin-pwa: ^0.14.4
   workbox-window: ^6.5.4
 
@@ -53,12 +55,14 @@ dependencies:
 
 devDependencies:
   '@types/dat.gui': 0.7.7
+  '@types/fs-extra': 11.0.1
   '@types/react': 18.0.28
   '@types/react-dom': 18.0.11
   '@types/three': 0.149.0
   '@vitejs/plugin-react': 3.1.0_vite@4.1.4
   typescript: 4.9.5
   vite: 4.1.4
+  vite-plugin-conditional-compiler: 0.1.1
 
 packages:
 
@@ -1830,13 +1834,25 @@ packages:
     resolution: {integrity: sha512-WulqXMDUTYAXCjZnk6JtIHPigp55cVtDgDrO2gHRwhyJto21+1zbVCtOYB2L1F9w4qCQ0rOGWBnBe0FNTiEJIQ==}
     dev: false
 
+  /@types/fs-extra/11.0.1:
+    resolution: {integrity: sha512-MxObHvNl4A69ofaTRU8DFqvgzzv8s9yRtaPPm5gud9HDNvpB3GPQFvNuTWAI59B9huVGV5jXYJwbCsmBsOGYWA==}
+    dependencies:
+      '@types/jsonfile': 6.1.1
+      '@types/node': 18.14.6
+    dev: true
+
   /@types/json-schema/7.0.11:
     resolution: {integrity: sha512-wOuvG1SN4Us4rez+tylwwwCV1psiNVOkJeM3AUWUNWg/jDQY2+HE/444y5gc+jBmRqASOm2Oeh5c1axHobwRKQ==}
     dev: false
 
+  /@types/jsonfile/6.1.1:
+    resolution: {integrity: sha512-GSgiRCVeapDN+3pqA35IkQwasaCh/0YFH5dEF6S88iDvEn901DjOeH3/QPY+XYP1DFzDZPvIvfeEgk+7br5png==}
+    dependencies:
+      '@types/node': 18.14.6
+    dev: true
+
   /@types/node/18.14.6:
     resolution: {integrity: sha512-93+VvleD3mXwlLI/xASjw0FzKcwzl3OdTCzm1LaRfqgS21gfFtK3zDXM5Op9TeeMsJVOaJ2VRDpT9q4Y3d0AvA==}
-    dev: false
 
   /@types/prop-types/15.7.5:
     resolution: {integrity: sha512-JCB8C6SnDoQf0cNycqd/35A7MjcnK+ZTqE7judS6o7utxUCg6imJg3QK2qzHKszlTjcj2cn+NwMB2i96ubpj7w==}
@@ -3244,6 +3260,13 @@ packages:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.4.14
 
+  /magic-string/0.30.0:
+    resolution: {integrity: sha512-LA+31JYDJLs82r2ScLrlz1GjSgu66ZV518eyWT+S8VhyQn/JL0u9MeBOvQMGYiPk1DBiSN9DDMOcXvigJZaViQ==}
+    engines: {node: '>=12'}
+    dependencies:
+      '@jridgewell/sourcemap-codec': 1.4.14
+    dev: true
+
   /merge-stream/2.0.0:
     resolution: {integrity: sha512-abv/qOcuPfk3URPfDzmZU1LKmuw8kT+0nIHvKrKgFrwifol/doWcdA4ZqsWQ8ENrFKkd67Mfpo/LovbIUsbt3w==}
     dev: false
@@ -3950,6 +3973,12 @@ packages:
     dependencies:
       punycode: 2.3.0
     dev: false
+
+  /vite-plugin-conditional-compiler/0.1.1:
+    resolution: {integrity: sha512-1QKTJ9/kWuqwWxtIEhtxENUQlfRfgjDyeAtic91ArQFjzI71necB7Sp9F5IGR/L1zIQXkkXBvidLLJkTJcp/OQ==}
+    dependencies:
+      magic-string: 0.30.0
+    dev: true
 
   /vite-plugin-pwa/0.14.4_pchkumgzq6po4w4enhsumrku2u:
     resolution: {integrity: sha512-M7Ct0so8OlouMkTWgXnl8W1xU95glITSKIe7qswZf1tniAstO2idElGCnsrTJ5NPNSx1XqfTCOUj8j94S6FD7Q==}

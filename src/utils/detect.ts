@@ -3,6 +3,7 @@ import { Class } from 'type-fest'
 // https://github.com/google/mediapipe/blob/master/docs/solutions/pose.md#resources
 import type { Results, Pose, PoseConfig } from '@mediapipe/pose'
 import * as MediapipePose from '@mediapipe/pose'
+import assets from '../assets'
 
 // @mediapipe/pose is not an es module ??
 // Extract Pose from the window to solve the problem
@@ -15,6 +16,10 @@ console.log('MyPose', MyPose)
 
 const pose = new MyPose({
     locateFile: (file) => {
+        if (file in assets) {
+            console.log('local', file)
+            return (assets as any)[file]
+        }
         const url = `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
 
         console.log('load pose model', url)

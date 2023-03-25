@@ -1,6 +1,9 @@
 /// <reference types="vite-plugin-pwa/client" />
 
+// #v-ifdef VITE_IS_ONLINE
 import { registerSW } from 'virtual:pwa-register'
+// #v-endif
+
 import Swal from 'sweetalert2'
 import i18n from '../../i18n'
 
@@ -13,6 +16,7 @@ async function PWAPopup(update: (reloadPage?: boolean) => Promise<void>) {
     }
 }
 export function PWACheck() {
+    if (import.meta.env.MODE !== 'online') return
     const updateSW = registerSW({
         onNeedRefresh() {
             console.log('有更新，需要刷新！！')

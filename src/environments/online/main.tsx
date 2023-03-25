@@ -9,7 +9,7 @@ import { canvasElement, createDatGui, statsElement } from './gui'
 import Swal from 'sweetalert2'
 import { CreateTemplateBody, LoadFoot, LoadHand } from '../../body'
 
-import assets from './assets'
+import assets from '../../assets'
 import { Helper } from './helper'
 
 async function LoadBodyData() {

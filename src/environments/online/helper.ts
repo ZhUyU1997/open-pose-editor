@@ -10,7 +10,7 @@ import Swal from 'sweetalert2'
 import { BodyEditor } from '../../editor'
 import i18n from '../../i18n'
 import { Oops } from '../../components'
-import assets from './assets'
+import assets from '../../assets'
 import * as dat from 'dat.gui'
 
 export class Helper {

@@ -4,8 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
+    "dev": "vite --mode online",
+    "build": "tsc && vite build --mode online",
+    "build-singlefile": "tsx tools/generate_assets.ts && tsc && vite build --mode singlefile && tsx tools/fix-singlefile.ts ",
     "preview": "vite preview",
     "format": "prettier --write src"
   },
@@ -36,8 +37,10 @@
     "@types/react": "^18.0.27",
     "@types/react-dom": "^18.0.10",
     "@types/three": "^0.149.0",
+    "@types/fs-extra": "^11.0.1",
     "@vitejs/plugin-react": "^3.1.0",
     "typescript": "^4.9.3",
-    "vite": "^4.1.0"
+    "vite": "^4.1.0",
+    "vite-plugin-conditional-compiler": "^0.1.1"
   }
 }
