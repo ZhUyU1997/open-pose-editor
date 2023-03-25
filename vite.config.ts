@@ -10,6 +10,23 @@ const config: UserConfigFn = ({ command, mode, ssrBuild }) => {
     const pwa = VitePWA({
         workbox: {
             globPatterns: ['**/*.{js,css,html,ico,png,svg,mp3,obj,fbx,bin}'],
+            // https://vite-pwa-org.netlify.app/workbox/generate-sw.html#cache-external-resources
+            runtimeCaching: [
+                {
+                    urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/.*/i,
+                    handler: 'CacheFirst',
+                    options: {
+                        cacheName: 'jsdelivr-cdn',
+                        expiration: {
+                            maxEntries: 10,
+                            maxAgeSeconds: 60 * 60 * 24 * 365, // <== 365 days
+                        },
+                        cacheableResponse: {
+                            statuses: [0, 200],
+                        },
+                    },
+                },
+            ],
         },
         manifest: {
             name: 'open pose editor',
