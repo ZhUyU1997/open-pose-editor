@@ -1,4 +1,4 @@
-# 在线 3D Openpose 编辑器 [[English](README.md)]
+# 在线 3D Openpose 编辑器 [[English](README.md)] [[日本語版](README-ja.md)]
 # [点击此处进入编辑器](https://zhuyu1997.github.io/open-pose-editor/)
 # 预览
 https://user-images.githubusercontent.com/18410894/224073965-c782a05f-0a20-41cf-863d-8de490021ed7.mp4
