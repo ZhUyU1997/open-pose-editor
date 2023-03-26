@@ -227,16 +227,19 @@ export class BodyEditor {
     CreateTransformCommand(obj: Object3D, _old: TransformValue): Command {
         const oldValue = _old
         const newValue = GetTransformValue(obj)
+        const body = new BodyControlor(this.getBodyByPart(obj)!)
         return {
-            execute() {
+            execute: () => {
                 obj.position.copy(newValue.position)
                 obj.rotation.copy(newValue.rotation)
                 obj.scale.copy(newValue.scale)
+                body.Update()
             },
-            undo() {
+            undo: () => {
                 obj.position.copy(oldValue.position)
                 obj.rotation.copy(oldValue.rotation)
                 obj.scale.copy(oldValue.scale)
+                body.Update()
             },
         }
     }
@@ -311,6 +314,11 @@ export class BodyEditor {
             position: new THREE.Vector3(),
         }
         this.transformControl.addEventListener('change', () => {
+            const body = this.getSelectedBody()
+
+            if (body) {
+                new BodyControlor(body).UpdateBones()
+            }
             // console.log('change')
             // this.renderer.render(this.scene, this.camera)
         })
@@ -531,14 +539,27 @@ export class BodyEditor {
             }
 
             if (this.MoveMode) {
-                obj = this.getBodyByPart(obj)
+                const isOk = IsPickable(name, this.FreeMode)
+
+                if (!isOk) {
+                    obj =
+                        this.getAncestors(obj).find((o) =>
+                            IsPickable(o.name, this.FreeMode)
+                        ) ?? null
+                }
+
+                if (obj) {
+                    if (IsTranslate(obj.name, this.FreeMode) === false)
+                        obj = this.getBodyByPart(obj)
+                }
 
                 if (obj) {
                     console.log(obj.name)
                     this.transformControl.setMode('translate')
                     this.transformControl.setSpace('world')
                     this.transformControl.attach(obj)
-                    this.triggerSelectEvent(obj)
+                    const body = this.getBodyByPart(obj)
+                    if (body) this.triggerSelectEvent(body)
                 }
             } else {
                 const isOk = IsPickable(name)
@@ -972,7 +993,7 @@ export class BodyEditor {
 
         const name = this.getSelectedPart()?.name
 
-        if (name && IsTranslate(name)) {
+        if (name && IsTranslate(name, this.FreeMode)) {
             IsTranslateMode = true
         } else if (move) {
             const obj = this.getSelectedBody()
@@ -987,6 +1008,9 @@ export class BodyEditor {
             this.transformControl.setSpace('local')
         }
     }
+
+    FreeMode = false
+
     get Width() {
         return this.renderer.domElement.clientWidth
     }

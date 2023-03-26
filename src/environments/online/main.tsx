@@ -130,6 +130,7 @@ export async function Main() {
         })
 
     setting.add(editor, 'MoveMode').name(i18n.t('Move Mode (Press X key)'))
+    setting.add(editor, 'FreeMode').name(i18n.t('Free Mode'))
     setting.add(editor, 'OnlyHand').name(i18n.t('Only Hand'))
 
     // gui.add(editor, 'enableComposer').name(i18n.t('Show Edge Map'))
