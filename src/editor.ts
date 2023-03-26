@@ -30,6 +30,7 @@ import {
     IsNeedSaveObject,
     IsPickable,
     IsSkeleton,
+    IsTarget,
     IsTranslate,
 } from './body'
 import { options } from './config'
@@ -227,19 +228,37 @@ export class BodyEditor {
     CreateTransformCommand(obj: Object3D, _old: TransformValue): Command {
         const oldValue = _old
         const newValue = GetTransformValue(obj)
-        const body = new BodyControlor(this.getBodyByPart(obj)!)
+        const controlor = new BodyControlor(this.getBodyByPart(obj)!)
         return {
             execute: () => {
                 obj.position.copy(newValue.position)
                 obj.rotation.copy(newValue.rotation)
                 obj.scale.copy(newValue.scale)
-                body.Update()
+                controlor.Update()
             },
             undo: () => {
                 obj.position.copy(oldValue.position)
                 obj.rotation.copy(oldValue.rotation)
                 obj.scale.copy(oldValue.scale)
-                body.Update()
+                controlor.Update()
+            },
+        }
+    }
+
+    CreateAllTransformCommand(obj: Object3D, _old: BodyData): Command {
+        const oldValue = _old
+        const body = this.getBodyByPart(obj)!
+        const controlor = new BodyControlor(body)
+        const newValue = this.GetBodyData(body)
+
+        return {
+            execute: () => {
+                this.RestoreBody(body, newValue)
+                controlor.Update()
+            },
+            undo: () => {
+                this.RestoreBody(body, oldValue)
+                controlor.Update()
             },
         }
     }
@@ -313,6 +332,7 @@ export class BodyEditor {
             rotation: new THREE.Euler(),
             position: new THREE.Vector3(),
         }
+        let oldBodyData: BodyData = {} as BodyData
         this.transformControl.addEventListener('change', () => {
             const body = this.getSelectedBody()
 
@@ -330,19 +350,27 @@ export class BodyEditor {
 
         this.transformControl.addEventListener('mouseDown', () => {
             const part = this.getSelectedPart()
-            if (part) oldTransformValue = GetTransformValue(part)
+            if (part) {
+                oldTransformValue = GetTransformValue(part)
+                oldBodyData = this.GetBodyData(this.getBodyByPart(part)!)
+            }
             this.orbitControls.enabled = false
         })
         this.transformControl.addEventListener('mouseUp', () => {
             const part = this.getSelectedPart()
             if (part) {
-                this.pushCommand(
-                    this.CreateTransformCommand(part, oldTransformValue)
-                )
+                if (IsTarget(part.name))
+                    this.pushCommand(
+                        this.CreateAllTransformCommand(part, oldBodyData)
+                    )
+                else
+                    this.pushCommand(
+                        this.CreateTransformCommand(part, oldTransformValue)
+                    )
             }
             this.orbitControls.enabled = true
 
-            this.saveSelectedBodyControlor?.ResetAllTargetsPosition()
+            this.saveSelectedBodyControlor?.Update()
         })
     }
 
@@ -1206,22 +1234,23 @@ export class BodyEditor {
             .forEach((o) => o.removeFromParent())
     }
 
+    RestoreBody(body: Object3D, data: BodyData) {
+        body?.traverse((o) => {
+            if (o.name && o.name in data.child) {
+                const child = data.child[o.name]
+                o.position.fromArray(child.position)
+                o.rotation.fromArray(child.rotation as any)
+                o.scale.fromArray(child.scale)
+            }
+        })
+        body.position.fromArray(data.position)
+        body.rotation.fromArray(data.rotation as any)
+        body.scale.fromArray(data.scale)
+    }
     CreateBodiesFromData(bodies: BodyData[]) {
         return bodies.map((data) => {
             const body = CloneBody()!
-
-            body?.traverse((o) => {
-                if (o.name && o.name in data.child) {
-                    const child = data.child[o.name]
-                    o.position.fromArray(child.position)
-                    o.rotation.fromArray(child.rotation as any)
-                    o.scale.fromArray(child.scale)
-                }
-            })
-            body.position.fromArray(data.position)
-            body.rotation.fromArray(data.rotation as any)
-            body.scale.fromArray(data.scale)
-
+            this.RestoreBody(body, data)
             return body
         })
     }
@@ -1345,16 +1374,18 @@ export class BodyEditor {
         const body = await this.GetBodyToSetPose()
 
         if (!body) return
-        // if not detach it, skeleten will shake
-        this.DetachTransfromControl()
+
+        const old: BodyData = this.GetBodyData(body)
         new BodyControlor(body).SetPose(poseData)
+        this.pushCommand(this.CreateAllTransformCommand(body, old))
     }
     async SetBlazePose(positions: [number, number, number][]) {
         const body = await this.GetBodyToSetPose()
         if (!body) return
 
-        this.DetachTransfromControl()
+        const old: BodyData = this.GetBodyData(body)
         new BodyControlor(body).SetBlazePose(positions)
+        this.pushCommand(this.CreateAllTransformCommand(body, old))
     }
 
     DetachTransfromControl() {

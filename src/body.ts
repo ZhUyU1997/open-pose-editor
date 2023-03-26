@@ -680,6 +680,11 @@ export function IsTranslate(name: string, isFreeMode = false) {
     return false
 }
 
+export function IsTarget(name: string) {
+    if (name.endsWith('_target')) return true
+    return false
+}
+
 export function IsHand(name: string) {
     return ['left_hand', 'right_hand'].includes(name)
 }
@@ -1181,7 +1186,7 @@ export class BodyControlor {
 
             this.UpdateLink(name)
         }
-        this.ResetAllTargetsPosition()
+        this.Update()
     }
     SetPose(rawData: [number, number, number][]) {
         this.ResetPose()
@@ -1232,7 +1237,7 @@ export class BodyControlor {
                 name,
                 this.getDirectionVectorByParentOf(name, data[from], data[to])
             )
-        this.ResetAllTargetsPosition()
+        this.Update()
     }
 
     UpdateBones(thickness = this.BoneThickness) {
@@ -1350,6 +1355,7 @@ export class BodyControlor {
     Update() {
         this.ResetAllTargetsPosition()
         this.UpdateBones()
+        this.part['torso'].updateMatrixWorld(true)
     }
 }
 
