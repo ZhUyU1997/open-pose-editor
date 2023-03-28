@@ -17,10 +17,10 @@ const {
 } = classes
 
 const MyDialog = NiceModal.create<{
-    title: string
-    description: string
-    children: React.ReactNode
-    button: string
+    title?: string
+    description?: string
+    children?: React.ReactNode
+    button?: string
 }>(({ title, description, children, button }) => {
     const modal = useModal()
     return (
@@ -48,7 +48,12 @@ const MyDialog = NiceModal.create<{
                         }}
                     >
                         <Dialog.Close asChild>
-                            <button className={classNames(Button, green)}>
+                            <button
+                                className={classNames(Button, green)}
+                                onClick={() => {
+                                    modal.resolve('action')
+                                }}
+                            >
                                 {button}
                             </button>
                         </Dialog.Close>
@@ -88,7 +93,7 @@ export function GetDialog(wait = 0) {
     }
 }
 
-export async function ShowDialog(props: ShowProps) {
+export async function ShowDialog(props: ShowProps): Promise<string> {
     console.log(props)
     return await NiceModal.show(MyDialog, props)
 }

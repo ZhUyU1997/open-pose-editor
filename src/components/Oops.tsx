@@ -5,7 +5,7 @@ export function Oops(error: any) {
     const stack = error?.stack
     const text = `${i18n.t('Something went wrong!')}\n${stack || error}`
     ShowDialog({
-        title: i18n.t('Oops...'),
+        title: i18n.t('Oops...') ?? '',
         description: text,
         children: (
             <a href="https://github.com/ZhUyU1997/open-pose-editor/issues/new">
@@ -14,6 +14,6 @@ export function Oops(error: any) {
                 )}
             </a>
         ),
-        button: i18n.t('Close'),
+        button: i18n.t('Close') ?? '',
     })
 }
