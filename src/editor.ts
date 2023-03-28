@@ -1398,7 +1398,10 @@ export class BodyEditor {
         this.cameraDataOfView = this.GetCameraData()
     }
     RestoreView() {
-        if (this.cameraDataOfView) this.RestoreCamera(this.cameraDataOfView)
+        if (this.cameraDataOfView) {
+            this.RestoreCamera(this.cameraDataOfView)
+            this.cameraDataOfView = undefined
+        }
     }
 
     changeView() {
