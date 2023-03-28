@@ -4,14 +4,15 @@
 import { registerSW } from 'virtual:pwa-register'
 // #v-endif
 
-import Swal from 'sweetalert2'
+import { ShowToast } from '../../components/Toast'
 import i18n from '../../i18n'
 
 async function PWAPopup(update: (reloadPage?: boolean) => Promise<void>) {
-    const result = await Swal.fire(
-        i18n.t('Updates are available, please confirm!!')
-    )
-    if (result.isConfirmed) {
+    const result = await ShowToast({
+        title: i18n.t('Updates are available, please confirm!!'),
+    })
+
+    if (result === 'action') {
         update(true)
     }
 }

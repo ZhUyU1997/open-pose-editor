@@ -767,7 +767,7 @@ export class BodyControlor {
         return pos
     }
 
-    UpdateLink(name: ControlPartName, thickness = BoneThickness) {
+    UpdateLink(name: ControlPartName, thickness = this.BoneThickness) {
         if (
             [
                 'left_hip',

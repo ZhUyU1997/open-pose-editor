@@ -1,43 +1,12 @@
 * {
     margin: 0;
     padding: 0;
+    outline: none;
 }
 
-body {
+body,
+#root {
     width: 100vw;
     height: 100vh;
     position: relative;
-}
-
-canvas {
-    display: block;
-    width: 100vw;
-    height: 100vh;
-}
-
-.gallery {
-    user-select: none;
-    height: 140px;
-    position: fixed;
-    bottom: 50px;
-    right: 50px;
-}
-
-.gallery img {
-    width: 100px;
-    height: 140px;
-    object-fit: contain;
-    background-color: gray;
-    user-select: none;
-}
-
-#background {
-    width: 100vw;
-    height: 100vh;
-    position: fixed;
-    z-index: -1;
-    background-color: rgb(214, 214, 214);
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
 }

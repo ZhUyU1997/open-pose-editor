@@ -1,0 +1,42 @@
+.app {
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+
+.threejsCanvas {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+}
+
+.gallery {
+    user-select: none;
+    height: 140px;
+    position: fixed;
+    bottom: 50px;
+    right: 50px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.gallery img {
+    width: 100px;
+    height: 140px;
+    object-fit: contain;
+    background-color: gray;
+    user-select: none;
+    margin-right: 2px;
+    margin-left: 2px;
+}
+
+.background {
+    width: 100vw;
+    height: 100vh;
+    background-color: rgb(214, 214, 214);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+}

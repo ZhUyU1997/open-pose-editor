@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import {
     Bone,
     Material,
+    Mesh,
     MeshDepthMaterial,
     MeshNormalMaterial,
     MeshPhongMaterial,
@@ -43,7 +44,7 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
 import { LuminosityShader } from 'three/examples/jsm/shaders/LuminosityShader.js'
 import { SobelOperatorShader } from 'three/examples/jsm/shaders/SobelOperatorShader.js'
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils'
-import { Oops } from './components'
+import { Oops } from './components/Oops'
 import { getCurrentTime } from './utils/time'
 
 interface BodyData {
@@ -92,6 +93,29 @@ export interface Command {
     undo: () => void
 }
 
+export interface ParentElement {
+    addEventListener(
+        type: 'keydown',
+        listener: (this: any, ev: KeyboardEvent) => any,
+        options?: boolean | AddEventListenerOptions | undefined
+    ): void
+    addEventListener(
+        type: 'keyup',
+        listener: (this: any, ev: KeyboardEvent) => any,
+        options?: boolean | AddEventListenerOptions | undefined
+    ): void
+    removeEventListener(
+        type: 'keydown',
+        listener: (this: Document, ev: KeyboardEvent) => any,
+        options?: boolean | EventListenerOptions | undefined
+    ): void
+    removeEventListener(
+        type: 'keyup',
+        listener: (this: Document, ev: KeyboardEvent) => any,
+        options?: boolean | EventListenerOptions | undefined
+    ): void
+}
+
 export class BodyEditor {
     renderer: THREE.WebGLRenderer
     outputRenderer: THREE.WebGLRenderer
@@ -115,7 +139,19 @@ export class BodyEditor {
     enablePreview = true
     paused = false
 
-    constructor(canvas: HTMLCanvasElement, statsElem?: Element) {
+    parentElem: ParentElement
+
+    clearColor = 0xaaaaaa
+    constructor({
+        canvas,
+        parentElem = document,
+        statsElem,
+    }: {
+        canvas: HTMLCanvasElement
+        parentElem?: ParentElement
+        statsElem?: Element
+    }) {
+        this.parentElem = parentElem
         this.renderer = new THREE.WebGLRenderer({
             canvas,
             antialias: true,
@@ -128,7 +164,7 @@ export class BodyEditor {
         this.outputRenderer.domElement.style.display = 'none'
         document.body.appendChild(this.outputRenderer.domElement)
 
-        this.renderer.setClearColor(options.clearColor, 0.0)
+        this.renderer.setClearColor(this.clearColor, 0.0)
         this.scene = new THREE.Scene()
 
         this.gridHelper = new THREE.GridHelper(800, 200)
@@ -171,30 +207,14 @@ export class BodyEditor {
         this.alight = new THREE.AmbientLight(0xffffff, 0.5)
         this.scene.add(this.alight)
 
-        this.renderer.domElement.addEventListener(
-            'mousedown',
-            () => (this.IsClick = true),
-            false
-        )
-        this.renderer.domElement.addEventListener(
-            'mousemove',
-            () => (this.IsClick = false),
-            false
-        )
-        this.renderer.domElement.addEventListener(
-            'mouseup',
-            this.onMouseDown.bind(this),
-            false
-        )
+        this.onMouseDown = this.onMouseDown.bind(this)
+        this.onMouseMove = this.onMouseMove.bind(this)
+        this.onMouseUp = this.onMouseUp.bind(this)
+        this.handleResize = this.handleResize.bind(this)
+        this.handleKeyDown = this.handleKeyDown.bind(this)
+        this.handleKeyUp = this.handleKeyUp.bind(this)
 
-        this.renderer.domElement.addEventListener(
-            'resize',
-            this.handleResize.bind(this)
-        )
-
-        // When changing the body parameter, the canvas focus is lost, so we have to listen to the documentation for a better experience.
-        // But need to find a better way if run on webui
-        document.addEventListener('keydown', this.handleKeyDown.bind(this))
+        this.addEvent()
 
         this.initEdgeComposer()
 
@@ -208,10 +228,22 @@ export class BodyEditor {
             this.stats = Stats()
             statsElem.appendChild(this.stats.dom)
         }
+
+        this.animate = this.animate.bind(this)
         this.animate()
         this.handleResize()
         this.AutoSaveScene()
     }
+
+    disponse() {
+        this.pause()
+        this.removeEvent()
+        this.renderer.dispose()
+        this.outputRenderer.dispose()
+
+        console.log('BodyEditor disponse')
+    }
+
     commandHistory: Command[] = []
     historyIndex = -1
     pushCommand(cmd: Command) {
@@ -323,6 +355,18 @@ export class BodyEditor {
             this.CopySelectedBody()
         } else if (e.key === 'Delete') {
             this.RemoveBody()
+        } else if (e.code === 'KeyX') {
+            this.MoveMode = true
+        }
+    }
+
+    handleKeyUp(e: KeyboardEvent) {
+        if (this.paused) {
+            return
+        }
+
+        if (e.code === 'KeyX') {
+            this.MoveMode = false
         }
     }
 
@@ -404,9 +448,36 @@ export class BodyEditor {
         this.renderer.render(this.scene, this.camera)
     }
 
+    autoSize = true
+    outputWidth = 0
+    outputHeight = 0
+    get OutputWidth() {
+        return this.autoSize
+            ? this.Width
+            : this.outputWidth === 0
+            ? this.Height
+            : this.outputWidth
+    }
+    set OutputWidth(value: number) {
+        this.autoSize = false
+        this.outputWidth = value
+    }
+    get OutputHeight() {
+        return this.autoSize
+            ? this.Height
+            : this.outputHeight === 0
+            ? this.Height
+            : this.outputHeight
+    }
+
+    set OutputHeight(value: number) {
+        this.autoSize = false
+        this.outputHeight = value
+    }
+
     renderPreview() {
-        const outputWidth = options.autoSize ? this.Width : options.Width
-        const outputHeight = options.autoSize ? this.Height : options.Height
+        const outputWidth = this.OutputWidth
+        const outputHeight = this.OutputHeight
 
         const outputAspect = outputWidth / outputHeight
         const maxOutoutAspect = 2
@@ -452,8 +523,8 @@ export class BodyEditor {
     }
 
     renderOutput() {
-        const outputWidth = options.autoSize ? this.Width : options.Width
-        const outputHeight = options.autoSize ? this.Height : options.Height
+        const outputWidth = this.OutputWidth
+        const outputHeight = this.OutputHeight
 
         this.changeComposerResoultion(outputWidth, outputHeight)
 
@@ -480,7 +551,7 @@ export class BodyEditor {
         if (this.paused) {
             return
         }
-        requestAnimationFrame(this.animate.bind(this))
+        requestAnimationFrame(this.animate)
         this.handleResize()
         this.render()
         if (this.enablePreview) this.renderPreview()
@@ -524,6 +595,25 @@ export class BodyEditor {
         if (unselect) this.unselectEventHandlers.push(unselect)
     }
 
+    UnregisterEvent({
+        select,
+        unselect,
+    }: {
+        select?: EditorSelectEventHandler
+        unselect?: EditorUnselectEventHandler
+    }) {
+        if (select) {
+            this.selectEventHandlers = this.selectEventHandlers.filter(
+                (handler) => handler !== select
+            )
+        }
+        if (unselect) {
+            this.unselectEventHandlers = this.unselectEventHandlers.filter(
+                (handler) => handler !== unselect
+            )
+        }
+    }
+
     triggerSelectEvent(body: Object3D) {
         const c = new BodyControlor(body)
         this.selectEventHandlers.forEach((h) => h(c))
@@ -532,7 +622,63 @@ export class BodyEditor {
         this.unselectEventHandlers.forEach((h) => h())
     }
 
-    onMouseDown(event: MouseEvent) {
+    addEvent() {
+        this.renderer.domElement.addEventListener(
+            'mousedown',
+            this.onMouseDown,
+            false
+        )
+        this.renderer.domElement.addEventListener(
+            'mousemove',
+            this.onMouseMove,
+            false
+        )
+        this.renderer.domElement.addEventListener(
+            'mouseup',
+            this.onMouseUp,
+            false
+        )
+
+        this.renderer.domElement.addEventListener('resize', this.handleResize)
+
+        this.parentElem.addEventListener('keydown', this.handleKeyDown)
+        this.parentElem.addEventListener('keyup', this.handleKeyUp)
+    }
+
+    removeEvent() {
+        this.renderer.domElement.removeEventListener(
+            'mousedown',
+            this.onMouseDown,
+            false
+        )
+        this.renderer.domElement.removeEventListener(
+            'mousemove',
+            this.onMouseMove,
+            false
+        )
+        this.renderer.domElement.removeEventListener(
+            'mouseup',
+            this.onMouseUp,
+            false
+        )
+
+        this.renderer.domElement.removeEventListener(
+            'resize',
+            this.handleResize
+        )
+
+        this.parentElem.removeEventListener('keydown', this.handleKeyDown)
+        this.parentElem.removeEventListener('keyup', this.handleKeyUp)
+    }
+
+    onMouseDown() {
+        this.IsClick = true
+    }
+    onMouseMove() {
+        this.IsClick = false
+    }
+
+    onMouseUp(event: MouseEvent) {
         const x = event.offsetX - this.renderer.domElement.offsetLeft
         const y = event.offsetY - this.renderer.domElement.offsetTop
         this.raycaster.setFromCamera(

@@ -1,0 +1,26 @@
+@import '@radix-ui/colors/blackA.css';
+@import '@radix-ui/colors/violet.css';
+
+.SliderRoot {
+    position: relative;
+    display: flex;
+    align-items: center;
+    user-select: none;
+    touch-action: none;
+    height: 20px;
+}
+
+.SliderTrack {
+    background-color: var(--violet5);
+    position: relative;
+    flex-grow: 1;
+    border-radius: 9999px;
+    height: 10px;
+}
+
+.SliderRange {
+    position: absolute;
+    background-color: var(--violet9);
+    border-radius: 9999px;
+    height: 100%;
+}

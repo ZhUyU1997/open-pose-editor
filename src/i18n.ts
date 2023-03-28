@@ -4,7 +4,7 @@ import commonEn from './locales/en.json'
 import commonZh_CN from './locales/zh-CN.json'
 import commonZh_TW from './locales/zh-TW.json'
 import commonZh_HK from './locales/zh-HK.json'
-import commonJa_JP from './locales/ja-JP.json'
+import commonJa_JP from './locales/ja.json'
 import commonDe from './locales/de.json'
 import commonSp from './locales/sp.json'
 
@@ -13,7 +13,7 @@ export const resources = {
     zh: { common: commonZh_CN },
     'zh-TW': { common: commonZh_TW },
     'zh-HK': { common: commonZh_HK },
-    'ja-JP': { common: commonJa_JP },
+    ja: { common: commonJa_JP },
     de: { common: commonDe },
     sp: { common: commonSp },
 }
@@ -23,7 +23,7 @@ export const LanguageMapping: Record<string, string> = {
     zh: '简体中文',
     'zh-TW': '繁體中文（台灣）',
     'zh-HK': '繁體中文（香港）',
-    'ja-JP': '日本語',
+    ja: '日本語',
     de: 'Deutsch',
     sp: 'español',
 }
