@@ -34,7 +34,7 @@ import {
     IsTarget,
     IsTranslate,
 } from './body'
-import { options } from './config'
+
 import { downloadJson, uploadJson } from './utils/transfer'
 
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
