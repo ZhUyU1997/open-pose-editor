@@ -1051,6 +1051,7 @@ export class BodyEditor {
 
         this.pushCommand(this.CreateAddBodyCommand(body))
 
+        body.position.x += 10
         this.scene.add(body)
         this.fixFootVisible()
         this.transformControl.setMode('translate')
