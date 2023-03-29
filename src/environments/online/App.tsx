@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { download } from '../../utils/transfer'
 import classes from './App.module.css'
 import Menu from '../../components/Menu'
@@ -52,6 +52,9 @@ function App() {
                 className={threejsCanvas}
                 tabIndex={-1}
                 ref={canvasRef}
+                onContextMenu={(e) => {
+                    e.preventDefault()
+                }}
             ></canvas>
             <div className={gallery}>
                 {Object.entries(imageData).map(([name, { src, title }]) => (

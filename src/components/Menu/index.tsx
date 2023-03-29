@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import * as Menubar from '@radix-ui/react-menubar'
 import { CheckIcon, DotFilledIcon } from '@radix-ui/react-icons'
 
@@ -11,6 +11,7 @@ import { getCurrentTime } from '../../utils/time'
 import useForceUpdate from '../../hooks/useFoceUpdate'
 import classNames from 'classnames'
 import { useLanguageSelect } from '../../hooks'
+import { ShowContextMenu } from '../ContextMenu'
 
 const {
     MenubarRoot,
@@ -34,6 +35,16 @@ const MenubarDemo: React.FC<{
     const forceUpdate = useForceUpdate()
     const [helper] = useState(() => new Helper(editor))
     const { current, changeLanguage, languagList } = useLanguageSelect()
+
+    useEffect(() => {
+        const show = (data: { mouseX: number; mouseY: number }) => {
+            ShowContextMenu({ ...data, editor })
+        }
+        editor?.ContextMenuEventManager.AddEventListener(show)
+        return () => {
+            editor?.ContextMenuEventManager.RemoveEventListener(show)
+        }
+    }, [editor])
 
     return (
         <Menubar.Root className={MenubarRoot} style={style}>

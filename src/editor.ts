@@ -47,6 +47,24 @@ import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils'
 import { Oops } from './components/Oops'
 import { getCurrentTime } from './utils/time'
 
+type EditorEventHandler<T> = (args: T) => void
+
+class EditorEventManager<T> {
+    private eventHandlers: EditorEventHandler<T>[] = []
+
+    AddEventListener(handler: EditorEventHandler<T>): void {
+        this.eventHandlers.push(handler)
+    }
+
+    RemoveEventListener(handler: EditorEventHandler<T>): void {
+        this.eventHandlers = this.eventHandlers.filter((h) => h !== handler)
+    }
+
+    TriggerEvent(args: T): void {
+        if (args) this.eventHandlers.forEach((h) => h(args))
+    }
+}
+
 interface BodyData {
     position: ReturnType<THREE.Vector3['toArray']>
     rotation: ReturnType<THREE.Euler['toArray']>
@@ -70,9 +88,6 @@ interface CameraData {
     far: number
     zoom: number
 }
-
-type EditorSelectEventHandler = (controlor: BodyControlor) => void
-type EditorUnselectEventHandler = () => void
 
 interface TransformValue {
     scale: Object3D['scale']
@@ -580,46 +595,19 @@ export class BodyEditor {
         return body
     }
 
-    selectEventHandlers: EditorSelectEventHandler[] =
-        [] as EditorSelectEventHandler[]
-    unselectEventHandlers: EditorUnselectEventHandler[] =
-        [] as EditorUnselectEventHandler[]
-    RegisterEvent({
-        select,
-        unselect,
-    }: {
-        select?: EditorSelectEventHandler
-        unselect?: EditorUnselectEventHandler
-    }) {
-        if (select) this.selectEventHandlers.push(select)
-        if (unselect) this.unselectEventHandlers.push(unselect)
-    }
-
-    UnregisterEvent({
-        select,
-        unselect,
-    }: {
-        select?: EditorSelectEventHandler
-        unselect?: EditorUnselectEventHandler
-    }) {
-        if (select) {
-            this.selectEventHandlers = this.selectEventHandlers.filter(
-                (handler) => handler !== select
-            )
-        }
-        if (unselect) {
-            this.unselectEventHandlers = this.unselectEventHandlers.filter(
-                (handler) => handler !== unselect
-            )
-        }
-    }
+    SelectEventManager = new EditorEventManager<BodyControlor>()
+    UnselectEventManager = new EditorEventManager<void>()
+    ContextMenuEventManager = new EditorEventManager<{
+        mouseX: number
+        mouseY: number
+    }>()
 
     triggerSelectEvent(body: Object3D) {
         const c = new BodyControlor(body)
-        this.selectEventHandlers.forEach((h) => h(c))
+        this.SelectEventManager.TriggerEvent(c)
     }
     triggerUnselectEvent() {
-        this.unselectEventHandlers.forEach((h) => h())
+        this.UnselectEventManager.TriggerEvent()
     }
 
     addEvent() {
@@ -706,6 +694,15 @@ export class BodyEditor {
         console.log(obj?.name)
 
         if (this.IsClick) {
+            if (event.button === 2 || event.which === 3) {
+                console.log('Right mouse button released')
+                this.ContextMenuEventManager.TriggerEvent({
+                    mouseX: x,
+                    mouseY: y,
+                })
+                return
+            }
+
             if (!obj) {
                 this.DetachTransfromControl()
                 this.triggerUnselectEvent()

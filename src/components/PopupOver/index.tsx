@@ -252,9 +252,12 @@ const ControlorPopover: React.FC<{
         const unselect = () => {
             setBodySelected(false)
         }
-        editor.RegisterEvent({ select, unselect })
+        editor.SelectEventManager.AddEventListener(select)
+        editor.UnselectEventManager.AddEventListener(unselect)
+
         return () => {
-            editor.UnregisterEvent({ select, unselect })
+            editor.SelectEventManager.RemoveEventListener(select)
+            editor.UnselectEventManager.RemoveEventListener(unselect)
         }
     }, [])
     return (
