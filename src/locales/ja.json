@@ -56,5 +56,7 @@
     "File": "ファイル",
     "Generate": "生成する",
     "Close": "閉じる",
-    "Update": "更新する"
+    "Update": "更新する",
+    "Lock View": "ビューをロックする",
+    "Unlock View": "ビューをアンロックする"
 }

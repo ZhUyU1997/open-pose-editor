@@ -56,5 +56,7 @@
     "File": "File",
     "Generate": "Generate",
     "Close": "Close",
-    "Update": "Update"
+    "Update": "Update",
+    "Lock View": "Lock View",
+    "Unlock View": "Unlock View"
 }

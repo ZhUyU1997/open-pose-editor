@@ -56,5 +56,7 @@
     "File": "文件",
     "Generate": "生成",
     "Close": "關閉",
-    "Update": "更新"
+    "Update": "更新",
+    "Lock View": "鎖定視圖",
+    "Unlock View": "解鎖視圖"
 }

@@ -1538,8 +1538,11 @@ export class BodyEditor {
     }
 
     cameraDataOfView?: CameraData
-    FixView() {
+    LockView() {
         this.cameraDataOfView = this.GetCameraData()
+    }
+    UnlockView() {
+        this.cameraDataOfView = undefined
     }
     RestoreView() {
         if (this.cameraDataOfView) this.RestoreCamera(this.cameraDataOfView)

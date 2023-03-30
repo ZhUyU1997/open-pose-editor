@@ -164,10 +164,18 @@ const MenubarDemo: React.FC<{
                         <Menubar.Item
                             className={classNames(MenubarItem, inset)}
                             onSelect={() => {
-                                editor.FixView()
+                                editor.LockView()
                             }}
                         >
-                            {i18n.t('Fix View')}
+                            {i18n.t('Lock View')}
+                        </Menubar.Item>
+                        <Menubar.Item
+                            className={classNames(MenubarItem, inset)}
+                            onSelect={() => {
+                                editor.UnlockView()
+                            }}
+                        >
+                            {i18n.t('Unlock View')}
                         </Menubar.Item>
                         <Menubar.Item
                             className={classNames(MenubarItem, inset)}

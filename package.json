@@ -8,7 +8,8 @@
     "build": "tsc && vite build --mode online",
     "build-singlefile": "tsx tools/generate_assets.ts && tsc && vite build --mode singlefile && tsx tools/fix-singlefile.ts ",
     "preview": "vite preview",
-    "format": "prettier --write src"
+    "format": "prettier --write src",
+    "translate": "tsx tools/translate.ts"
   },
   "dependencies": {
     "@ebay/nice-modal-react": "^1.2.9",

@@ -56,5 +56,7 @@
     "File": "Datei",
     "Generate": "Generieren",
     "Close": "Schließen",
-    "Update": "Aktualisieren"
+    "Update": "Aktualisieren",
+    "Lock View": "Ansicht sperren",
+    "Unlock View": "Ansicht entsperren"
 }
