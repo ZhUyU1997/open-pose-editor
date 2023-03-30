@@ -46,6 +46,9 @@ button {
     color: var(--mauve11);
     font-size: 15px;
     line-height: 1.5;
+    overflow-y: auto;
+    word-break: break-all;
+    max-height: 500px;
 }
 
 .Button {

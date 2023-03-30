@@ -39,6 +39,9 @@ export class Helper {
             loading.hide()
 
             if (result) {
+                if (!result.poseWorldLandmarks)
+                    throw new Error(JSON.stringify(result))
+
                 const positions: [number, number, number][] =
                     result.poseWorldLandmarks.map(({ x, y, z }) => [
                         x * 100,
