@@ -1,11 +1,85 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { download } from '../../utils/transfer'
 import classes from './App.module.css'
 import Menu from '../../components/Menu'
 import PopupOver from '../../components/PopupOver'
 import { useBodyEditor } from '../../hooks'
+import {
+    LockClosedIcon,
+    LockOpen2Icon,
+    ResetIcon,
+    ResumeIcon,
+} from '@radix-ui/react-icons'
+import { getCurrentTime } from '../../utils/time'
 
 const { app, threejsCanvas, gallery, background } = classes
+
+const PreviewImage: React.FC<{
+    previewImage: string
+    isLock: boolean
+    onChange: (isLock: boolean) => void
+    onRestore: () => void
+    onRun: () => void
+}> = ({ previewImage, isLock, onChange, onRestore, onRun }) => {
+    const Icon = isLock ? LockClosedIcon : LockOpen2Icon
+    return (
+        <div
+            style={{
+                position: 'relative',
+            }}
+        >
+            <img
+                src={previewImage}
+                style={{
+                    objectFit: 'contain',
+                    width: 'unset',
+                    // height:"unset",
+                    maxWidth: 300,
+                }}
+            ></img>
+            <ResumeIcon
+                style={{
+                    position: 'absolute',
+                    top: -10,
+                    right: 5,
+                    backgroundColor: 'white',
+                    borderRadius: 10,
+                    padding: 5,
+                }}
+                onClick={() => {
+                    onRun()
+                }}
+            ></ResumeIcon>
+            <Icon
+                style={{
+                    position: 'absolute',
+                    top: 20,
+                    right: 5,
+                    backgroundColor: 'white',
+                    borderRadius: 10,
+                    padding: 5,
+                }}
+                onClick={() => {
+                    onChange(!isLock)
+                }}
+            ></Icon>
+
+            <ResetIcon
+                style={{
+                    position: 'absolute',
+                    top: 50,
+                    right: 5,
+                    backgroundColor: !isLock ? 'gray' : 'white',
+                    borderRadius: 10,
+                    padding: 5,
+                }}
+                onClick={() => {
+                    if (isLock) onRestore()
+                }}
+            ></ResetIcon>
+        </div>
+    )
+}
 
 function App() {
     const canvasRef = useRef(null)
@@ -46,6 +120,26 @@ function App() {
         []
     )
 
+    const [previewImage, setPreivewImage] = useState('')
+    const [lockView, setLockView] = useState(false)
+
+    useEffect(() => {
+        const preview = (url: string) => {
+            if (url !== previewImage) setPreivewImage(url)
+        }
+
+        const lcokView = (value: boolean) => {
+            setLockView(value)
+        }
+        editor?.PreviewEventManager.AddEventListener(preview)
+        editor?.LockViewEventManager.AddEventListener(lcokView)
+
+        return () => {
+            editor?.PreviewEventManager.RemoveEventListener(preview)
+            editor?.LockViewEventManager.RemoveEventListener(lcokView)
+        }
+    }, [editor])
+
     return (
         <div ref={backgroundRef} className={background}>
             <canvas
@@ -57,6 +151,37 @@ function App() {
                 }}
             ></canvas>
             <div className={gallery}>
+                {previewImage !== '' ? (
+                    <PreviewImage
+                        previewImage={previewImage}
+                        isLock={lockView}
+                        onChange={(isLock) => {
+                            if (isLock) {
+                                editor?.LockView()
+                            } else {
+                                editor?.UnlockView()
+                            }
+                        }}
+                        onRestore={() => {
+                            editor?.RestoreView()
+                        }}
+                        onRun={async () => {
+                            if (!editor) return
+                            const image = editor.MakeImages()
+                            const result = Object.fromEntries(
+                                Object.entries(image).map(([name, imgData]) => [
+                                    name,
+                                    {
+                                        src: imgData,
+                                        title: name + '_' + getCurrentTime(),
+                                    },
+                                ])
+                            )
+                            onScreenShot(result)
+                        }}
+                    ></PreviewImage>
+                ) : undefined}
+
                 {Object.entries(imageData).map(([name, { src, title }]) => (
                     <img
                         key={name}

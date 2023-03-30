@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import * as Popover from '@radix-ui/react-popover'
 import { PinLeftIcon } from '@radix-ui/react-icons'
 import classes from './styles.module.css'
@@ -53,7 +53,6 @@ const Slider2: React.FC<{
             value={getValue()}
             onValueChange={(value: number) => {
                 if (type == 'int') {
-                    console.log('2312')
                     onChange?.(Math.round(value))
                 } else onChange?.(value)
                 forceUpdate()
@@ -237,12 +236,12 @@ const ControlorPopover: React.FC<{
     const forceUpdate = useForceUpdate()
     const [open, setOpen] = useState(true)
 
-    const [cameraParamControlor] = useState(() => {
+    const cameraParamControlor = useMemo(() => {
         return GetCameraParamControlor(editor)
-    })
-    const [bodyParamControlor] = useState(() => {
+    }, [editor])
+    const bodyParamControlor = useMemo(() => {
         return GetBodyParamControlor(editor)
-    })
+    }, [editor])
 
     const [bodySelected, setBodySelected] = useState(false)
     useEffect(() => {
@@ -259,7 +258,7 @@ const ControlorPopover: React.FC<{
             editor.SelectEventManager.RemoveEventListener(select)
             editor.UnselectEventManager.RemoveEventListener(unselect)
         }
-    }, [])
+    }, [editor])
     return (
         <Popover.Root open={open}>
             <Popover.Trigger asChild>

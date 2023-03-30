@@ -61,7 +61,7 @@ class EditorEventManager<T> {
     }
 
     TriggerEvent(args: T): void {
-        if (args) this.eventHandlers.forEach((h) => h(args))
+        this.eventHandlers.forEach((h) => h(args))
     }
 }
 
@@ -569,7 +569,12 @@ export class BodyEditor {
         requestAnimationFrame(this.animate)
         this.handleResize()
         this.render()
-        if (this.enablePreview) this.renderPreview()
+
+        if (this.enablePreview) {
+            this.PreviewEventManager.TriggerEvent(this.CapturePreview())
+        } else {
+            this.PreviewEventManager.TriggerEvent('')
+        }
         this.stats?.update()
     }
 
@@ -601,6 +606,8 @@ export class BodyEditor {
         mouseX: number
         mouseY: number
     }>()
+    PreviewEventManager = new EditorEventManager<string>()
+    LockViewEventManager = new EditorEventManager<boolean>()
 
     triggerSelectEvent(body: Object3D) {
         const c = new BodyControlor(body)
@@ -942,6 +949,14 @@ export class BodyEditor {
 
         restore()
 
+        return imgData
+    }
+
+    CapturePreview() {
+        const restoreView = this.changeView()
+        this.renderOutput()
+        restoreView()
+        const imgData = this.getOutputPNG()
         return imgData
     }
 
@@ -1540,9 +1555,11 @@ export class BodyEditor {
     cameraDataOfView?: CameraData
     LockView() {
         this.cameraDataOfView = this.GetCameraData()
+        this.LockViewEventManager.TriggerEvent(true)
     }
     UnlockView() {
         this.cameraDataOfView = undefined
+        this.LockViewEventManager.TriggerEvent(false)
     }
     RestoreView() {
         if (this.cameraDataOfView) this.RestoreCamera(this.cameraDataOfView)
