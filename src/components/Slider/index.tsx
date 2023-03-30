@@ -17,7 +17,7 @@ const SliderDemo: React.FC<{
     >
         <Slider.Root
             className={SliderRoot}
-            defaultValue={[value]}
+            value={[value]}
             min={range[0]}
             max={range[1]}
             step={(range[1] - range[0]) / 150.0}
