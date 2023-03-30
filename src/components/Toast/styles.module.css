@@ -4,12 +4,8 @@
 @import '@radix-ui/colors/slate.css';
 @import '@radix-ui/colors/violet.css';
 
-/* reset */
-button {
-    all: unset;
-}
-
 .ToastViewport {
+    font-family: var(--openpose-editor-font-family);
     --viewport-padding: 25px;
     position: fixed;
     bottom: 0;
@@ -103,6 +99,7 @@ button {
 }
 
 .Button {
+    all: unset;
     display: inline-flex;
     align-items: center;
     justify-content: center;

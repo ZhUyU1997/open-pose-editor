@@ -3,12 +3,8 @@
 @import '@radix-ui/colors/red.css';
 @import '@radix-ui/colors/violet.css';
 
-/* reset */
-button {
-    all: unset;
-}
-
 .AlertDialogOverlay {
+    font-family: var(--openpose-editor-font-family);
     background-color: var(--blackA9);
     position: fixed;
     inset: 0;
@@ -16,6 +12,7 @@ button {
 }
 
 .AlertDialogContent {
+    font-family: var(--openpose-editor-font-family);
     background-color: white;
     border-radius: 6px;
     box-shadow: hsl(206 22% 7% / 35%) 0px 10px 38px -10px,

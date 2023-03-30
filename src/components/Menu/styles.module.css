@@ -8,9 +8,11 @@
     padding: 3px;
     border-radius: 6px;
     box-shadow: 0 2px 10px var(--blackA7);
+    font-family: var(--openpose-editor-font-family);
 }
 
 .MenubarTrigger {
+    all: unset;
     padding: 8px 12px;
     outline: none;
     user-select: none;
@@ -63,6 +65,7 @@
     padding: 0 10px;
     position: relative;
     user-select: none;
+    font-family: var(--openpose-editor-font-family);
 }
 
 .MenubarItem.inset,

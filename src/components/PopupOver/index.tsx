@@ -81,7 +81,7 @@ const Slider2: React.FC<{
                     width: 60,
                     height: 20,
                     color: 'gray',
-                    fontSize: '50%',
+                    fontSize: '70%',
                 }}
                 value={inputValue}
                 onChange={(event) => {
