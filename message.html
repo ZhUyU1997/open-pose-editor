@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>open pose editor</title>
+    </head>
+
+    <body>
+        <div id="root"></div>
+        <script type="module" src="/src/message-test.ts"></script>
+        <div>
+            <iframe
+                id="open-pose-editor"
+                src="http://localhost:5173/open-pose-editor/"
+                style="resize: both"
+                width="600px"
+                height="900px"
+            ></iframe>
+        </div>
+        <button id="GetAPIs">GetAPIs</button>
+        <button id="GetAppVersion">GetAppVersion</button>
+        <button id="MakeImages">MakeImages</button>
+        <button id="Pause">Pause</button>
+        <button id="Resume">Resume</button>
+        <button id="OutputWidth">OutputWidth</button>
+        <button id="OutputHeight">OutputHeight</button>
+        <button id="OnlyHand">OnlyHand</button>
+        <button id="MoveMode">MoveMode</button>
+        <button id="GetWidth">GetWidth</button>
+        <button id="GetHeight">GetHeight</button>
+        <button id="GetSceneData">GetSceneData</button>
+        <button id="LockView">LockView</button>
+        <button id="UnlockView">UnlockView</button>
+        <button id="RestoreView">RestoreView</button>
+        <div id="output" style="background-color: gray;"></div>
+    </body>
+</html>

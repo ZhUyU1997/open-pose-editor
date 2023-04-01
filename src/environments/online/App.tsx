@@ -11,6 +11,7 @@ import {
     ResumeIcon,
 } from '@radix-ui/react-icons'
 import { getCurrentTime } from '../../utils/time'
+import useMessageDispatch from '../../hooks/useMessageDispatch'
 
 const { app, threejsCanvas, gallery, background } = classes
 
@@ -139,6 +140,43 @@ function App() {
             editor?.LockViewEventManager.RemoveEventListener(lcokView)
         }
     }, [editor])
+
+    useMessageDispatch({
+        GetAppVersion: () => __APP_VERSION__,
+        MakeImages: () => editor?.MakeImages(),
+        Pause: () => editor?.pause(),
+        Resume: () => editor?.resume(),
+        OutputWidth: (value: number) => {
+            if (editor && typeof value === 'number') {
+                editor.OutputWidth = value
+                return true
+            } else return false
+        },
+        OutputHeight: (value: number) => {
+            if (editor && typeof value === 'number') {
+                editor.OutputHeight = value
+                return true
+            } else return false
+        },
+        OnlyHand(value: boolean) {
+            if (editor && typeof value === 'boolean') {
+                editor.OnlyHand = value
+                return true
+            } else return false
+        },
+        MoveMode(value: boolean) {
+            if (editor && typeof value === 'boolean') {
+                editor.MoveMode = value
+                return true
+            } else return false
+        },
+        GetWidth: () => editor?.Width,
+        GetHeight: () => editor?.Height,
+        GetSceneData: () => editor?.GetSceneData(),
+        LockView: () => editor?.LockView(),
+        UnlockView: () => editor?.UnlockView(),
+        RestoreView: () => editor?.RestoreView(),
+    })
 
     return (
         <div ref={backgroundRef} className={background}>
