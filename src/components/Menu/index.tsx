@@ -102,6 +102,9 @@ const MenubarDemo: React.FC<{
                         >
                             {i18n.t('Set Background Image')}
                         </Menubar.Item>
+                        <Menubar.Item className={MenubarItem}>
+                            v{__APP_VERSION__}
+                        </Menubar.Item>
                     </Menubar.Content>
                 </Menubar.Portal>
             </Menubar.Menu>
