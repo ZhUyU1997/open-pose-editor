@@ -126,7 +126,7 @@ function App() {
 
     useEffect(() => {
         const preview = (url: string) => {
-            if (url !== previewImage) setPreivewImage(url)
+            setPreivewImage(url)
         }
 
         const lcokView = (value: boolean) => {

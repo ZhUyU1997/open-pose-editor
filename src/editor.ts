@@ -537,9 +537,9 @@ export class BodyEditor {
         this.camera.updateProjectionMatrix()
     }
 
-    renderOutput() {
-        const outputWidth = this.OutputWidth
-        const outputHeight = this.OutputHeight
+    renderOutput(scale = 1) {
+        const outputWidth = this.OutputWidth * scale
+        const outputHeight = this.OutputHeight * scale
 
         this.changeComposerResoultion(outputWidth, outputHeight)
 
@@ -569,15 +569,17 @@ export class BodyEditor {
         requestAnimationFrame(this.animate)
         this.handleResize()
         this.render()
+        this.outputPreview()
+        this.stats?.update()
+    }
 
+    outputPreview() {
         if (this.enablePreview) {
             this.PreviewEventManager.TriggerEvent(this.CapturePreview())
         } else {
             this.PreviewEventManager.TriggerEvent('')
         }
-        this.stats?.update()
     }
-
     pause() {
         this.paused = true
     }
@@ -954,7 +956,7 @@ export class BodyEditor {
 
     CapturePreview() {
         const restoreView = this.changeView()
-        this.renderOutput()
+        this.renderOutput(300.0 / this.OutputHeight)
         restoreView()
         const imgData = this.getOutputPNG()
         return imgData
