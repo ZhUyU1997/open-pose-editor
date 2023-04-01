@@ -1,9 +1,10 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import classes from './styles.module.css'
 import NiceModal, { useModal } from '@ebay/nice-modal-react'
 import { debounce } from 'lodash-es'
 import { BodyEditor } from '../../editor'
 import i18n from '../../i18n'
+import { Helper } from '../../environments/online/helper'
 
 const { Root, ContextMenuContent, ContextMenuItem, RightSlot } = classes
 
@@ -12,6 +13,8 @@ const MyContextMenu = NiceModal.create<{
     mouseX: number
     mouseY: number
 }>(({ editor, mouseX, mouseY }) => {
+    const helper = useMemo(() => new Helper(editor), [editor])
+
     const modal = useModal()
     return (
         <div
@@ -68,6 +71,14 @@ const MyContextMenu = NiceModal.create<{
                 >
                     {i18n.t('Delete Skeleton')}
                     <div className={RightSlot}>{i18n.t('Del')}</div>
+                </div>
+                <div
+                    className={ContextMenuItem}
+                    onClick={() => {
+                        helper.CopyKeypointToClipboard()
+                    }}
+                >
+                    {i18n.t('Copy Keypoint Data')}
                 </div>
             </div>
         </div>

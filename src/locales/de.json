@@ -58,5 +58,7 @@
     "Close": "Schließen",
     "Update": "Aktualisieren",
     "Lock View": "Ansicht sperren",
-    "Unlock View": "Ansicht entsperren"
+    "Unlock View": "Ansicht entsperren",
+    "Copy Keypoint Data": "Schlüsselpunktdaten kopieren",
+    "Copied to Clipboard": "In die Zwischenablage kopiert"
 }

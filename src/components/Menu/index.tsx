@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import * as Menubar from '@radix-ui/react-menubar'
 import { CheckIcon, DotFilledIcon } from '@radix-ui/react-icons'
 
@@ -33,7 +33,7 @@ const MenubarDemo: React.FC<{
     style?: React.CSSProperties
 }> = ({ editor, onChangeBackground, onScreenShot, style }) => {
     const forceUpdate = useForceUpdate()
-    const [helper] = useState(() => new Helper(editor))
+    const helper = useMemo(() => new Helper(editor), [editor])
     const { current, changeLanguage, languagList } = useLanguageSelect()
 
     useEffect(() => {

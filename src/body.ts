@@ -310,12 +310,12 @@ function Torso(x: number, y: number, z: number) {
 
     const right_hip = Joint('right_hip')
 
-    right_hip.translateX(-width / 2 + 10)
+    right_hip.translateX(-width / 2 + 7)
     right_hip.translateY(-height)
 
     const left_hip = Joint('left_hip')
 
-    left_hip.translateX(width / 2 - 10)
+    left_hip.translateX(width / 2 - 7)
     left_hip.translateY(-height)
 
     right_hip_inner.add(right_hip)
@@ -1245,6 +1245,18 @@ export class BodyControlor {
             if (o.name in this.part) {
                 const name = o.name as ControlPartName
                 this.UpdateLink(name, thickness)
+            }
+        })
+    }
+
+    Get18keyPointsData(): Array<[number, number, number]> {
+        return coco_body_keypoints.map((name) => {
+            if (name in this.part) {
+                return this.getWorldPosition(
+                    this.part[name as ControlPartName]
+                ).toArray()
+            } else {
+                return [0, 0, 0]
             }
         })
     }

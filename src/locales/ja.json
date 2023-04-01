@@ -58,5 +58,7 @@
     "Close": "閉じる",
     "Update": "更新する",
     "Lock View": "ビューをロックする",
-    "Unlock View": "ビューをアンロックする"
+    "Unlock View": "ビューをアンロックする",
+    "Copy Keypoint Data": "キーポイントデータをコピーする",
+    "Copied to Clipboard": "クリップボードにコピーされました"
 }

@@ -2,7 +2,7 @@ import { getImage } from '../../utils/image'
 import { uploadImage } from '../../utils/transfer'
 import { DetectPosefromImage } from '../../utils/detect'
 
-import { GetRandomPose, LoadPosesLibrary } from '../../body'
+import { BodyControlor, GetRandomPose, LoadPosesLibrary } from '../../body'
 
 import { GetLoading } from '../../components/Loading'
 import { BodyEditor } from '../../editor'
@@ -61,6 +61,23 @@ export class Helper {
         } catch (error) {
             loading.hide()
 
+            Oops(error)
+            console.error(error)
+            return null
+        }
+    }
+
+    async CopyKeypointToClipboard() {
+        const body = await this.editor.GetBodyToSetPose()
+        if (!body) {
+            ShowToast({ title: i18n.t('Please select a skeleton!!') })
+            return
+        }
+        try {
+            const data = new BodyControlor(body).Get18keyPointsData()
+            await navigator.clipboard.writeText(JSON.stringify(data, null, 4))
+            ShowToast({ title: i18n.t('Copied to Clipboard') })
+        } catch (error) {
             Oops(error)
             console.error(error)
             return null

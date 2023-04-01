@@ -58,5 +58,7 @@
     "Close": "Cerrar",
     "Update": "Actualizar",
     "Lock View": "Bloquear vista",
-    "Unlock View": "Desbloquear vista"
+    "Unlock View": "Desbloquear vista",
+    "Copy Keypoint Data": "Copiar datos del punto clave",
+    "Copied to Clipboard": "Copiado al portapapeles"
 }

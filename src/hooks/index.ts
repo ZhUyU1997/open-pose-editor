@@ -30,6 +30,7 @@ export function useBodyEditor(
         let editor: BodyEditor | null = new BodyEditor({
             canvas,
             parentElem: parent?.current ?? (document as any),
+            statsElem: import.meta.env.DEV ? document.body : undefined,
         })
 
         setEditor(editor)
