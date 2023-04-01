@@ -46,6 +46,7 @@ import { SobelOperatorShader } from 'three/examples/jsm/shaders/SobelOperatorSha
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils'
 import { Oops } from './components/Oops'
 import { getCurrentTime } from './utils/time'
+import { sendToAll } from './hooks/useMessageDispatch'
 
 type EditorEventHandler<T> = (args: T) => void
 
@@ -1043,12 +1044,19 @@ export class BodyEditor {
         restoreTransfromControl()
         restoreView()
 
-        return {
+        const result = {
             pose: poseImage,
             depth: depthImage,
             normal: normalImage,
             canny: cannyImage,
         }
+
+        sendToAll({
+            method: 'MakeImages',
+            type: 'event',
+            payload: result,
+        })
+        return result
     }
 
     CopySelectedBody() {

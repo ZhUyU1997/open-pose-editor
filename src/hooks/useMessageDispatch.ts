@@ -1,11 +1,13 @@
 // https://github.com/rottitime/react-hook-window-message-event/blob/main/src/useMessage.ts
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import useEventCallback from './useEventCall'
+
+let SEND_TO_SENDER = false // Avoid duplicate event
 
 export type IPostMessage = {
     method: string
-    type: 'call' | 'return'
+    type: 'call' | 'return' | 'event'
     payload: any
 }
 
@@ -28,6 +30,37 @@ const postMessage = (
     )
 }
 
+export const sendToParent = (data: IPostMessage) => {
+    if (SEND_TO_SENDER) return
+    const { parent } = window
+    if (!parent) throw new Error('Parent window has closed')
+    postMessage(data, parent)
+}
+
+export const sendToParentDirectly = (data: IPostMessage) => {
+    const { parent } = window
+    if (!parent) throw new Error('Parent window has closed')
+    postMessage(data, parent)
+}
+
+export const sendToOpener = (data: IPostMessage) => {
+    const { opener } = window
+    if (!opener) throw new Error('Opener window has closed')
+    postMessage(data, opener)
+}
+
+export const sendToAll = (data: IPostMessage) => {
+    // May generate many nonsense errors on webui extensions
+    if (import.meta.env.MODE !== 'online') return
+    if (SEND_TO_SENDER) return
+    const { opener, parent } = window
+    if (!opener && !parent) {
+        throw new Error('window has closed')
+    }
+    if (parent) sendToParent(data)
+    if (opener) sendToOpener(data)
+}
+
 export default function useMessageDispatch(
     dispatch: Record<string, (...args: any[]) => any>
 ) {
@@ -40,15 +73,9 @@ export default function useMessageDispatch(
     const sendToSender = (data: IPostMessage) =>
         postMessage(data, sourceRef.current, originRef.current)
 
-    const sendToParent = (data: IPostMessage) => {
-        const { opener } = window
-        if (!opener) throw new Error('Parent window has closed')
-        postMessage(data, opener)
-    }
-
     const onWatchEventHandler = useEventCallback(
         // tslint:disable-next-line: no-shadowed-variable
-        ({ origin, source, data }: MessageEvent) => {
+        async ({ origin, source, data }: MessageEvent) => {
             if (!data) return
 
             const { method, payload, type } = data as IPostMessage
@@ -68,22 +95,19 @@ export default function useMessageDispatch(
             if (method in dispatch) {
                 const eventHandler = dispatch[method]
                 if (typeof eventHandler === 'function') {
+                    SEND_TO_SENDER = true
                     const ret = eventHandler(...(payload ?? []))
-                    if (ret instanceof Promise) {
-                        ret.then((value) => {
-                            sendToSender({
-                                method,
-                                type: 'return',
-                                payload: value,
-                            })
-                        })
-                    } else {
+                    const value = ret instanceof Promise ? await ret : ret
+                    try {
                         sendToSender({
                             method,
                             type: 'return',
-                            payload: ret,
+                            payload: value,
                         })
+                    } catch (error) {
+                        console.log(error)
                     }
+                    SEND_TO_SENDER = false
                 }
             } else if (method === 'GetAPIs') {
                 sendToSender({
@@ -99,6 +123,4 @@ export default function useMessageDispatch(
         window.addEventListener('message', onWatchEventHandler)
         return () => window.removeEventListener('message', onWatchEventHandler)
     }, [onWatchEventHandler])
-
-    return { history, sendToParent }
 }

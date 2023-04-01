@@ -11,13 +11,18 @@ const poseMessage = (message: IPostMessage) => {
 }
 
 const MessageReturnHandler: Record<string, (arg: any) => void> = {}
+const MessageEventHandler: Record<string, (arg: any) => void> = {}
 
 window.addEventListener('message', (event) => {
     const { data } = event
     if (data && data.cmd && data.cmd == 'openpose-3d' && data.method) {
         const method = data.method
-        if (method in MessageReturnHandler) {
+        console.log('Method', method, event)
+        if (data.type == 'return') {
             MessageReturnHandler[method]?.(data.payload)
+        } else if (data.type == 'event') {
+            console.log(MessageEventHandler)
+            MessageEventHandler[method]?.(data.payload)
         }
     }
 })
@@ -54,6 +59,10 @@ function CreateClick(name: string, ...args: any[]) {
         const value = await InvokeOnlineOpenPose3D(name, ...args)
         console.log('return', value)
     })
+}
+
+MessageEventHandler['MakeImages'] = (arg) => {
+    console.log('event', arg)
 }
 
 CreateClick('GetAPIs')
