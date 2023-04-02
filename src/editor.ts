@@ -28,6 +28,7 @@ import {
     IsExtremities,
     IsFoot,
     IsHand,
+    IsMask,
     IsNeedSaveObject,
     IsPickable,
     IsSkeleton,
@@ -150,6 +151,7 @@ export class BodyEditor {
 
     // ikSolver?: CCDIKSolver
     composer?: EffectComposer
+    finalComposer?: EffectComposer
     effectSobel?: ShaderPass
     enableComposer = false
     enablePreview = true
@@ -538,10 +540,11 @@ export class BodyEditor {
         this.camera.updateProjectionMatrix()
     }
 
-    renderOutput(scale = 1) {
-        const outputWidth = this.OutputWidth * scale
-        const outputHeight = this.OutputHeight * scale
-
+    renderOutputBySize(
+        outputWidth: number,
+        outputHeight: number,
+        render: () => void
+    ) {
         this.changeComposerResoultion(outputWidth, outputHeight)
 
         const save = {
@@ -551,14 +554,20 @@ export class BodyEditor {
         this.camera.updateProjectionMatrix()
         this.outputRenderer.setSize(outputWidth, outputHeight, true)
 
-        if (this.enableComposer) {
-            this.composer?.render()
-        } else {
-            this.outputRenderer.render(this.scene, this.camera)
-        }
+        render()
 
         this.camera.aspect = save.aspect
         this.camera.updateProjectionMatrix()
+    }
+
+    renderOutput(scale = 1, custom?: () => void) {
+        const outputWidth = this.OutputWidth * scale
+        const outputHeight = this.OutputHeight * scale
+
+        const render = () => {
+            this.outputRenderer.render(this.scene, this.camera)
+        }
+        this.renderOutputBySize(outputWidth, outputHeight, custom ?? render)
     }
     getOutputPNG() {
         return this.outputRenderer.domElement.toDataURL('image/png')
@@ -824,6 +833,21 @@ export class BodyEditor {
         }
     }
 
+    showMask() {
+        const recoveryArr: Object3D[] = []
+        this.scene.traverse((o) => {
+            if (IsMask(o.name)) {
+                console.log(o.name)
+                o.visible = true
+                recoveryArr.push(o)
+            }
+        })
+
+        return () => {
+            recoveryArr.forEach((o) => (o.visible = false))
+        }
+    }
+
     hideSkeleten() {
         const map = new Map<Object3D, Object3D | null>()
 
@@ -869,7 +893,7 @@ export class BodyEditor {
         return () => (this.enableComposer = save)
     }
 
-    changeHandMaterial(type: 'depth' | 'normal' | 'phone') {
+    changeHandMaterialOld(type: 'depth' | 'normal' | 'phone') {
         const map = new Map<THREE.Mesh, Material | Material[]>()
         this.traverseExtremities((child) => {
             const o = GetExtremityMesh(child)
@@ -887,6 +911,19 @@ export class BodyEditor {
             }
 
             map.clear()
+        }
+    }
+
+    changeHandMaterial(type: 'depth' | 'normal' | 'phone') {
+        if (type == 'depth')
+            this.scene.overrideMaterial = new MeshDepthMaterial()
+        else if (type == 'normal')
+            this.scene.overrideMaterial = new MeshNormalMaterial()
+        else if (type == 'phone')
+            this.scene.overrideMaterial = new MeshPhongMaterial()
+
+        return () => {
+            this.scene.overrideMaterial = null
         }
     }
 
@@ -966,50 +1003,39 @@ export class BodyEditor {
     }
 
     CaptureCanny() {
-        const map = this.hideSkeleten()
+        this.renderOutput(1, () => {
+            // step 1: get mask image
+            const restoreMask = this.showMask()
+            this.composer?.render()
+            restoreMask()
 
-        const restore = this.changeComposer(true)
-        this.renderOutput()
+            const restoreMaterial = this.changeHandMaterial('normal')
 
-        const imgData = this.getOutputPNG()
+            // step 2:
+            // get sobel image
+            // filer out pixels not in mask
+            // get binarized pixels
+            this.finalComposer?.render()
+            restoreMaterial()
+        })
 
-        this.showSkeleten(map)
-        restore()
-
-        return imgData
+        return this.getOutputPNG()
     }
 
     CaptureNormal() {
         const restoreHand = this.changeHandMaterial('normal')
-        const map = this.hideSkeleten()
-        const restore = this.changeComposer(false)
         this.renderOutput()
-
-        const imgData = this.getOutputPNG()
-
-        this.showSkeleten(map)
-        restore()
         restoreHand()
-
-        return imgData
+        return this.getOutputPNG()
     }
 
     CaptureDepth() {
         const restoreHand = this.changeHandMaterial('depth')
-        const map = this.hideSkeleten()
-        const restore = this.changeComposer(false)
-
         const restoreCamera = this.changeCamera()
         this.renderOutput()
         restoreCamera()
-
-        const imgData = this.getOutputPNG()
-
-        this.showSkeleten(map)
-        restore()
         restoreHand()
-
-        return imgData
+        return this.getOutputPNG()
     }
 
     changeTransformControl() {
@@ -1035,9 +1061,14 @@ export class BodyEditor {
         const restoreView = this.changeView()
 
         const poseImage = this.Capture()
+
+        /// begin
+        const map = this.hideSkeleten()
         const depthImage = this.CaptureDepth()
         const normalImage = this.CaptureNormal()
         const cannyImage = this.CaptureCanny()
+        this.showSkeleten(map)
+        /// end
 
         this.renderer.setClearColor(0x000000, 0)
         this.axesHelper.visible = true
@@ -1261,28 +1292,69 @@ export class BodyEditor {
         this.composer = new EffectComposer(this.outputRenderer)
         const renderPass = new RenderPass(this.scene, this.camera)
         this.composer.addPass(renderPass)
+        this.composer.renderToScreen = false
+
+        const finalPass = new ShaderPass(
+            new THREE.ShaderMaterial({
+                uniforms: {
+                    baseTexture: { value: null },
+                    bloomTexture: {
+                        value: this.composer.renderTarget2.texture,
+                    },
+                },
+                vertexShader: `
+varying vec2 vUv;
+void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+}`,
+                fragmentShader: `
+uniform sampler2D baseTexture;
+uniform sampler2D bloomTexture;
+
+varying vec2 vUv;
+
+void main() {
+    vec4 bloomColor = texture2D(bloomTexture, vUv);
+    float grayValue = dot(bloomColor.rgb, vec3(0.299, 0.587, 0.114));
+    vec4 baseColor = texture2D(baseTexture, vUv);
+    vec4 masked = vec4(baseColor.rgb * step(0.001, grayValue), 1.0);
+    gl_FragColor = step(0.5, masked)  * vec4(1.0); // Binarization
+    // gl_FragColor = bloomColor;
+}
+
+`,
+                defines: {},
+            }),
+            'baseTexture'
+        )
+        finalPass.needsSwap = true
+
+        this.finalComposer = new EffectComposer(this.outputRenderer)
+        this.finalComposer.addPass(renderPass)
 
         // color to grayscale conversion
-
         const effectGrayScale = new ShaderPass(LuminosityShader)
-        this.composer.addPass(effectGrayScale)
-
-        // you might want to use a gaussian blur filter before
-        // the next pass to improve the result of the Sobel operator
+        this.finalComposer.addPass(effectGrayScale)
 
         // Sobel operator
-
         const effectSobel = new ShaderPass(SobelOperatorShader)
         effectSobel.uniforms['resolution'].value.x =
             this.Width * window.devicePixelRatio
         effectSobel.uniforms['resolution'].value.y =
             this.Height * window.devicePixelRatio
-        this.composer.addPass(effectSobel)
+        this.finalComposer.addPass(effectSobel)
+
         this.effectSobel = effectSobel
+
+        this.finalComposer.addPass(finalPass)
     }
 
     changeComposerResoultion(width: number, height: number) {
         this.composer?.setSize(width, height)
+        this.finalComposer?.setSize(width, height)
+
         if (this.effectSobel) {
             this.effectSobel.uniforms['resolution'].value.x =
                 width * window.devicePixelRatio
