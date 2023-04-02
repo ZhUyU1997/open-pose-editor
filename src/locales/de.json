@@ -60,5 +60,6 @@
     "Lock View": "Ansicht sperren",
     "Unlock View": "Ansicht entsperren",
     "Copy Keypoint Data": "Schlüsselpunktdaten kopieren",
-    "Copied to Clipboard": "In die Zwischenablage kopiert"
+    "Copied to Clipboard": "In die Zwischenablage kopiert",
+    "Generate Scene URL": "Szene-URL generieren"
 }

@@ -1471,17 +1471,6 @@ void main() {
         }
     }
 
-    GenerateSceneURL() {
-        try {
-            const d = encodeURIComponent(JSON.stringify(this.GetSceneData()))
-            const url_base = location.href.replace(/#$/, '')
-            return `${url_base}#${d}`
-        } catch (error) {
-            console.error(error)
-        }
-        return null
-    }
-
     ClearScene() {
         this.scene.children
             .filter((o) => o?.name === 'torso')

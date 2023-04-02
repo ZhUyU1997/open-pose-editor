@@ -60,5 +60,6 @@
     "Lock View": "鎖定視圖",
     "Unlock View": "解鎖視圖",
     "Copy Keypoint Data": "複製關鍵點數據",
-    "Copied to Clipboard": "已複製到剪貼板"
+    "Copied to Clipboard": "已複製到剪貼板",
+    "Generate Scene URL": "生成場景URL"
 }

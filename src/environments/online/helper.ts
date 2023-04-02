@@ -83,6 +83,22 @@ export class Helper {
             return null
         }
     }
+
+    async GenerateSceneURL() {
+        try {
+            const d = encodeURIComponent(
+                JSON.stringify(this.editor.GetSceneData())
+            )
+            const url_base = location.href.replace(/#$/, '')
+            const url = `${url_base}#${d}`
+            await navigator.clipboard.writeText(url)
+            ShowToast({ title: i18n.t('Copied to Clipboard') })
+        } catch (error) {
+            Oops(error)
+            console.error(error)
+        }
+    }
+
     async SetRandomPose() {
         const body = await this.editor.GetBodyToSetPose()
         if (!body) {

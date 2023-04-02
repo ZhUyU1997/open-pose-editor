@@ -75,12 +75,7 @@ const MenubarDemo: React.FC<{
                         <Menubar.Item
                             className={MenubarItem}
                             onSelect={() => {
-                                const url = editor.GenerateSceneURL()
-                                ShowDialog({
-                                    title: 'URL',
-                                    description: url,
-                                    button: 'OK',
-                                })
+                                helper.GenerateSceneURL()
                             }}
                         >
                             {i18n.t('Generate Scene URL')}
