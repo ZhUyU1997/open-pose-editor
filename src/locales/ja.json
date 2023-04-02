@@ -16,6 +16,7 @@
     "Something went wrong!": "何かが間違っています！",
     "If the problem persists, please click here to ask a question.": "問題が解決しない場合は、ここをクリックして質問してください。",
     "Save Scene": "シーンを保存",
+    "Generate Scene URL": "シーンのURLを生成",
     "Load Scene": "シーンを読み込む",
     "Restore Last Scene": "前回のシーンを復元",
     "Set Background Image": "背景画像を設定",

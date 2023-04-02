@@ -12,6 +12,7 @@ import useForceUpdate from '../../hooks/useFoceUpdate'
 import classNames from 'classnames'
 import { useLanguageSelect } from '../../hooks'
 import { ShowContextMenu } from '../ContextMenu'
+import { ShowDialog } from '../Dialog'
 
 const {
     MenubarRoot,
@@ -70,6 +71,19 @@ const MenubarDemo: React.FC<{
                             onSelect={() => editor.SaveScene()}
                         >
                             {i18n.t('Save Scene')}
+                        </Menubar.Item>
+                        <Menubar.Item
+                            className={MenubarItem}
+                            onSelect={() => {
+                                const url = editor.GenerateSceneURL()
+                                ShowDialog({
+                                    title: 'URL',
+                                    description: url,
+                                    button: 'OK',
+                                })
+                            }}
+                        >
+                            {i18n.t('Generate Scene URL')}
                         </Menubar.Item>
                         <Menubar.Separator className={MenubarSeparator} />
                         <Menubar.Item
