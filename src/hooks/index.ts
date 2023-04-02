@@ -41,6 +41,13 @@ export function useBodyEditor(
             if (editor) {
                 await LoadBodyData()
                 editor?.InitScene()
+                if (editor?.RestoreScene && location.hash) {
+                    const rawData = decodeURIComponent(
+                        location.hash.replace(/^#/, '')
+                    )
+                    editor?.RestoreScene(rawData)
+                    location.hash = ''
+                }
             }
         }
         init()
