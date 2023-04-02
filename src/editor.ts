@@ -672,7 +672,9 @@ export class BodyEditor {
     onMouseDown() {
         this.IsClick = true
     }
-    onMouseMove() {
+    onMouseMove(event: MouseEvent) {
+        // some devices still send movemove event, filter it.
+        if (event.movementX == 0 && event.movementY == 0) return
         this.IsClick = false
     }
 
