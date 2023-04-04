@@ -315,7 +315,7 @@ export class BodyEditor {
         )
 
         this.transformControl.setMode('rotate') //旋转
-        // this.transformControl.setSize(0.4);
+        this.transformControl.setSize(0.4);
         this.transformControl.setSpace('local')
         this.registerTranformControlEvent()
         this.scene.add(this.transformControl)
@@ -1353,7 +1353,7 @@ export class BodyEditor {
         }
     }
 
-    FreeMode = false
+    FreeMode = true
 
     get Width() {
         return this.renderer.domElement.clientWidth
