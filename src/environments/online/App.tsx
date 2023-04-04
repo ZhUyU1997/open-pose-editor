@@ -15,29 +15,36 @@ import useMessageDispatch from '../../hooks/useMessageDispatch'
 
 const { app, threejsCanvas, gallery, background } = classes
 
-const PreviewImage: React.FC<{
-    previewImage: string
-    isLock: boolean
-    onChange: (isLock: boolean) => void
-    onRestore: () => void
-    onRun: () => void
-}> = ({ previewImage, isLock, onChange, onRestore, onRun }) => {
+const PreviewCanvas = React.forwardRef<
+    HTMLCanvasElement,
+    {
+        isLock: boolean
+        enable: boolean
+        onChange: (isLock: boolean) => void
+        onRestore: () => void
+        onRun: () => void
+    }
+>(({ isLock, enable, onChange, onRestore, onRun }, ref) => {
     const Icon = isLock ? LockClosedIcon : LockOpen2Icon
     return (
         <div
             style={{
                 position: 'relative',
+                display: enable ? 'flex' : 'none',
+                justifyContent: 'center',
+                backgroundColor: 'gray',
             }}
         >
-            <img
-                src={previewImage}
+            <canvas
+                ref={ref}
                 style={{
                     objectFit: 'contain',
                     width: 'unset',
                     // height:"unset",
+                    maxHeight: '100%',
                     maxWidth: 300,
                 }}
-            ></img>
+            ></canvas>
             <ResumeIcon
                 style={{
                     position: 'absolute',
@@ -80,12 +87,14 @@ const PreviewImage: React.FC<{
             ></ResetIcon>
         </div>
     )
-}
+})
 
 function App() {
     const canvasRef = useRef(null)
+    const previewCanvasRef = useRef(null)
+
     const backgroundRef = useRef<HTMLDivElement>(null)
-    const editor = useBodyEditor(canvasRef, backgroundRef)
+    const editor = useBodyEditor(canvasRef, previewCanvasRef, backgroundRef)
     const [imageData, setImageData] = useState<
         Record<string, { title: string; src: string }>
     >(() => ({
@@ -121,12 +130,12 @@ function App() {
         []
     )
 
-    const [previewImage, setPreivewImage] = useState('')
+    const [preview, setPreivew] = useState(false)
     const [lockView, setLockView] = useState(false)
 
     useEffect(() => {
-        const preview = (url: string) => {
-            setPreivewImage(url)
+        const preview = (enable: boolean) => {
+            setPreivew(enable)
         }
 
         const lcokView = (value: boolean) => {
@@ -189,36 +198,35 @@ function App() {
                 }}
             ></canvas>
             <div className={gallery}>
-                {previewImage !== '' ? (
-                    <PreviewImage
-                        previewImage={previewImage}
-                        isLock={lockView}
-                        onChange={(isLock) => {
-                            if (isLock) {
-                                editor?.LockView()
-                            } else {
-                                editor?.UnlockView()
-                            }
-                        }}
-                        onRestore={() => {
-                            editor?.RestoreView()
-                        }}
-                        onRun={async () => {
-                            if (!editor) return
-                            const image = editor.MakeImages()
-                            const result = Object.fromEntries(
-                                Object.entries(image).map(([name, imgData]) => [
-                                    name,
-                                    {
-                                        src: imgData,
-                                        title: name + '_' + getCurrentTime(),
-                                    },
-                                ])
-                            )
-                            onScreenShot(result)
-                        }}
-                    ></PreviewImage>
-                ) : undefined}
+                <PreviewCanvas
+                    enable={preview}
+                    ref={previewCanvasRef}
+                    isLock={lockView}
+                    onChange={(isLock) => {
+                        if (isLock) {
+                            editor?.LockView()
+                        } else {
+                            editor?.UnlockView()
+                        }
+                    }}
+                    onRestore={() => {
+                        editor?.RestoreView()
+                    }}
+                    onRun={async () => {
+                        if (!editor) return
+                        const image = editor.MakeImages()
+                        const result = Object.fromEntries(
+                            Object.entries(image).map(([name, imgData]) => [
+                                name,
+                                {
+                                    src: imgData,
+                                    title: name + '_' + getCurrentTime(),
+                                },
+                            ])
+                        )
+                        onScreenShot(result)
+                    }}
+                ></PreviewCanvas>
 
                 {Object.entries(imageData).map(([name, { src, title }]) => (
                     <img

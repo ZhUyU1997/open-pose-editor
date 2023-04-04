@@ -133,9 +133,109 @@ export interface ParentElement {
     ): void
 }
 
+class PreviewRenderer {
+    scene: THREE.Scene
+    camera: THREE.PerspectiveCamera
+    canvas?: HTMLCanvasElement
+    renderer: THREE.WebGLRenderer
+    orbitControls: OrbitControls
+
+    constructor(setting: {
+        scene: THREE.Scene
+        camera: THREE.PerspectiveCamera
+        orbitControls: OrbitControls
+
+        canvas?: HTMLCanvasElement
+        renderer?: THREE.WebGLRenderer
+    }) {
+        this.scene = setting.scene
+        this.camera = setting.camera
+        this.canvas = setting.canvas
+        this.orbitControls = setting.orbitControls
+        if (setting.renderer) {
+            this.renderer = setting.renderer
+        } else {
+            this.renderer = new THREE.WebGLRenderer({
+                antialias: true,
+                canvas: setting.canvas,
+                // logarithmicDepthBuffer: true
+            })
+        }
+    }
+
+    renderBySize(
+        outputWidth: number,
+        outputHeight: number,
+        render: (outputWidth: number, outputHeight: number) => void
+    ) {
+        const save = {
+            aspect: this.camera.aspect,
+        }
+        this.camera.aspect = outputWidth / outputHeight
+        this.camera.updateProjectionMatrix()
+        this.renderer.setSize(outputWidth, outputHeight, true)
+
+        render(outputWidth, outputHeight)
+
+        this.camera.aspect = save.aspect
+        this.camera.updateProjectionMatrix()
+    }
+
+    GetCameraData() {
+        const result = {
+            position: this.camera.position.toArray(),
+            rotation: this.camera.rotation.toArray(),
+            target: this.orbitControls.target.toArray(),
+            near: this.camera.near,
+            far: this.camera.far,
+            zoom: this.camera.zoom,
+        }
+
+        return result
+    }
+
+    RestoreCamera(data: CameraData, updateOrbitControl = true) {
+        this.camera.position.fromArray(data.position)
+        this.camera.rotation.fromArray(data.rotation as any)
+        this.camera.near = data.near
+        this.camera.far = data.far
+        this.camera.zoom = data.zoom
+        this.camera.updateProjectionMatrix()
+
+        if (data.target) this.orbitControls.target.fromArray(data.target)
+        if (updateOrbitControl) this.orbitControls.update() // fix position change
+    }
+
+    changeView(cameraDataOfView?: CameraData) {
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        if (!cameraDataOfView) return () => {}
+
+        const old = this.GetCameraData()
+        this.RestoreCamera(cameraDataOfView, false)
+        return () => {
+            this.RestoreCamera(old)
+        }
+    }
+
+    render(
+        outputWidth: number,
+        outputHeight: number,
+        cameraDataOfView?: CameraData,
+        custom?: (outputWidth: number, outputHeight: number) => void
+    ) {
+        const render = () => {
+            this.renderer.render(this.scene, this.camera)
+        }
+        const restoreView = this.changeView(cameraDataOfView)
+        this.renderBySize(outputWidth, outputHeight, custom ?? render)
+        restoreView()
+    }
+}
+
 export class BodyEditor {
     renderer: THREE.WebGLRenderer
     outputRenderer: THREE.WebGLRenderer
+    previewRenderer: PreviewRenderer
     scene: THREE.Scene
     gridHelper: THREE.GridHelper
     axesHelper: THREE.AxesHelper
@@ -162,10 +262,12 @@ export class BodyEditor {
     clearColor = 0xaaaaaa
     constructor({
         canvas,
+        previewCanvas,
         parentElem = document,
         statsElem,
     }: {
         canvas: HTMLCanvasElement
+        previewCanvas: HTMLCanvasElement
         parentElem?: ParentElement
         statsElem?: Element
     }) {
@@ -217,6 +319,13 @@ export class BodyEditor {
         this.transformControl.setSpace('local')
         this.registerTranformControlEvent()
         this.scene.add(this.transformControl)
+
+        this.previewRenderer = new PreviewRenderer({
+            scene: this.scene,
+            camera: this.camera,
+            orbitControls: this.orbitControls,
+            canvas: previewCanvas,
+        })
 
         // Light
         this.dlight = new THREE.DirectionalLight(0xffffff, 1.0)
@@ -543,10 +652,8 @@ export class BodyEditor {
     renderOutputBySize(
         outputWidth: number,
         outputHeight: number,
-        render: () => void
+        render: (outputWidth: number, outputHeight: number) => void
     ) {
-        this.changeComposerResoultion(outputWidth, outputHeight)
-
         const save = {
             aspect: this.camera.aspect,
         }
@@ -554,13 +661,16 @@ export class BodyEditor {
         this.camera.updateProjectionMatrix()
         this.outputRenderer.setSize(outputWidth, outputHeight, true)
 
-        render()
+        render(outputWidth, outputHeight)
 
         this.camera.aspect = save.aspect
         this.camera.updateProjectionMatrix()
     }
 
-    renderOutput(scale = 1, custom?: () => void) {
+    renderOutput(
+        scale = 1,
+        custom?: (outputWidth: number, outputHeight: number) => void
+    ) {
         const outputWidth = this.OutputWidth * scale
         const outputHeight = this.OutputHeight * scale
 
@@ -584,11 +694,8 @@ export class BodyEditor {
     }
 
     outputPreview() {
-        if (this.enablePreview) {
-            this.PreviewEventManager.TriggerEvent(this.CapturePreview())
-        } else {
-            this.PreviewEventManager.TriggerEvent('')
-        }
+        if (this.enablePreview) this.CapturePreview()
+        this.PreviewEventManager.TriggerEvent(this.enablePreview)
     }
     pause() {
         this.paused = true
@@ -618,7 +725,7 @@ export class BodyEditor {
         mouseX: number
         mouseY: number
     }>()
-    PreviewEventManager = new EditorEventManager<string>()
+    PreviewEventManager = new EditorEventManager<boolean>()
     LockViewEventManager = new EditorEventManager<boolean>()
 
     triggerSelectEvent(body: Object3D) {
@@ -995,15 +1102,22 @@ export class BodyEditor {
     }
 
     CapturePreview() {
-        const restoreView = this.changeView()
-        this.renderOutput((window.devicePixelRatio * 140.0) / this.OutputHeight)
-        restoreView()
-        const imgData = this.getOutputPNG()
-        return imgData
+        const scale = (window.devicePixelRatio * 140.0) / this.OutputHeight
+
+        const outputWidth = this.OutputWidth * scale
+        const outputHeight = this.OutputHeight * scale
+
+        this.previewRenderer.render(
+            outputWidth,
+            outputHeight,
+            this.cameraDataOfView
+        )
     }
 
     CaptureCanny() {
-        this.renderOutput(1, () => {
+        this.renderOutput(1, (outputWidth, outputHeight) => {
+            this.changeComposerResoultion(outputWidth, outputHeight)
+
             // step 1: get mask image
             const restoreMask = this.showMask()
             this.composer?.render()
