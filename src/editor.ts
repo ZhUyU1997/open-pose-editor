@@ -996,7 +996,7 @@ export class BodyEditor {
 
     CapturePreview() {
         const restoreView = this.changeView()
-        this.renderOutput(300.0 / this.OutputHeight)
+        this.renderOutput((window.devicePixelRatio * 140.0) / this.OutputHeight)
         restoreView()
         const imgData = this.getOutputPNG()
         return imgData
