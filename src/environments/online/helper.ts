@@ -133,6 +133,24 @@ export class Helper {
             return
         }
     }
+    async CopySkeleton() {
+        const body = this.editor.getSelectedBody()
+        if (!body) {
+            ShowToast({ title: i18n.t('Please select a skeleton!!') })
+            return
+        }
+
+        this.editor.CopySelectedBody()
+    }
+    async RemoveSkeleton() {
+        const body = this.editor.getSelectedBody()
+        if (!body) {
+            ShowToast({ title: i18n.t('Please select a skeleton!!') })
+            return
+        }
+
+        this.editor.RemoveBody()
+    }
     Feedback() {
         window.open('https://github.com/ZhUyU1997/open-pose-editor/issues/new')
     }

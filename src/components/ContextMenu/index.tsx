@@ -57,7 +57,7 @@ const MyContextMenu = NiceModal.create<{
                 <div
                     className={ContextMenuItem}
                     onClick={() => {
-                        editor.CopySelectedBody()
+                        helper.CopySkeleton()
                     }}
                 >
                     {i18n.t('Duplicate Skeleton')}
@@ -66,7 +66,7 @@ const MyContextMenu = NiceModal.create<{
                 <div
                     className={ContextMenuItem}
                     onClick={() => {
-                        editor.RemoveBody()
+                        helper.RemoveSkeleton()
                     }}
                 >
                     {i18n.t('Delete Skeleton')}
