@@ -315,7 +315,7 @@ export class BodyEditor {
         )
 
         this.transformControl.setMode('rotate') //旋转
-        this.transformControl.setSize(0.4);
+        this.transformControl.setSize(0.4)
         this.transformControl.setSpace('local')
         this.registerTranformControlEvent()
         this.scene.add(this.transformControl)
@@ -1335,13 +1335,19 @@ export class BodyEditor {
         let IsTranslateMode = move
         this.isMoveMode = move
 
-        const name = this.getSelectedPart()?.name
+        const name = this.getSelectedPart()?.name ?? ''
 
-        if (name && IsTranslate(name, this.FreeMode)) {
-            IsTranslateMode = true
-        } else if (move) {
-            const obj = this.getSelectedBody()
-            if (obj) this.transformControl.attach(obj)
+        if (move) {
+            if (IsTranslate(name, this.FreeMode)) {
+                IsTranslateMode = true
+            } else {
+                const obj = this.getSelectedBody()
+                if (obj) this.transformControl.attach(obj)
+            }
+        } else {
+            if (IsTarget(name)) {
+                IsTranslateMode = true
+            }
         }
 
         if (IsTranslateMode) {
