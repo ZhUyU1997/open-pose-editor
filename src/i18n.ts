@@ -47,4 +47,12 @@ i18next.use(LanguageDetector).init({
     resources: resources,
 })
 
+export function IsChina() {
+    return (
+        i18next.language === 'zh-CN' ||
+        window.navigator.language === 'zh-CN' ||
+        window.navigator.language?.includes('zh-CN')
+    )
+}
+
 export default i18next

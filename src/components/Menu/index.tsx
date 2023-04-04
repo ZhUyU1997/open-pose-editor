@@ -277,14 +277,34 @@ const MenubarDemo: React.FC<{
             </Menubar.Menu>
 
             <Menubar.Menu>
-                <Menubar.Trigger
-                    className={MenubarTrigger}
-                    onClick={() => {
-                        helper.Feedback()
-                    }}
-                >
+                <Menubar.Trigger className={MenubarTrigger}>
                     {i18n.t('Feedback')}
                 </Menubar.Trigger>
+                <Menubar.Portal>
+                    <Menubar.Content
+                        className={MenubarContent}
+                        align="start"
+                        sideOffset={5}
+                        alignOffset={-14}
+                    >
+                        <Menubar.Item
+                            className={classNames(MenubarItem, inset)}
+                            onSelect={() => {
+                                helper.FeedbackByGithub()
+                            }}
+                        >
+                            Github
+                        </Menubar.Item>
+                        <Menubar.Item
+                            className={classNames(MenubarItem, inset)}
+                            onSelect={() => {
+                                helper.FeedbackByQQ()
+                            }}
+                        >
+                            QQ
+                        </Menubar.Item>
+                    </Menubar.Content>
+                </Menubar.Portal>
             </Menubar.Menu>
             <Menubar.Menu>
                 <Menubar.Trigger className={MenubarTrigger}>

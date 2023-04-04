@@ -151,7 +151,10 @@ export class Helper {
 
         this.editor.RemoveBody()
     }
-    Feedback() {
+    FeedbackByQQ() {
+        window.open('https://jq.qq.com/?_wv=1027&k=N6j4nigd')
+    }
+    FeedbackByGithub() {
         window.open('https://github.com/ZhUyU1997/open-pose-editor/issues/new')
     }
 }
