@@ -555,6 +555,8 @@ export async function LoadHand(
                 color: 0xff0000,
                 //  vertexColors: true,
                 depthTest: false,
+                opacity: 1,
+                transparent: true,
                 // depthWrite: false,
                 // toneMapped: false,
                 // transparent: true,
@@ -597,7 +599,12 @@ export async function LoadFoot(
         if (o.name !== 'FootBone2') return
         const point = new THREE.Mesh(
             new THREE.SphereGeometry(0.1),
-            new THREE.MeshBasicMaterial({ color: 0xff0000, depthTest: false })
+            new THREE.MeshBasicMaterial({
+                color: 0xff0000,
+                depthTest: false,
+                opacity: 1,
+                transparent: true,
+            })
         )
 
         point.name = 'red_point'
@@ -645,6 +652,12 @@ export function IsNeedSaveObject(name: string) {
     if (name.startsWith(footModelInfo.bonePrefix)) return true
     if (name.includes('_joint_sphere')) return true
     if (name.includes('_link_')) return true
+    return false
+}
+
+export function IsBone(name: string) {
+    if (name.startsWith(handModelInfo.bonePrefix)) return true
+    if (name.startsWith(footModelInfo.bonePrefix)) return true
     return false
 }
 

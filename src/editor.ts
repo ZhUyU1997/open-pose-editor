@@ -3,6 +3,7 @@ import {
     Bone,
     Material,
     Mesh,
+    MeshBasicMaterial,
     MeshDepthMaterial,
     MeshNormalMaterial,
     MeshPhongMaterial,
@@ -25,6 +26,7 @@ import {
     BodyControlor,
     CloneBody,
     GetExtremityMesh,
+    IsBone,
     IsExtremities,
     IsFoot,
     IsHand,
@@ -731,9 +733,11 @@ export class BodyEditor {
     triggerSelectEvent(body: Object3D) {
         const c = new BodyControlor(body)
         this.SelectEventManager.TriggerEvent(c)
+        this.UpdateBones()
     }
     triggerUnselectEvent() {
         this.UnselectEventManager.TriggerEvent()
+        this.UpdateBones()
     }
 
     addEvent() {
@@ -805,10 +809,7 @@ export class BodyEditor {
             this.camera
         )
         const intersects: THREE.Intersection[] =
-            this.raycaster.intersectObjects(
-                this.scene.children.filter((o) => o?.name === 'torso'),
-                true
-            )
+            this.raycaster.intersectObjects(this.GetBodies(), true)
         // If read_point is found, choose it first
         const point = intersects.find((o) => o.object.name === 'red_point')
         const intersectedObject: THREE.Object3D | null = point
@@ -891,37 +892,39 @@ export class BodyEditor {
     }
 
     traverseHandObjecct(handle: (o: THREE.Mesh) => void) {
-        this.scene.children
-            .filter((o) => o?.name === 'torso')
-            .forEach((o) => {
-                o.traverse((child) => {
-                    if (IsHand(child?.name)) {
-                        handle(child as THREE.Mesh)
-                    }
-                })
+        this.GetBodies().forEach((o) => {
+            o.traverse((child) => {
+                if (IsHand(child?.name)) {
+                    handle(child as THREE.Mesh)
+                }
             })
+        })
     }
 
     traverseBodies(handle: (o: Object3D) => void) {
-        this.scene.children
-            .filter((o) => o?.name === 'torso')
-            .forEach((o) => {
-                o.traverse((child) => {
-                    handle(child)
-                })
+        this.GetBodies().forEach((o) => {
+            o.traverse((child) => {
+                handle(child)
             })
+        })
+    }
+
+    traverseBones(handle: (o: Bone) => void) {
+        this.GetBodies().forEach((o) => {
+            o.traverse((child) => {
+                if (child instanceof Bone && IsBone(child.name)) handle(child)
+            })
+        })
     }
 
     traverseExtremities(handle: (o: THREE.Mesh) => void) {
-        this.scene.children
-            .filter((o) => o?.name === 'torso')
-            .forEach((o) => {
-                o.traverse((child) => {
-                    if (IsExtremities(child.name)) {
-                        handle(child as THREE.Mesh)
-                    }
-                })
+        this.GetBodies().forEach((o) => {
+            o.traverse((child) => {
+                if (IsExtremities(child.name)) {
+                    handle(child as THREE.Mesh)
+                }
             })
+        })
     }
 
     onlyShowSkeleton() {
@@ -958,22 +961,23 @@ export class BodyEditor {
     hideSkeleten() {
         const map = new Map<Object3D, Object3D | null>()
 
-        this.scene.children
-            .filter((o) => o?.name === 'torso')
-            .forEach((o) => {
-                o.traverse((child) => {
-                    if (IsExtremities(child?.name)) {
-                        map.set(child, child.parent)
-                        this.scene.attach(child)
-                    } else if (child?.name === 'red_point') {
-                        child.visible = false
-                    }
-                })
-                o.visible = false
+        this.GetBodies().forEach((o) => {
+            o.traverse((child) => {
+                if (IsExtremities(child?.name)) {
+                    map.set(child, child.parent)
+                    this.scene.attach(child)
+                } else if (child?.name === 'red_point') {
+                    child.visible = false
+                }
             })
+            o.visible = false
+        })
         return map
     }
 
+    GetBodies() {
+        return this.scene.children.filter((o) => o?.name === 'torso')
+    }
     showSkeleten(map: Map<Object3D, Object3D | null>) {
         for (const [k, v] of map.entries()) {
             v?.attach(k)
@@ -981,16 +985,14 @@ export class BodyEditor {
 
         map.clear()
 
-        this.scene.children
-            .filter((o) => o?.name === 'torso')
-            .forEach((o) => {
-                o.traverse((child) => {
-                    if (child?.name === 'red_point') {
-                        child.visible = true
-                    }
-                })
-                o.visible = true
+        this.GetBodies().forEach((o) => {
+            o.traverse((child) => {
+                if (child?.name === 'red_point') {
+                    child.visible = true
+                }
             })
+            o.visible = true
+        })
     }
 
     changeComposer(enable: boolean) {
@@ -1207,7 +1209,7 @@ export class BodyEditor {
     }
 
     CopySelectedBody() {
-        const list = this.scene.children.filter((o) => o?.name === 'torso')
+        const list = this.GetBodies()
 
         const selectedBody = this.getSelectedBody()
 
@@ -1233,8 +1235,7 @@ export class BodyEditor {
         const body = CloneBody()
         if (!body) return
 
-        const list = this.scene.children
-            .filter((o) => o?.name === 'torso')
+        const list = this.GetBodies()
             .filter((o) => o.position.x === 0)
             .map((o) => Math.ceil(o.position.z / 30))
 
@@ -1250,8 +1251,7 @@ export class BodyEditor {
         const body = CloneBody()
         if (!body) return
 
-        const list = this.scene.children
-            .filter((o) => o?.name === 'torso')
+        const list = this.GetBodies()
             .filter((o) => o.position.z === 0)
             .map((o) => Math.ceil(o.position.x / 50))
 
@@ -1547,9 +1547,7 @@ void main() {
         return result
     }
     GetSceneData() {
-        const bodies = this.scene.children
-            .filter((o) => o?.name === 'torso')
-            .map((o) => this.GetBodyData(o))
+        const bodies = this.GetBodies().map((o) => this.GetBodyData(o))
 
         const data = {
             header: 'Openpose Editor by Yu Zhu',
@@ -1592,9 +1590,7 @@ void main() {
     }
 
     ClearScene() {
-        this.scene.children
-            .filter((o) => o?.name === 'torso')
-            .forEach((o) => o.removeFromParent())
+        this.GetBodies().forEach((o) => o.removeFromParent())
     }
 
     RestoreBody(body: Object3D, data: BodyData) {
@@ -1729,7 +1725,7 @@ void main() {
     //     CreateLink2(objects['right_eye'], objects['right_ear'])
     // }
     async GetBodyToSetPose() {
-        const bodies = this.scene.children.filter((o) => o.name == 'torso')
+        const bodies = this.GetBodies()
         const body = bodies.length == 1 ? bodies[0] : this.getSelectedBody()
         return body
     }
@@ -1780,5 +1776,59 @@ void main() {
 
         // eslint-disable-next-line @typescript-eslint/no-empty-function
         return () => {}
+    }
+    getSelectedBone() {
+        const part = this.getSelectedPart()
+        const isSelectBone = part && IsBone(part.name)
+        return isSelectBone ? (part as Bone) : null
+    }
+    UpdateBones() {
+        const DEFAULT_COLOR = 0xff0000
+        const DEFAULT = 1
+        const SELECTED = 1
+        const SELECTED_COLOR = 0xeeee00
+        const ACTIVE = 1
+        const INACTIVE = 0.2
+
+        const setColor = (
+            bone: Bone,
+            opacity: number,
+            color = DEFAULT_COLOR
+        ) => {
+            const point = bone.children.find(
+                (o) => o instanceof THREE.Mesh
+            ) as THREE.Mesh
+            if (point) {
+                const material = point.material as MeshBasicMaterial
+
+                material.color.set(color)
+                material.opacity = opacity
+                material.needsUpdate = true
+            }
+        }
+        const selectedBone = this.getSelectedBone()
+
+        this.traverseBones((bone) => {
+            setColor(bone, selectedBone ? INACTIVE : DEFAULT)
+        })
+
+        if (selectedBone) {
+            let bone = selectedBone
+
+            setColor(bone, SELECTED, SELECTED_COLOR)
+
+            bone.traverseAncestors((ancestor) => {
+                if (IsBone(ancestor.name)) {
+                    setColor(ancestor as Bone, ACTIVE)
+                }
+            })
+
+            for (;;) {
+                const child = bone.children.filter((o) => o instanceof Bone)
+                if (child.length !== 1) break
+                setColor(child[0] as Bone, ACTIVE)
+                bone = child[0] as Bone
+            }
+        }
     }
 }
