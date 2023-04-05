@@ -115,7 +115,7 @@ function GetCameraParamControlor(editor: BodyEditor) {
             name: i18n.t('Height'),
         },
         CameraNear: { range: [0.1, 2000], name: i18n.t('Camera Near') },
-        CameraFar: { range: [0.1, 2000], name: i18n.t('Camera Far') },
+        CameraFar: { range: [0.1, 20000], name: i18n.t('Camera Far') },
         CameraFocalLength: {
             range: [0.1, 100],
             name: i18n.t('Camera Focal Length'),

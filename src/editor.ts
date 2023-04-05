@@ -289,14 +289,14 @@ export class BodyEditor {
         this.renderer.setClearColor(this.clearColor, 0.0)
         this.scene = new THREE.Scene()
 
-        this.gridHelper = new THREE.GridHelper(800, 200)
+        this.gridHelper = new THREE.GridHelper(8000, 200)
         this.axesHelper = new THREE.AxesHelper(1000)
         this.scene.add(this.gridHelper)
         this.scene.add(this.axesHelper)
 
         const aspect = window.innerWidth / window.innerHeight
 
-        this.camera = new THREE.PerspectiveCamera(60, aspect, 0.1, 1000)
+        this.camera = new THREE.PerspectiveCamera(60, aspect, 0.1, 10000)
 
         this.camera.position.set(0, 100, 200)
         this.camera.lookAt(0, 100, 0)
