@@ -4,10 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --mode online",
-    "build": "tsc && vite build --mode online",
-    "build-singlefile": "tsx tools/generate_assets.ts && tsc && vite build --mode singlefile && tsx tools/fix-singlefile.ts ",
-    "preview": "vite preview",
+    "dev": "vite --mode online --base /open-pose-editor/",
+    "build": "tsc && vite build --mode online --base /open-pose-editor/",
+    "build-netlify": "tsc && vite build --mode online --base /",
+    "build-singlefile": "tsx tools/generate_assets.ts && tsc && vite build --mode singlefile --base ./ && tsx tools/fix-singlefile.ts ",
+    "preview": "vite preview --base /open-pose-editor/",
     "format": "prettier --write src",
     "translate": "tsx tools/translate.ts"
   },
