@@ -9,6 +9,8 @@
     "Camera Near": "カメラ近距離",
     "Camera Far": "カメラ遠距離",
     "Camera Focal Length": "カメラ焦点距離",
+    "Camera Position": "カメラ位置",
+    "Camera Rotation": "カメラ回転",
     "Downloading Hand Model": "手のモデルをダウンロード中",
     "Updates are available, please confirm!!": "アップデートが利用可能です。確認してください！",
     "Select a scene file": "シーンファイルを選択",

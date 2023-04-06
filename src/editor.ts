@@ -729,6 +729,7 @@ export class BodyEditor {
     }>()
     PreviewEventManager = new EditorEventManager<boolean>()
     LockViewEventManager = new EditorEventManager<boolean>()
+    CameraEventManager = new EditorEventManager<THREE.PerspectiveCamera>()
 
     triggerSelectEvent(body: Object3D) {
         const c = new BodyControlor(body)
@@ -808,6 +809,8 @@ export class BodyEditor {
             },
             this.camera
         )
+        this.CameraEventManager.TriggerEvent(this.camera)
+
         const intersects: THREE.Intersection[] =
             this.raycaster.intersectObjects(this.GetBodies(), true)
         // If read_point is found, choose it first
@@ -1513,6 +1516,42 @@ void main() {
     }
     set CameraFocalLength(value) {
         this.camera.setFocalLength(value)
+    }
+    get CameraPositionX() {
+        return this.camera.position.x
+    }
+    set CameraPositionX(value) {
+        this.camera.position.x = value
+    }
+    get CameraPositionY() {
+        return this.camera.position.y
+    }
+    set CameraPositionY(value) {
+        this.camera.position.y = value
+    }
+    get CameraPositionZ() {
+        return this.camera.position.z
+    }
+    set CameraPositionZ(value) {
+        this.camera.position.z = value
+    }
+    get CameraRotationX() {
+        return this.camera.rotation.x
+    }
+    set CameraRotationX(value) {
+        this.camera.rotation.x = value
+    }
+    get CameraRotationY() {
+        return this.camera.rotation.y
+    }
+    set CameraRotationY(value) {
+        this.camera.rotation.y = value
+    }
+    get CameraRotationZ() {
+        return this.camera.rotation.z
+    }
+    set CameraRotationZ(value) {
+        this.camera.rotation.z = value
     }
 
     GetBodyData(o: Object3D): BodyData {

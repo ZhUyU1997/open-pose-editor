@@ -120,6 +120,30 @@ function GetCameraParamControlor(editor: BodyEditor) {
             range: [0.1, 100],
             name: i18n.t('Camera Focal Length'),
         },
+        CameraPositionX: {
+            range: [-1000, 1000],
+            name: i18n.t('Camera Position') + ' ' + i18n.t('X'),
+        },
+        CameraPositionY: {
+            range: [-1000, 1000],
+            name: i18n.t('Y'),
+        },
+        CameraPositionZ: {
+            range: [-1000, 1000],
+            name: i18n.t('Z'),
+        },
+        CameraRotationX: {
+            range: [-Math.PI, Math.PI],
+            name: i18n.t('Camera Rotation') + ' ' + i18n.t('X'),
+        },
+        CameraRotationY: {
+            range: [-Math.PI, Math.PI],
+            name: i18n.t('Y'),
+        },
+        CameraRotationZ: {
+            range: [-Math.PI, Math.PI],
+            name: i18n.t('Z'),
+        },
     } as const
 
     return Object.entries(
@@ -274,6 +298,7 @@ const ControlorPopover: React.FC<{
 
     const [bodySelected, setBodySelected] = useState(false)
     useEffect(() => {
+        console.log(editor)
         const select = () => {
             setBodySelected(true)
         }
@@ -283,9 +308,15 @@ const ControlorPopover: React.FC<{
         editor.SelectEventManager.AddEventListener(select)
         editor.UnselectEventManager.AddEventListener(unselect)
 
+        const cameraUpdate = () => {
+            forceUpdate()
+        }
+        editor.CameraEventManager.AddEventListener(cameraUpdate)
+
         return () => {
             editor.SelectEventManager.RemoveEventListener(select)
             editor.UnselectEventManager.RemoveEventListener(unselect)
+            editor.CameraEventManager.RemoveEventListener(cameraUpdate)
         }
     }, [editor])
     return (

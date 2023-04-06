@@ -9,6 +9,8 @@
     "Camera Near": "Camera Near",
     "Camera Far": "Camera Far",
     "Camera Focal Length": "Camera Focal Length",
+    "Camera Position": "Camera Position",
+    "Camera Rotation": "Camera Rotation",
     "Downloading Hand Model": "Downloading Hand Model",
     "Updates are available, please confirm!!": "Updates are available, please confirm!!",
     "Select a scene file": "Select a scene file",
