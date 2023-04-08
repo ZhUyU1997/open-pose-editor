@@ -614,9 +614,10 @@ export async function LoadFoot(
     })
 
     const mask = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.32, 0.32, 0.1, 32),
+        new THREE.CylinderGeometry(0.35, 0.35, 0.2, 32),
         new THREE.MeshBasicMaterial({ color: 0x000000 })
     )
+    mask.scale.setX(0.7)
     mask.name = 'foot_mask'
     mask.visible = false
     mesh.skeleton.bones[0].add(mask)
