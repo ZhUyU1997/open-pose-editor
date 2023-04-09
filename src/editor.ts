@@ -24,6 +24,7 @@ import { CCDIKSolver } from './utils/CCDIKSolver'
 import Stats from 'three/examples/jsm/libs/stats.module'
 import {
     BodyControlor,
+    BodyData,
     CloneBody,
     GetExtremityMesh,
     IsBone,
@@ -67,21 +68,6 @@ class EditorEventManager<T> {
     TriggerEvent(args: T): void {
         this.eventHandlers.forEach((h) => h(args))
     }
-}
-
-interface BodyData {
-    position: ReturnType<THREE.Vector3['toArray']>
-    rotation: ReturnType<THREE.Euler['toArray']>
-    scale: ReturnType<THREE.Vector3['toArray']>
-
-    child: Record<
-        string,
-        {
-            position: ReturnType<THREE.Vector3['toArray']>
-            rotation: ReturnType<THREE.Euler['toArray']>
-            scale: ReturnType<THREE.Vector3['toArray']>
-        }
-    >
 }
 
 interface CameraData {
@@ -410,15 +396,15 @@ export class BodyEditor {
         const oldValue = _old
         const body = this.getBodyByPart(obj)!
         const controlor = new BodyControlor(body)
-        const newValue = this.GetBodyData(body)
+        const newValue = controlor.GetBodyData()
 
         return {
             execute: () => {
-                this.RestoreBody(body, newValue)
+                controlor.RestoreBody(newValue)
                 controlor.Update()
             },
             undo: () => {
-                this.RestoreBody(body, oldValue)
+                controlor.RestoreBody(oldValue)
                 controlor.Update()
             },
         }
@@ -525,7 +511,8 @@ export class BodyEditor {
             const part = this.getSelectedPart()
             if (part) {
                 oldTransformValue = GetTransformValue(part)
-                oldBodyData = this.GetBodyData(this.getBodyByPart(part)!)
+                const body = this.getBodyByPart(part)!
+                oldBodyData = new BodyControlor(body).GetBodyData()
             }
             this.orbitControls.enabled = false
         })
@@ -1513,25 +1500,6 @@ void main() {
         this.camera.setFocalLength(value)
     }
 
-    GetBodyData(o: Object3D): BodyData {
-        const result: BodyData = {
-            position: o.position.toArray(),
-            rotation: o.rotation.toArray(),
-            scale: o.scale.toArray(),
-            child: {},
-        }
-        o.traverse((child) => {
-            if (child.name && IsNeedSaveObject(child.name)) {
-                result.child[child.name] = {
-                    position: child.position.toArray(),
-                    rotation: child.rotation.toArray(),
-                    scale: child.scale.toArray(),
-                }
-            }
-        })
-
-        return result
-    }
     GetCameraData() {
         const result = {
             position: this.camera.position.toArray(),
@@ -1545,7 +1513,9 @@ void main() {
         return result
     }
     GetSceneData() {
-        const bodies = this.GetBodies().map((o) => this.GetBodyData(o))
+        const bodies = this.GetBodies().map((o) =>
+            new BodyControlor(o).GetBodyData()
+        )
 
         const data = {
             header: 'Openpose Editor by Yu Zhu',
@@ -1591,23 +1561,10 @@ void main() {
         this.GetBodies().forEach((o) => o.removeFromParent())
     }
 
-    RestoreBody(body: Object3D, data: BodyData) {
-        body?.traverse((o) => {
-            if (o.name && o.name in data.child) {
-                const child = data.child[o.name]
-                o.position.fromArray(child.position)
-                o.rotation.fromArray(child.rotation as any)
-                o.scale.fromArray(child.scale)
-            }
-        })
-        body.position.fromArray(data.position)
-        body.rotation.fromArray(data.rotation as any)
-        body.scale.fromArray(data.scale)
-    }
     CreateBodiesFromData(bodies: BodyData[]) {
         return bodies.map((data) => {
             const body = CloneBody()!
-            this.RestoreBody(body, data)
+            new BodyControlor(body).RestoreBody(data)
             return body
         })
     }
@@ -1732,16 +1689,18 @@ void main() {
 
         if (!body) return
 
-        const old: BodyData = this.GetBodyData(body)
-        new BodyControlor(body).SetPose(poseData)
+        const controlor = new BodyControlor(body)
+        const old: BodyData = controlor.GetBodyData()
+        controlor.SetPose(poseData)
         this.pushCommand(this.CreateAllTransformCommand(body, old))
     }
     async SetBlazePose(positions: [number, number, number][]) {
         const body = await this.GetBodyToSetPose()
         if (!body) return
 
-        const old: BodyData = this.GetBodyData(body)
-        new BodyControlor(body).SetBlazePose(positions)
+        const controlor = new BodyControlor(body)
+        const old: BodyData = controlor.GetBodyData()
+        controlor.SetBlazePose(positions)
         this.pushCommand(this.CreateAllTransformCommand(body, old))
     }
 
