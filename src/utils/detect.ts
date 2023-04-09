@@ -14,13 +14,27 @@ const MyPose = import.meta.env.DEV
     : ((window as any).Pose as Class<Pose, [PoseConfig]>)
 console.log('MyPose', MyPose)
 
+const AliyuncsBase =
+    'https://openpose-editor.oss-cn-beijing.aliyuncs.com/%40mediapipe/pose'
+const JsdelivrBase = 'https://cdn.jsdelivr.net/npm/@mediapipe/pose'
+
+let UseJsdelivrBase = true
+function GetCDNBase() {
+    if (UseJsdelivrBase) return JsdelivrBase
+    else return AliyuncsBase
+}
+
+export function SetCDNBase(isJsdelivrBase: boolean) {
+    UseJsdelivrBase = isJsdelivrBase
+}
+
 const pose = new MyPose({
     locateFile: (file) => {
         if (file in assets) {
             console.log('local', file)
             return (assets as any)[file]
         }
-        const url = `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+        const url = `${GetCDNBase()}/${file}`
 
         console.log('load pose model', url)
         return url

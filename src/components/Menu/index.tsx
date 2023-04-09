@@ -4,7 +4,7 @@ import { CheckIcon, DotFilledIcon } from '@radix-ui/react-icons'
 
 import classes from './styles.module.css'
 import { BodyEditor } from '../../editor'
-import i18n from '../../i18n'
+import i18n, { IsChina } from '../../i18n'
 import { Helper } from '../../environments/online/helper'
 import { uploadImage } from '../../utils/transfer'
 import { getCurrentTime } from '../../utils/time'
@@ -13,6 +13,7 @@ import classNames from 'classnames'
 import { useLanguageSelect } from '../../hooks'
 import { ShowContextMenu } from '../ContextMenu'
 import { ShowDialog } from '../Dialog'
+import { SetCDNBase } from '../../utils/detect'
 
 const {
     MenubarRoot,
@@ -96,6 +97,17 @@ const MenubarDemo: React.FC<{
                         >
                             {i18n.t('Detect From Image')}
                         </Menubar.Item>
+                        {IsChina() ? (
+                            <Menubar.Item
+                                className={MenubarItem}
+                                onSelect={() => {
+                                    SetCDNBase(false)
+                                    helper.DetectFromImage(onChangeBackground)
+                                }}
+                            >
+                                {i18n.t('Detect From Image') + ' [中国]'}
+                            </Menubar.Item>
+                        ) : undefined}
                         <Menubar.Item
                             className={MenubarItem}
                             onSelect={() => helper.SetRandomPose()}
