@@ -32,6 +32,7 @@ export async function uploadJson() {
             reader.readAsText(file)
         })
     } catch (error) {
+        console.log(error)
         return null
     }
 }
@@ -54,6 +55,7 @@ export async function uploadImage() {
             reader.readAsDataURL(file)
         })
     } catch (error) {
+        console.log(error)
         return null
     }
 }
