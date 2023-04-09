@@ -2,7 +2,7 @@ import { getImage } from '../../utils/image'
 import { uploadImage } from '../../utils/transfer'
 import { DetectPosefromImage } from '../../utils/detect'
 
-import { BodyControlor, GetRandomPose, LoadPosesLibrary } from '../../body'
+import { BodyControlor } from '../../body'
 
 import { GetLoading } from '../../components/Loading'
 import { BodyEditor } from '../../editor'
@@ -10,6 +10,7 @@ import i18n from '../../i18n'
 import { Oops } from '../../components/Oops'
 import assets from '../../assets'
 import { ShowToast } from '../../components/Toast'
+import { GetRandomPose, LoadPosesLibrary } from '../../pose-library'
 
 export class Helper {
     editor: BodyEditor

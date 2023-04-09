@@ -1,18 +1,19 @@
 import { RefObject, useEffect, useState } from 'react'
 import assets from '../assets'
-import { CreateTemplateBody, LoadFoot, LoadHand } from '../body'
+import { CreateTemplateBody } from '../body'
 import { GetLoading } from '../components/Loading'
 import { BodyEditor } from '../editor'
 import i18n, { LanguageMapping } from '../i18n'
+import { LoadFoot, LoadHand } from '../models'
 
 export async function LoadBodyData() {
     const loading = GetLoading(500)
     loading.show({ title: i18n.t('Downloading Hand Model') })
-    const hand = await LoadHand(assets['models/hand.fbx'])
+    await LoadHand(assets['models/hand.fbx'])
     loading.show({ title: i18n.t('Downloading Foot Model') })
-    const foot = await LoadFoot(assets['models/foot.fbx'])
+    await LoadFoot(assets['models/foot.fbx'])
     loading.hide()
-    CreateTemplateBody(hand, foot)
+    CreateTemplateBody()
 }
 
 export function useBodyEditor(
