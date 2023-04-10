@@ -1207,7 +1207,7 @@ export class BodyEditor {
 
         this.pushCommand(this.CreateAddBodyCommand(body))
 
-        body.position.x += 10
+        if (list.length !== 0) body.position.x += 10
         this.scene.add(body)
         this.fixFootVisible()
         this.transformControl.setMode('translate')
@@ -1468,15 +1468,6 @@ void main() {
         }
     }
 
-    InitScene() {
-        const body = CloneBody()
-
-        if (body) {
-            this.scene.add(body)
-            this.dlight.target = body
-        }
-    }
-
     get CameraNear() {
         return this.camera.near
     }
@@ -1598,6 +1589,20 @@ void main() {
                 new BodyControlor(body).ResetAllTargetsPosition()
             }
             this.RestoreCamera(camera)
+        } catch (error: any) {
+            Oops(error)
+            console.error(error)
+        }
+    }
+    ResetScene() {
+        try {
+            this.ClearScene()
+            this.CopySelectedBody()
+            const body = this.getSelectedBody()
+            if (body) {
+                this.scene.add(body)
+                this.dlight.target = body
+            }
         } catch (error: any) {
             Oops(error)
             console.error(error)

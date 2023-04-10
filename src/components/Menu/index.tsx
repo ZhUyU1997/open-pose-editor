@@ -63,6 +63,12 @@ const MenubarDemo: React.FC<{
                     >
                         <Menubar.Item
                             className={MenubarItem}
+                            onSelect={() => editor.ResetScene()}
+                        >
+                            {i18n.t('Reset Scene')}
+                        </Menubar.Item>
+                        <Menubar.Item
+                            className={MenubarItem}
                             onSelect={() => editor.LoadScene()}
                         >
                             {i18n.t('Load Scene')}

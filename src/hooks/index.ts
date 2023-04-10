@@ -44,7 +44,7 @@ export function useBodyEditor(
             // we have to check if the editor is null to avoid meaningless operations
             if (editor) {
                 await LoadBodyData()
-                editor?.InitScene()
+                editor?.ResetScene()
                 if (editor?.RestoreScene && location.hash) {
                     const rawData = decodeURIComponent(
                         location.hash.replace(/^#/, '')

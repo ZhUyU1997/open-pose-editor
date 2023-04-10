@@ -61,5 +61,6 @@
     "Unlock View": "解除锁定视图",
     "Copy Keypoint Data": "复制关键点数据",
     "Copied to Clipboard": "已复制到剪贴板",
-    "Generate Scene URL": "生成场景URL"
+    "Generate Scene URL": "生成场景URL",
+    "Reset Scene": "重置场景"
 }

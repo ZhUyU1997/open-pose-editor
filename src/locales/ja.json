@@ -61,5 +61,6 @@
     "Lock View": "ビューをロックする",
     "Unlock View": "ビューをアンロックする",
     "Copy Keypoint Data": "キーポイントデータをコピーする",
-    "Copied to Clipboard": "クリップボードにコピーされました"
+    "Copied to Clipboard": "クリップボードにコピーされました",
+    "Reset Scene": "シーンをリセットする"
 }

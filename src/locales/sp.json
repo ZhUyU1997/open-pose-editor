@@ -61,5 +61,6 @@
     "Unlock View": "Desbloquear vista",
     "Copy Keypoint Data": "Copiar datos del punto clave",
     "Copied to Clipboard": "Copiado al portapapeles",
-    "Generate Scene URL": "Generar URL de escena"
+    "Generate Scene URL": "Generar URL de escena",
+    "Reset Scene": "Restablecer escena"
 }
