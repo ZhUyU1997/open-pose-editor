@@ -137,7 +137,9 @@ function GetCameraParamControlor(editor: BodyEditor) {
             name,
             range,
             getValue() {
-                return editor[paramName as keyof typeof CameraParamsInit]
+                const value = editor[paramName as keyof typeof CameraParamsInit]
+                // webui exception in launch
+                return isNaN(value) ? range[0] : value
             },
             onChange(value: number) {
                 editor[paramName as keyof typeof CameraParamsInit] = value

@@ -1,5 +1,5 @@
 import { getImage } from '../../utils/image'
-import { uploadImage } from '../../utils/transfer'
+import { CopyTextToClipboard, uploadImage } from '../../utils/transfer'
 import { DetectPosefromImage } from '../../utils/detect'
 
 import { BodyControlor } from '../../body'
@@ -76,7 +76,7 @@ export class Helper {
         }
         try {
             const data = new BodyControlor(body).Get18keyPointsData()
-            await navigator.clipboard.writeText(JSON.stringify(data, null, 4))
+            await CopyTextToClipboard(JSON.stringify(data, null, 4))
             ShowToast({ title: i18n.t('Copied to Clipboard') })
         } catch (error) {
             Oops(error)
@@ -92,7 +92,7 @@ export class Helper {
             )
             const url_base = location.href.replace(/#$/, '')
             const url = `${url_base}#${d}`
-            await navigator.clipboard.writeText(url)
+            await CopyTextToClipboard(url)
             ShowToast({ title: i18n.t('Copied to Clipboard') })
         } catch (error) {
             Oops(error)
