@@ -40,7 +40,7 @@ const MenubarDemo: React.FC<{
 
     useEffect(() => {
         const show = (data: { mouseX: number; mouseY: number }) => {
-            ShowContextMenu({ ...data, editor })
+            ShowContextMenu({ ...data, editor, onChangeBackground })
         }
         editor?.ContextMenuEventManager.AddEventListener(show)
         return () => {
@@ -118,7 +118,7 @@ const MenubarDemo: React.FC<{
                             className={MenubarItem}
                             onSelect={() => helper.SetRandomPose()}
                         >
-                            {i18n.t('Set Random Pose [NEW]')}
+                            {i18n.t('Set Random Pose')}
                         </Menubar.Item>
                         <Menubar.Item
                             className={MenubarItem}

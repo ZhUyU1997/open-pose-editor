@@ -3,8 +3,9 @@ import classes from './styles.module.css'
 import NiceModal, { useModal } from '@ebay/nice-modal-react'
 import { debounce } from 'lodash-es'
 import { BodyEditor } from '../../editor'
-import i18n from '../../i18n'
+import i18n, { IsChina } from '../../i18n'
 import { Helper } from '../../environments/online/helper'
+import { SetCDNBase } from '../../utils/detect'
 
 const { Root, ContextMenuContent, ContextMenuItem, RightSlot } = classes
 
@@ -12,7 +13,8 @@ const MyContextMenu = NiceModal.create<{
     editor: BodyEditor
     mouseX: number
     mouseY: number
-}>(({ editor, mouseX, mouseY }) => {
+    onChangeBackground: (url: string) => void
+}>(({ editor, mouseX, mouseY, onChangeBackground }) => {
     const helper = useMemo(() => new Helper(editor), [editor])
 
     const modal = useModal()
@@ -80,6 +82,31 @@ const MyContextMenu = NiceModal.create<{
                 >
                     {i18n.t('Copy Keypoint Data')}
                 </div>
+                <div
+                    className={ContextMenuItem}
+                    onClick={() => {
+                        helper.SetRandomPose()
+                    }}
+                >
+                    {i18n.t('Set Random Pose')}
+                </div>
+                <div
+                    className={ContextMenuItem}
+                    onClick={() => helper.DetectFromImage(onChangeBackground)}
+                >
+                    {i18n.t('Detect From Image')}
+                </div>
+                {IsChina() ? (
+                    <div
+                        className={ContextMenuItem}
+                        onClick={() => {
+                            SetCDNBase(false)
+                            helper.DetectFromImage(onChangeBackground)
+                        }}
+                    >
+                        {i18n.t('Detect From Image') + ' [中国]'}
+                    </div>
+                ) : undefined}
             </div>
         </div>
     )
