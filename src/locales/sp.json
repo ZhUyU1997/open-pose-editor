@@ -62,5 +62,8 @@
     "Copy Keypoint Data": "Copiar datos del punto clave",
     "Copied to Clipboard": "Copiado al portapapeles",
     "Generate Scene URL": "Generar URL de escena",
-    "Reset Scene": "Restablecer escena"
+    "Reset Scene": "Restablecer escena",
+    "Load Gesture": "Cargar gesto",
+    "Save Gesture": "Guardar gesto",
+    "Please select a hand!!": "¡¡Por favor, seleccione una mano!!"
 }

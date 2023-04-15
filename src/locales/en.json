@@ -62,5 +62,8 @@
     "Unlock View": "Unlock View",
     "Copy Keypoint Data": "Copy Keypoint Data",
     "Copied to Clipboard": "Copied to Clipboard",
-    "Reset Scene": "Reset Scene"
+    "Reset Scene": "Reset Scene",
+    "Load Gesture": "Load Gesture",
+    "Save Gesture": "Save Gesture",
+    "Please select a hand!!": "Please select a hand!!"
 }

@@ -62,5 +62,8 @@
     "Copy Keypoint Data": "Schlüsselpunktdaten kopieren",
     "Copied to Clipboard": "In die Zwischenablage kopiert",
     "Generate Scene URL": "Szene-URL generieren",
-    "Reset Scene": "Szene zurücksetzen"
+    "Reset Scene": "Szene zurücksetzen",
+    "Load Gesture": "Geste laden",
+    "Save Gesture": "Geste speichern",
+    "Please select a hand!!": "Bitte wählen Sie eine Hand aus!!"
 }

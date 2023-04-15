@@ -460,6 +460,17 @@ export interface BodyData {
     >
 }
 
+export interface HandData {
+    child: Record<
+        string,
+        {
+            position?: ReturnType<THREE.Vector3['toArray']>
+            rotation?: ReturnType<THREE.Euler['toArray']>
+            scale?: ReturnType<THREE.Vector3['toArray']>
+        }
+    >
+}
+
 export class BodyControlor {
     body: Object3D
     part: Record<ControlPartName, Object3D> = {} as any
@@ -981,6 +992,68 @@ export class BodyControlor {
                 this.getDirectionVectorByParentOf(name, data[from], data[to])
             )
         this.Update()
+    }
+
+    GetHandData(hand: 'left_hand' | 'right_hand'): HandData {
+        const o = this.part[hand]
+        const result: HandData = {
+            child: {},
+        }
+        o.traverse((child) => {
+            if (child.name && IsBone(child.name)) {
+                if (child.name in result.child)
+                    console.log('Duplicate name', child.name, child)
+                const data: Pick<BodyData, 'position' | 'rotation' | 'scale'> =
+                    {}
+
+                if (
+                    this.getDistanceOf(
+                        child.position,
+                        new THREE.Vector3(0, 0, 0)
+                    ) != 0
+                ) {
+                    data.position = child.position.toArray()
+                }
+
+                if (
+                    this.getDistanceOf(
+                        child.scale,
+                        new THREE.Vector3(1, 1, 1)
+                    ) != 0
+                ) {
+                    data.scale = child.scale.toArray()
+                }
+
+                if (
+                    child.rotation.x !== 0 ||
+                    child.rotation.y !== 0 ||
+                    child.rotation.z !== 0
+                ) {
+                    data.rotation = child.rotation.toArray()
+                }
+                if (data) result.child[child.name] = data
+            }
+        })
+
+        return result
+    }
+
+    RestoreHand(hand: 'left_hand' | 'right_hand', data: HandData) {
+        data.child = Object.fromEntries(
+            Object.entries(data.child).map(([k, v]) => {
+                if (hand == 'left_hand') return [k.replace('_R', '_L'), v]
+                if (hand == 'right_hand') return [k.replace('_L', '_R'), v]
+                return [k, v]
+            })
+        )
+        this.part[hand]?.traverse((o) => {
+            if (o.name && o.name in data.child) {
+                const child = data.child[o.name]
+                if (child.position) o.position.fromArray(child.position)
+                if (child.rotation) o.rotation.fromArray(child.rotation as any)
+                if (child.scale) o.scale.fromArray(child.scale)
+            }
+        })
     }
 
     GetBodyData(): BodyData {

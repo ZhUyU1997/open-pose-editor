@@ -62,5 +62,8 @@
     "Unlock View": "ビューをアンロックする",
     "Copy Keypoint Data": "キーポイントデータをコピーする",
     "Copied to Clipboard": "クリップボードにコピーされました",
-    "Reset Scene": "シーンをリセットする"
+    "Reset Scene": "シーンをリセットする",
+    "Load Gesture": "ジェスチャーを読み込む",
+    "Save Gesture": "ジェスチャーを保存する",
+    "Please select a hand!!": "手を選択してください!!"
 }

@@ -62,5 +62,8 @@
     "Copy Keypoint Data": "复制关键点数据",
     "Copied to Clipboard": "已复制到剪贴板",
     "Generate Scene URL": "生成场景URL",
-    "Reset Scene": "重置场景"
+    "Reset Scene": "重置场景",
+    "Load Gesture": "加载手势",
+    "Save Gesture": "保存手势",
+    "Please select a hand!!": "请选择一只手！！"
 }

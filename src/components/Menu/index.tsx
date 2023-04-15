@@ -81,6 +81,18 @@ const MenubarDemo: React.FC<{
                         </Menubar.Item>
                         <Menubar.Item
                             className={MenubarItem}
+                            onSelect={() => helper.LoadGesture()}
+                        >
+                            {i18n.t('Load Gesture')}
+                        </Menubar.Item>
+                        <Menubar.Item
+                            className={MenubarItem}
+                            onSelect={() => helper.SaveGesture()}
+                        >
+                            {i18n.t('Save Gesture')}
+                        </Menubar.Item>
+                        <Menubar.Item
+                            className={MenubarItem}
                             onSelect={() => {
                                 helper.GenerateSceneURL()
                             }}

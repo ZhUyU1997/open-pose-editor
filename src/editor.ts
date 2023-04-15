@@ -1249,13 +1249,26 @@ export class BodyEditor {
     }
 
     getSelectedBody() {
-        let obj: Object3D | null = this.transformControl.object ?? null
+        let obj: Object3D | null = this.getSelectedPart() ?? null
         obj = obj ? this.getBodyByPart(obj) : null
 
         return obj
     }
     getSelectedPart() {
         return this.transformControl.object
+    }
+
+    getHandByPart(o: Object3D) {
+        if (IsHand(o?.name)) return o
+
+        const body = this.getAncestors(o).find((o) => IsHand(o?.name)) ?? null
+        return body
+    }
+
+    getSelectedHand() {
+        let obj: Object3D | null = this.getSelectedPart() ?? null
+        obj = obj ? this.getHandByPart(obj) : null
+        return obj
     }
     RemoveBody() {
         const obj = this.getSelectedBody()
@@ -1520,6 +1533,25 @@ void main() {
 
         return data
     }
+    GetGesture() {
+        const hand = this.getSelectedHand()
+        const body = this.getSelectedBody()
+
+        if (!hand || !body) return null
+        const data = {
+            header: 'Openpose Editor by Yu Zhu',
+            version: __APP_VERSION__,
+            object: {
+                hand: new BodyControlor(body).GetHandData(
+                    hand.name === 'left_hand' ? 'left_hand' : 'right_hand'
+                ),
+            },
+            setting: {},
+        }
+
+        return data
+    }
+
     AutoSaveScene() {
         try {
             const rawData = localStorage.getItem('AutoSaveSceneData')
@@ -1546,6 +1578,31 @@ void main() {
         } catch (error) {
             console.error(error)
         }
+    }
+    RestoreGesture(rawData: string) {
+        const data = JSON.parse(rawData)
+
+        const {
+            version,
+            object: { hand: handData },
+            setting,
+        } = data
+
+        if (!handData) throw new Error('Invalid json')
+        const hand = this.getSelectedHand()
+        const body = this.getSelectedBody()
+
+        if (!hand || !body) throw new Error('!hand || !body')
+
+        new BodyControlor(body).RestoreHand(
+            hand.name == 'left_hand' ? 'left_hand' : 'right_hand',
+            handData
+        )
+    }
+    SaveGesture() {
+        const data = this.GetGesture()
+        if (!data) throw new Error('Failed to get gesture')
+        downloadJson(JSON.stringify(data), `gesture_${getCurrentTime()}.json`)
     }
 
     ClearScene() {
