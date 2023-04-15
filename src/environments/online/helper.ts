@@ -66,7 +66,13 @@ export class Helper {
         } catch (error) {
             loading.hide()
 
-            Oops(error)
+            Oops(
+                i18n.t(
+                    'If you try to detect anime characters, you may get an error. Please try again with photos.'
+                ) +
+                    '\n' +
+                    error
+            )
             console.error(error)
             return null
         }

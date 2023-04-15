@@ -65,5 +65,6 @@
     "Reset Scene": "Reset Scene",
     "Load Gesture": "Load Gesture",
     "Save Gesture": "Save Gesture",
-    "Please select a hand!!": "Please select a hand!!"
+    "Please select a hand!!": "Please select a hand!!",
+    "If you try to detect anime characters, you may get an error. Please try again with photos.": "If you try to detect anime characters, you may get an error. Please try again with photos."
 }

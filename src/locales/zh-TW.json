@@ -65,5 +65,6 @@
     "Reset Scene": "重置場景",
     "Load Gesture": "載入手勢",
     "Save Gesture": "儲存手勢",
-    "Please select a hand!!": "請選擇一隻手！！"
+    "Please select a hand!!": "請選擇一隻手！！",
+    "If you try to detect anime characters, you may get an error. Please try again with photos.": "如果您嘗試檢測動漫角色，可能會出現錯誤。請使用照片再試一次。"
 }
