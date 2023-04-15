@@ -243,6 +243,8 @@ export class BodyEditor {
     effectSobel?: ShaderPass
     enableComposer = false
     enablePreview = true
+    enableHelper = true
+
     paused = false
 
     parentElem: ParentElement
@@ -1152,11 +1154,23 @@ export class BodyEditor {
         // eslint-disable-next-line @typescript-eslint/no-empty-function
         return () => {}
     }
+    changeHelper() {
+        const old = {
+            axesHelper: this.axesHelper.visible,
+            gridHelper: this.gridHelper.visible,
+        }
+        this.axesHelper.visible = false
+        this.gridHelper.visible = false
+
+        return () => {
+            this.axesHelper.visible = old.axesHelper
+            this.gridHelper.visible = old.gridHelper
+        }
+    }
     MakeImages() {
         this.renderer.setClearColor(0x000000)
 
-        this.axesHelper.visible = false
-        this.gridHelper.visible = false
+        const restoreHelper = this.changeHelper()
 
         const restoreTransfromControl = this.changeTransformControl()
         const restoreView = this.changeView()
@@ -1172,8 +1186,7 @@ export class BodyEditor {
         /// end
 
         this.renderer.setClearColor(0x000000, 0)
-        this.axesHelper.visible = true
-        this.gridHelper.visible = true
+        restoreHelper()
 
         restoreTransfromControl()
         restoreView()
@@ -1377,6 +1390,14 @@ export class BodyEditor {
         this.setFootVisible(!this.onlyHand)
     }
 
+    get EnableHelper() {
+        return this.enableHelper
+    }
+    set EnableHelper(value: boolean) {
+        this.enableHelper = value
+        this.gridHelper.visible = value
+        this.axesHelper.visible = value
+    }
     setFootVisible(value: boolean) {
         this.traverseExtremities((o) => {
             if (IsFoot(o.name)) {

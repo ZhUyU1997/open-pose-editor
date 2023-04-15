@@ -66,5 +66,6 @@
     "Load Gesture": "Geste laden",
     "Save Gesture": "Geste speichern",
     "Please select a hand!!": "Bitte wählen Sie eine Hand aus!!",
-    "If you try to detect anime characters, you may get an error. Please try again with photos.": "Bei dem Versuch, Anime-Charaktere zu erkennen, kann es zu einem Fehler kommen. Bitte versuchen Sie es erneut mit Fotos."
+    "If you try to detect anime characters, you may get an error. Please try again with photos.": "Bei dem Versuch, Anime-Charaktere zu erkennen, kann es zu einem Fehler kommen. Bitte versuchen Sie es erneut mit Fotos.",
+    "Show Grid": "Gitter anzeigen"
 }

@@ -66,5 +66,6 @@
     "Load Gesture": "Cargar gesto",
     "Save Gesture": "Guardar gesto",
     "Please select a hand!!": "¡¡Por favor, seleccione una mano!!",
-    "If you try to detect anime characters, you may get an error. Please try again with photos.": "Si intenta detectar personajes de anime, es posible que obtenga un error. Por favor, inténtelo de nuevo con fotos."
+    "If you try to detect anime characters, you may get an error. Please try again with photos.": "Si intenta detectar personajes de anime, es posible que obtenga un error. Por favor, inténtelo de nuevo con fotos.",
+    "Show Grid": "Mostrar cuadrícula"
 }

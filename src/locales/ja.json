@@ -66,5 +66,6 @@
     "Load Gesture": "ジェスチャーを読み込む",
     "Save Gesture": "ジェスチャーを保存する",
     "Please select a hand!!": "手を選択してください!!",
-    "If you try to detect anime characters, you may get an error. Please try again with photos.": "アニメキャラクターを検出しようとするとエラーが発生する場合があります。写真で再度お試しください。"
+    "If you try to detect anime characters, you may get an error. Please try again with photos.": "アニメキャラクターを検出しようとするとエラーが発生する場合があります。写真で再度お試しください。",
+    "Show Grid": "グリッドを表示"
 }
