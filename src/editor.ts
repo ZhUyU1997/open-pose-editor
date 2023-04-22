@@ -779,7 +779,6 @@ export class BodyEditor {
     }
 
     onMouseDown(event: MouseEvent) {
-        event.preventDefault()
         this.IsClick = true
     }
     onMouseMove(event: MouseEvent) {
