@@ -851,12 +851,12 @@ export class BodyEditor {
                     if (body) this.triggerSelectEvent(body)
                 }
             } else {
-                const isOk = IsPickable(name)
+                const isOk = IsPickable(name, this.FreeMode)
 
                 if (!isOk) {
                     obj =
                         this.getAncestors(obj).find((o) =>
-                            IsPickable(o.name)
+                            IsPickable(o.name, this.FreeMode)
                         ) ?? null
                 }
 
