@@ -778,7 +778,8 @@ export class BodyEditor {
         this.parentElem.removeEventListener('keyup', this.handleKeyUp)
     }
 
-    onMouseDown() {
+    onMouseDown(event: MouseEvent) {
+        event.preventDefault()
         this.IsClick = true
     }
     onMouseMove(event: MouseEvent) {

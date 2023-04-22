@@ -50,8 +50,6 @@ export const sendToOpener = (data: IPostMessage) => {
 }
 
 export const sendToAll = (data: IPostMessage) => {
-    // May generate many nonsense errors on webui extensions
-    if (import.meta.env.MODE !== 'online') return
     if (SEND_TO_SENDER) return
     const { opener, parent } = window
     if (!opener && !parent) {

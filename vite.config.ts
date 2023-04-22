@@ -4,6 +4,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { visualizer } from 'rollup-plugin-visualizer'
 import { resolve } from 'path'
 import ConditionalCompile from 'vite-plugin-conditional-compiler'
+import ExtensionPlugin from './vite-plugin-extension'
 
 // https://vitejs.dev/config/
 const config: UserConfigFn = ({ command, mode, ssrBuild }) => {
@@ -121,6 +122,7 @@ const config: UserConfigFn = ({ command, mode, ssrBuild }) => {
             mode === 'online' ? pwa : null,
             visualizer(),
             ConditionalCompile(),
+            mode.startsWith('extension') ? ExtensionPlugin() : null,
         ],
     }
 }
