@@ -259,9 +259,7 @@ def main():
     </script>
     """
     head += f"""
-    <script type="module">
-        document.addEventListener("DOMContentLoaded", function() {{import("{get_asset_url(js_path)}")}})
-    </script>
+    <script type="module" src="{get_asset_url(js_path)}"></script>
     """
 
     # Simulate CSS loading of the WebUI

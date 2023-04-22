@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --mode online",
-    "dev-extension": "$npm_execpath run build-extension && pipenv run start",
+    "dev-extension": "yarpm run build-extension && pipenv run start",
     "build": "tsc && vite build --mode online",
     "build-singlefile": "tsx tools/generate_assets.ts && tsc && vite build --mode singlefile && tsx tools/fix-singlefile.ts ",
     "build-extension": "tsc && vite build --mode extension-editor && vite build --mode extension-entry",
@@ -45,7 +45,8 @@
     "tsx": "^3.12.5",
     "type-fest": "^3.6.1",
     "vite-plugin-pwa": "^0.14.4",
-    "workbox-window": "^6.5.4"
+    "workbox-window": "^6.5.4",
+    "yarpm": "^1.2.0"
   },
   "devDependencies": {
     "@types/dat.gui": "^0.7.7",

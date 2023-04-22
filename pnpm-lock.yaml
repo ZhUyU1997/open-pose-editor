@@ -43,6 +43,7 @@ specifiers:
   vite-plugin-conditional-compiler: ^0.1.1
   vite-plugin-pwa: ^0.14.4
   workbox-window: ^6.5.4
+  yarpm: ^1.2.0
   zip-a-folder: ^1.1.5
 
 dependencies:
@@ -78,6 +79,7 @@ dependencies:
   type-fest: 3.6.1
   vite-plugin-pwa: 0.14.4_pchkumgzq6po4w4enhsumrku2u
   workbox-window: 6.5.4
+  yarpm: 1.2.0
 
 devDependencies:
   '@types/dat.gui': 0.7.7
@@ -2883,6 +2885,10 @@ packages:
     resolution: {integrity: sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==}
     dev: false
 
+  /command-exists/1.2.9:
+    resolution: {integrity: sha512-LTQ/SGc+s0Xc0Fu5WaKnR0YiygZkm9eKFvyS+fRsU7/ZWFF8ykFM6Pc9aCVf1+xasOOZpO3BAVgVrKvsqKHV7w==}
+    dev: false
+
   /commander/2.20.3:
     resolution: {integrity: sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==}
     dev: false
@@ -5133,6 +5139,14 @@ packages:
       string-width: 4.2.3
       y18n: 5.0.8
       yargs-parser: 21.1.1
+    dev: false
+
+  /yarpm/1.2.0:
+    resolution: {integrity: sha512-gxN4Ali09uey8EpLfbYG+bTXf1hF6TA5oAXFPpKi5Nt5aztXU9AIEksXE0lpuvC50vL4De/KIeP8JXgYOZ8KbQ==}
+    hasBin: true
+    dependencies:
+      command-exists: 1.2.9
+      cross-spawn: 7.0.3
     dev: false
 
   /yocto-queue/0.1.0:
