@@ -4,16 +4,20 @@ const files: Record<string, string> = {
     'src/poses/data.bin': '../src/poses/data.bin',
 }
 
-try {
-    const params = new URLSearchParams(window.location.search)
-    const url = params.get('config')
-    if (url?.startsWith('/')) {
-        const response = await fetch(url)
-        const config = await response.json()
-        Object.assign(files, config['assets'])
+async function loadAssets() {
+    try {
+        const params = new URLSearchParams(window.location.search)
+        const url = params.get('config')
+        if (url?.startsWith('/')) {
+            const response = await fetch(url)
+            const config = await response.json()
+            Object.assign(files, config['assets'])
+        }
+    } catch (error) {
+        console.error(error)
     }
-} catch (error) {
-    console.error(error)
 }
+
+loadAssets()
 
 export default files
