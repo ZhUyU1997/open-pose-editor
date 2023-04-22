@@ -5,8 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite --mode online",
+    "dev-extension": "$npm_execpath run build-extension && pipenv run start",
     "build": "tsc && vite build --mode online",
     "build-singlefile": "tsx tools/generate_assets.ts && tsc && vite build --mode singlefile && tsx tools/fix-singlefile.ts ",
+    "build-extension": "tsc && vite build --mode extension-editor && vite build --mode extension-entry",
     "preview": "vite preview",
     "format": "prettier --write src",
     "translate": "tsx tools/translate.ts"

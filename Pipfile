@@ -1,0 +1,23 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+gradio = "==3.16.2"
+requests = "*"
+
+[dev-packages]
+flake8 = "*"
+black = "*"
+isort = "*"
+mypy = "*"
+types-requests = "*"
+
+[requires]
+python_version = "3.10"
+
+[scripts]
+start = "python scripts/openpose_editor_3d.py"
+format = "black install.py scripts/"
+lint = "flake8 install.py scripts/"

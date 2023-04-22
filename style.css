@@ -1,0 +1,11 @@
+#openpose3d_iframe {
+    display: block;
+    width: 100%;
+    height: calc(100vh - 150px);
+    min-height: 750px;
+}
+
+/* Workaround for ashen-sensored/stable-diffusion-webui-two-shot */
+#openpose3d_main .output-html {
+    display: block;
+}

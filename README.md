@@ -2,6 +2,15 @@
 # [Click me to get editor](https://zhuyu1997.github.io/open-pose-editor/)
 # Preview
 https://user-images.githubusercontent.com/18410894/224073965-c782a05f-0a20-41cf-863d-8de490021ed7.mp4
+# Installation as a WebUI extension
+
+1. Open the "Extension" tab of the WebUI
+2. Open the "Available" tab
+3. If your WebUI is out of date, change the "Extension index URL" to `https://raw.githubusercontent.com/AUTOMATIC1111/stable-diffusion-webui-extensions/master/index.json`
+4. Click the "Load from:" button
+5. Click the "Install" button of 3D Openpose Editor
+6. Open the "Installed" tab and click the "Apply and restart UI" button
+
 # Feature
 
 - **Pose Editing**: Edit the pose of the 3D model by selecting a joint and rotating it with the mouse. 
