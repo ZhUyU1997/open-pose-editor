@@ -249,7 +249,7 @@ export function CreateTemplateBody() {
                     )
                 )
             ),
-            CreateGroup('left_shoulder_inner').add(
+            CreateGroup('right_shoulder_inner').add(
                 CreateJoint('right_shoulder', -width / 2, 0, 0).add(
                     CreateJoint('right_elbow', 0, -25, 0).add(
                         CreateJoint('right_wrist', 0, -25, 0).add(
@@ -258,7 +258,7 @@ export function CreateTemplateBody() {
                     )
                 )
             ),
-            CreateGroup('right_shoulder_inner').add(
+            CreateGroup('left_shoulder_inner').add(
                 CreateJoint('left_shoulder', width / 2, 0, 0).add(
                     CreateJoint('left_elbow', 0, -25, 0).add(
                         CreateJoint('left_wrist', 0, -25, 0).add(
