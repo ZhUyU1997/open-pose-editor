@@ -49,11 +49,14 @@ jobs:
           # Upload entire repository
           path: './dist'
       - run: pnpm build-singlefile
+      - run: pnpm generate_downloads
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: html.zip
+          files: |
+            html.zip
+            downloads.zip
 
   # Deployment job
   deploy:

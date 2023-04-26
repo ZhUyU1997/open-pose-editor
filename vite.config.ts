@@ -115,7 +115,7 @@ const config: UserConfigFn = ({ command, mode, ssrBuild }) => {
         base: mode === 'online' ? '/open-pose-editor/' : './',
         define: {
             global: {},
-            __APP_VERSION__: JSON.stringify('0.1.21'),
+            __APP_VERSION__: JSON.stringify('0.1.22'),
             __APP_BUILD_TIME__: Date.now(),
         },
         build: {
