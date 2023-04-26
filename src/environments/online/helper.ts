@@ -10,7 +10,7 @@ import { BodyControlor } from '../../body'
 
 import { GetLoading } from '../../components/Loading'
 import { BodyEditor } from '../../editor'
-import i18n from '../../i18n'
+import i18n, { IsChina } from '../../i18n'
 import { Oops } from '../../components/Oops'
 import assets from '../../assets'
 import { ShowToast } from '../../components/Toast'
@@ -65,14 +65,22 @@ export class Helper {
             }
         } catch (error) {
             loading.hide()
-
-            Oops(
-                i18n.t(
-                    'If you try to detect anime characters, you may get an error. Please try again with photos.'
-                ) +
-                    '\n' +
-                    error
-            )
+            if (error === 'Timeout') {
+                if (IsChina())
+                    Oops(
+                        '下载超时，请点击“从图片中检测 [中国]”或者开启魔法，再试一次。' +
+                            '\n' +
+                            error
+                    )
+                else Oops(error)
+            } else
+                Oops(
+                    i18n.t(
+                        'If you try to detect anime characters, you may get an error. Please try again with photos.'
+                    ) +
+                        '\n' +
+                        error
+                )
             console.error(error)
             return null
         }

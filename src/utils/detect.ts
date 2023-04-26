@@ -52,12 +52,20 @@ pose.setOptions({
 })
 
 export function DetectPosefromImage(image: HTMLImageElement): Promise<Results> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
+        let isException = false
+        const id = setTimeout(() => {
+            isException = true
+            reject('Timeout')
+        }, 60 * 1000)
         pose.reset()
         pose.send({ image: image })
         pose.onResults((result) => {
             console.log(result)
-            resolve(result)
+            if (!isException) {
+                clearTimeout(id)
+                resolve(result)
+            }
         })
     })
 }
