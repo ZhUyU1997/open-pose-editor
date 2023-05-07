@@ -15,6 +15,7 @@ import { Oops } from '../../components/Oops'
 import assets from '../../assets'
 import { ShowToast } from '../../components/Toast'
 import { GetRandomPose, LoadPosesLibrary } from '../../pose-library'
+import { IsQQBrowser } from '../../utils/browser'
 
 export class Helper {
     editor: BodyEditor
@@ -23,6 +24,10 @@ export class Helper {
     }
 
     async DetectFromImage(onChangeBackground: (url: string) => void) {
+        if (IsQQBrowser()) {
+            Oops('QQ浏览器暂不支持图片检测，请使用其他浏览器试试')
+            return
+        }
         const body = await this.editor.GetBodyToSetPose()
         if (!body) {
             ShowToast({ title: i18n.t('Please select a skeleton!!') })
