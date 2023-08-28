@@ -166,7 +166,7 @@ function CreateHand(name: 'right_hand' | 'left_hand') {
         right_hand.translateX(-0.4)
         right_hand.translateY(3)
         right_hand.rotateY(Math.PI)
-        right_hand.rotateZ(-Math.PI / 2)
+        right_hand.rotateZ(-Math.PI / 4)
 
         right_hand.scale.multiplyScalar(HandScale)
 
@@ -184,7 +184,7 @@ function CreateHand(name: 'right_hand' | 'left_hand') {
         left_hand.translateX(0.4)
         left_hand.translateY(3)
         left_hand.rotateY(Math.PI)
-        left_hand.rotateZ(Math.PI / 2)
+        left_hand.rotateZ(Math.PI / 4)
         left_hand.scale.multiplyScalar(HandScale)
 
         left_hand.traverse((o) => {
@@ -251,8 +251,8 @@ export function CreateTemplateBody() {
             ),
             CreateGroup('right_shoulder_inner').add(
                 CreateJoint('right_shoulder', -width / 2, 0, 0).add(
-                    CreateJoint('right_elbow', 0, -25, 0).add(
-                        CreateJoint('right_wrist', 0, -25, 0).add(
+                    CreateJoint('right_elbow', -20, -25, 0).add(
+                        CreateJoint('right_wrist', -23, -25, 0).add(
                             CreateHand('right_hand')
                         )
                     )
@@ -260,8 +260,8 @@ export function CreateTemplateBody() {
             ),
             CreateGroup('left_shoulder_inner').add(
                 CreateJoint('left_shoulder', width / 2, 0, 0).add(
-                    CreateJoint('left_elbow', 0, -25, 0).add(
-                        CreateJoint('left_wrist', 0, -25, 0).add(
+                    CreateJoint('left_elbow', 20, -25, 0).add(
+                        CreateJoint('left_wrist', 23, -25, 0).add(
                             CreateHand('left_hand')
                         )
                     )
@@ -269,8 +269,8 @@ export function CreateTemplateBody() {
             ),
             CreateGroup('right_hip_inner').add(
                 CreateJoint('right_hip', -width / 2 + 7, -height, 0).add(
-                    CreateJoint('right_knee', 0, -40, 0).add(
-                        CreateJoint('right_ankle', 0, -36, 0).add(
+                    CreateJoint('right_knee', -4, -40, 0).add(
+                        CreateJoint('right_ankle', -5, -36, 0).add(
                             CreateFoot('right_foot')
                         )
                     )
@@ -278,8 +278,8 @@ export function CreateTemplateBody() {
             ),
             CreateGroup('left_hip_inner').add(
                 CreateJoint('left_hip', width / 2 - 7, -height, 0).add(
-                    CreateJoint('left_knee', 0, -40, 0).add(
-                        CreateJoint('left_ankle', 0, -36, 0).add(
+                    CreateJoint('left_knee', 4, -40, 0).add(
+                        CreateJoint('left_ankle', 5, -36, 0).add(
                             CreateFoot('left_foot')
                         )
                     )

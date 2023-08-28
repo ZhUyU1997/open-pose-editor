@@ -1,6 +1,7 @@
 const files: Record<string, string> = {
     'models/hand.fbx': '../models/hand.fbx',
     'models/foot.fbx': '../models/foot.fbx',
+    'models/reworked_hand.fbx': '../models/reworked_hand.fbx',
     'src/poses/data.bin': '../src/poses/data.bin',
 }
 

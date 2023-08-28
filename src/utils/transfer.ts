@@ -12,8 +12,23 @@ export function download(href: string, title: string) {
     a.click()
 }
 
+export function downloadCollada(data: string, fileName: string)
+{
+    const blob = new Blob( [ data ], { type: 'text/plain' } );
+    const href = window.URL.createObjectURL(blob)
+    download(href, fileName)
+    URL.revokeObjectURL(href)
+}
+
 export function downloadJson(data: string, fileName: string) {
     const blob = new Blob([data], { type: 'text/json' })
+    const href = window.URL.createObjectURL(blob)
+    download(href, fileName)
+    URL.revokeObjectURL(href)
+}
+
+export function downloadGlb(buffer: ArrayBuffer, fileName: string) {
+    const blob = new Blob( [ buffer ], { type: 'application/octet-stream' });
     const href = window.URL.createObjectURL(blob)
     download(href, fileName)
     URL.revokeObjectURL(href)

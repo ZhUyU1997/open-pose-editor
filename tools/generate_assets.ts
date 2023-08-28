@@ -9,6 +9,7 @@ const list: Record<
 > = {
     'models/foot.fbx': { mimetype: 'application/octet-stream' },
     'models/hand.fbx': { mimetype: 'application/octet-stream' },
+    'models/reworked_hand.fbx': { mimetype: 'application/octet-stream' },
     'src/poses/data.bin': { mimetype: 'application/octet-stream' },
     'pose_landmark_full.tflite': {
         prefix: 'node_modules/@mediapipe/pose/',

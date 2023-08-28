@@ -8,11 +8,17 @@ import { LoadFoot, LoadHand } from '../models'
 
 export async function LoadBodyData() {
     const loading = GetLoading(500)
-    loading.show({ title: i18n.t('Downloading Hand Model') })
-    await LoadHand(assets['models/hand.fbx'])
+
+    //loading.show({ title: i18n.t('Downloading Hand Model') })
+    //await LoadHand(assets['models/hand.fbx'])
+
     loading.show({ title: i18n.t('Downloading Foot Model') })
     await LoadFoot(assets['models/foot.fbx'])
+
+    loading.show({ title: i18n.t('Downloading Reworked Hand Model') })
+    await LoadHand(assets['models/reworked_hand.fbx'])
     loading.hide()
+
     CreateTemplateBody()
 }
 

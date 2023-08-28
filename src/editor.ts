@@ -39,7 +39,7 @@ import {
     IsTranslate,
 } from './body'
 
-import { downloadJson, uploadJson } from './utils/transfer'
+import { downloadCollada, downloadGlb, downloadJson, uploadJson } from './utils/transfer'
 
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
@@ -51,6 +51,13 @@ import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils'
 import { Oops } from './components/Oops'
 import { getCurrentTime } from './utils/time'
 import { sendToAll } from './hooks/useMessageDispatch'
+
+import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js'
+import { ColladaExporter, ColladaExporterOptions } from 'three/examples/jsm/exporters/ColladaExporter.js'
+
+
+const glftExporter = new GLTFExporter();
+const colladaExporter = new ColladaExporter();
 
 type EditorEventHandler<T> = (args: T) => void
 
@@ -809,7 +816,7 @@ export class BodyEditor {
         const name = intersectedObject ? intersectedObject.name : ''
         let obj: Object3D | null = intersectedObject
 
-        console.log(obj?.name)
+        console.log("Nombre: " + obj?.name)
 
         if (this.IsClick) {
             if (event.button === 2 || event.which === 3) {
@@ -1590,7 +1597,66 @@ void main() {
         }
     }
 
-    SaveScene() {
+
+    SaveSceneDae() 
+    {
+        try 
+        {
+            const opts = {
+                upAxis: 'Y_UP', 
+                unitName: 'millimeter', 
+                unitMeter: 0.001
+            };
+
+            const resultDAE = colladaExporter.parse( this.scene, 
+                function (result)
+                {
+                    console.log(result);
+                },
+                {}
+            );
+
+            if (resultDAE != null)
+                downloadCollada(resultDAE.data, 'scene.dae');
+        }
+        catch (error) 
+        {
+            console.error(error)
+        }
+    }
+
+
+    SaveSceneGlb() 
+    {
+        try 
+        {
+			const options = {
+                binary: true,
+            };
+            
+            glftExporter.parse(this.scene, 
+                function ( result ) 
+                {
+                    if ( result instanceof ArrayBuffer ) 
+                    {
+                        downloadGlb( result, 'scene.glb' );
+                    }
+                },
+                function ( error ) {
+                    console.log( 'An error happened during parsing', error );
+                },
+                options
+            );
+        }
+        catch (error)
+        {
+            console.error(error)
+        }
+    }
+
+    
+    SaveScene() 
+    {
         try {
             downloadJson(
                 JSON.stringify(this.GetSceneData()),

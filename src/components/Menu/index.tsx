@@ -77,7 +77,19 @@ const MenubarDemo: React.FC<{
                             className={MenubarItem}
                             onSelect={() => editor.SaveScene()}
                         >
-                            {i18n.t('Save Scene')}
+                            {i18n.t('Save Scene')} JSON
+                        </Menubar.Item>
+                        <Menubar.Item
+                            className={MenubarItem}
+                            onSelect={() => editor.SaveSceneDae()}
+                        >
+                            {i18n.t('Save Scene')} DAE
+                        </Menubar.Item>
+                        <Menubar.Item
+                            className={MenubarItem}
+                            onSelect={() => editor.SaveSceneGlb()}
+                        >
+                            {i18n.t('Save Scene')} GLB
                         </Menubar.Item>
                         <Menubar.Item
                             className={MenubarItem}
