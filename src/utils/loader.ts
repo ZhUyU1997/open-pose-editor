@@ -1,6 +1,8 @@
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { VRMLoaderPlugin } from '@pixiv/three-vrm'
+
 import * as THREE from 'three'
 
 const fbxLoader = new FBXLoader()
@@ -61,6 +63,34 @@ export async function LoadGLTFile(url: string): Promise<GLTF> {
     return new Promise((resolve, reject) => {
         // load a resource
         new GLTFLoader().load(
+            // resource URL
+            url,
+            // called when resource is loaded
+            function (object) {
+                resolve(object)
+            },
+            // called when loading is in progresses
+            function (xhr) {
+                console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+            },
+            // called when loading has errors
+            function (error) {
+                console.log('An error happened')
+                reject(error)
+            }
+        )
+    })
+}
+
+export async function LoadVRMFile(url: string): Promise<GLTF> {
+    return new Promise((resolve, reject) => {
+        // load a resource
+        const loader = new GLTFLoader()
+        // Install GLTFLoader plugin
+        loader.register((parser) => {
+            return new VRMLoaderPlugin(parser)
+        })
+        loader.load(
             // resource URL
             url,
             // called when resource is loaded

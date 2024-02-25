@@ -171,7 +171,7 @@ function CreateHand(name: 'right_hand' | 'left_hand') {
         right_hand.scale.multiplyScalar(HandScale)
 
         right_hand.traverse((o) => {
-            if (IsBone(o.name)) {
+            if (openposeJointUtils.IsBone(o.name)) {
                 o.name = o.name + '_R'
             }
         })
@@ -188,7 +188,7 @@ function CreateHand(name: 'right_hand' | 'left_hand') {
         left_hand.scale.multiplyScalar(HandScale)
 
         left_hand.traverse((o) => {
-            if (IsBone(o.name)) {
+            if (openposeJointUtils.IsBone(o.name)) {
                 o.name = o.name + '_L'
             }
         })
@@ -209,7 +209,7 @@ function CreateFoot(name: 'right_foot' | 'left_foot') {
         right_foot.scale.multiplyScalar(FootScale)
 
         right_foot.traverse((o) => {
-            if (IsBone(o.name)) {
+            if (openposeJointUtils.IsBone(o.name)) {
                 o.name = o.name + '_R'
             }
         })
@@ -221,7 +221,7 @@ function CreateFoot(name: 'right_foot' | 'left_foot') {
         left_foot.scale.multiplyScalar(FootScale)
 
         left_foot.traverse((o) => {
-            if (IsBone(o.name)) {
+            if (openposeJointUtils.IsBone(o.name)) {
                 o.name = o.name + '_L'
             }
         })
@@ -333,21 +333,6 @@ export function IsVirtualPoint(name: string) {
     ].includes(name)
 }
 
-export function IsNeedSaveObject(name: string) {
-    if (OpenposeKeypoints.includes(name)) return true
-    if (name === 'right_hand' || name === 'left_hand') return true
-    if (name === 'right_foot' || name === 'left_foot') return true
-    if (IsVirtualPoint(name)) return true // virtual point
-    if (IsBone(name)) return true
-    if (name.includes('_joint_sphere')) return true
-    if (name.includes('_link_')) return true
-    return false
-}
-
-export function IsBone(name: string) {
-    return IsMatchBonePrefix(name)
-}
-
 const pickableObjectNames: string[] = [
     'torso',
     'nose',
@@ -371,58 +356,89 @@ const pickableObjectNames: string[] = [
     'right_ankle_target',
 ]
 
-export function IsPickable(name: string, isFreeMode = false) {
-    if (isFreeMode && OpenposeKeypoints.includes(name)) return true
-    if (pickableObjectNames.includes(name)) return true
-    if (IsBone(name)) return true
-    return false
+export interface JointUtils {
+    IsSkeleton(name: string): boolean
+    IsExtremities(name: string): boolean
+    IsPickable(name: string, isFreeMode: boolean): boolean
+    IsTranslate(name: string, isFreeMode?: boolean): boolean
+    IsTarget(name: string): boolean
+    IsHand(name: string): boolean
+    IsFoot(name: string): boolean
+    IsMask(name: string): boolean
+    IsBone(name: string): boolean
+    IsNeedSaveObject(name: string): boolean
 }
 
-export function IsTranslate(name: string, isFreeMode = false) {
-    if (isFreeMode)
-        return (
-            [
-                'right_shoulder_inner',
-                'left_shoulder_inner',
-                'right_hip_inner',
-                'left_hip_inner',
-                'neck',
-            ].includes(name) == false
+class OpenposeJointUtils implements JointUtils {
+    IsSkeleton(name: string) {
+        if (name == 'torso') return true
+        if (OpenposeKeypoints.includes(name)) return true
+        if (IsVirtualPoint(name)) return true // virtual point
+        if (name.includes('_joint_sphere')) return true
+        if (name.includes('_link_')) return true
+        return false
+    }
+
+    IsExtremities(name: string) {
+        return ['left_hand', 'right_hand', 'left_foot', 'right_foot'].includes(
+            name
         )
+    }
 
-    if (name.endsWith('_target')) return true
-    return false
+    IsPickable(name: string, isFreeMode: boolean): boolean {
+        if (isFreeMode && OpenposeKeypoints.includes(name)) return true
+        if (pickableObjectNames.includes(name)) return true
+        if (this.IsBone(name)) return true
+        return false
+    }
+    IsTranslate(name: string, isFreeMode = false) {
+        if (isFreeMode)
+            return (
+                [
+                    'right_shoulder_inner',
+                    'left_shoulder_inner',
+                    'right_hip_inner',
+                    'left_hip_inner',
+                    'neck',
+                ].includes(name) == false
+            )
+
+        if (name.endsWith('_target')) return true
+        return false
+    }
+    IsTarget(name: string) {
+        if (name.endsWith('_target')) return true
+        return false
+    }
+
+    IsHand(name: string) {
+        return ['left_hand', 'right_hand'].includes(name)
+    }
+
+    IsFoot(name: string) {
+        return ['left_foot', 'right_foot'].includes(name)
+    }
+    IsMask(name: string) {
+        return ['foot_mask', 'hand_mask'].includes(name)
+    }
+
+    IsBone(name: string) {
+        return IsMatchBonePrefix(name)
+    }
+
+    IsNeedSaveObject(name: string) {
+        if (OpenposeKeypoints.includes(name)) return true
+        if (name === 'right_hand' || name === 'left_hand') return true
+        if (name === 'right_foot' || name === 'left_foot') return true
+        if (IsVirtualPoint(name)) return true // virtual point
+        if (this.IsBone(name)) return true
+        if (name.includes('_joint_sphere')) return true
+        if (name.includes('_link_')) return true
+        return false
+    }
 }
 
-export function IsTarget(name: string) {
-    if (name.endsWith('_target')) return true
-    return false
-}
-
-export function IsHand(name: string) {
-    return ['left_hand', 'right_hand'].includes(name)
-}
-
-export function IsFoot(name: string) {
-    return ['left_foot', 'right_foot'].includes(name)
-}
-
-export function IsMask(name: string) {
-    return ['foot_mask', 'hand_mask'].includes(name)
-}
-
-export function IsSkeleton(name: string) {
-    if (name == 'torso') return true
-    if (OpenposeKeypoints.includes(name)) return true
-    if (IsVirtualPoint(name)) return true // virtual point
-    if (name.includes('_joint_sphere')) return true
-    if (name.includes('_link_')) return true
-    return false
-}
-
-export function IsExtremities(name: string) {
-    return ['left_hand', 'right_hand', 'left_foot', 'right_foot'].includes(name)
-}
+export const openposeJointUtils = new OpenposeJointUtils()
 
 const ControlablePart = [
     ...OpenposeyKeypointsConst,
@@ -1000,7 +1016,7 @@ export class BodyControlor {
             child: {},
         }
         o.traverse((child) => {
-            if (child.name && IsBone(child.name)) {
+            if (child.name && openposeJointUtils.IsBone(child.name)) {
                 if (child.name in result.child)
                     console.log('Duplicate name', child.name, child)
                 const data: Pick<BodyData, 'position' | 'rotation' | 'scale'> =
@@ -1065,7 +1081,7 @@ export class BodyControlor {
             child: {},
         }
         o.traverse((child) => {
-            if (child.name && IsNeedSaveObject(child.name)) {
+            if (child.name && openposeJointUtils.IsNeedSaveObject(child.name)) {
                 if (child.name in result.child)
                     console.log('Duplicate name', child.name, child)
                 const data: Pick<BodyData, 'position' | 'rotation' | 'scale'> =

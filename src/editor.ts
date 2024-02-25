@@ -27,16 +27,8 @@ import {
     BodyData,
     CloneBody,
     GetExtremityMesh,
-    IsBone,
-    IsExtremities,
-    IsFoot,
-    IsHand,
-    IsMask,
-    IsNeedSaveObject,
-    IsPickable,
-    IsSkeleton,
-    IsTarget,
-    IsTranslate,
+    JointUtils,
+    openposeJointUtils,
 } from './body'
 
 import { downloadJson, uploadJson } from './utils/transfer'
@@ -51,6 +43,7 @@ import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils'
 import { Oops } from './components/Oops'
 import { getCurrentTime } from './utils/time'
 import { sendToAll } from './hooks/useMessageDispatch'
+import { CloneVRMModel, VRMBodyControlor, vrmJointUtls } from './vrm'
 
 type EditorEventHandler<T> = (args: T) => void
 
@@ -342,7 +335,7 @@ export class BodyEditor {
         // this.setupPost();
 
         if (statsElem) {
-            this.stats = Stats()
+            this.stats = new Stats()
             statsElem.appendChild(this.stats.dom)
         }
 
@@ -512,23 +505,30 @@ export class BodyEditor {
         this.transformControl.addEventListener('mouseDown', () => {
             const part = this.getSelectedPart()
             if (part) {
-                oldTransformValue = GetTransformValue(part)
                 const body = this.getBodyByPart(part)!
-                oldBodyData = new BodyControlor(body).GetBodyData()
+
+                if (body) {
+                    oldTransformValue = GetTransformValue(part)
+                    oldBodyData = new BodyControlor(body).GetBodyData()
+                }
             }
             this.orbitControls.enabled = false
         })
         this.transformControl.addEventListener('mouseUp', () => {
             const part = this.getSelectedPart()
             if (part) {
-                if (IsTarget(part.name))
-                    this.pushCommand(
-                        this.CreateAllTransformCommand(part, oldBodyData)
-                    )
-                else
-                    this.pushCommand(
-                        this.CreateTransformCommand(part, oldTransformValue)
-                    )
+                const body = this.getBodyByPart(part)!
+
+                if (body) {
+                    if (openposeJointUtils.IsTarget(part.name))
+                        this.pushCommand(
+                            this.CreateAllTransformCommand(part, oldBodyData)
+                        )
+                    else
+                        this.pushCommand(
+                            this.CreateTransformCommand(part, oldTransformValue)
+                        )
+                }
             }
             this.orbitControls.enabled = true
 
@@ -551,7 +551,7 @@ export class BodyEditor {
                 : undefined
         }
 
-        if (IsTranslate(this.getSelectedPart()?.name ?? ''))
+        if (openposeJointUtils.IsTranslate(this.getSelectedPart()?.name ?? ''))
             this.ikSolver?.update()
         else this.saveSelectedBodyControlor?.ResetAllTargetsPosition()
     }
@@ -710,6 +710,20 @@ export class BodyEditor {
         return body
     }
 
+    getVRMByPart(o: Object3D) {
+        if (o?.name === 'vrm_model') return o
+
+        const body =
+            this.getAncestors(o).find((o) => o?.name === 'vrm_model') ?? null
+        return body
+    }
+
+    getRootObject(o: Object3D) {
+        const body = this.getBodyByPart(o)
+        if (body == null) return this.getVRMByPart(o)
+        return body
+    }
+
     SelectEventManager = new EditorEventManager<BodyControlor>()
     UnselectEventManager = new EditorEventManager<void>()
     ContextMenuEventManager = new EditorEventManager<{
@@ -791,15 +805,19 @@ export class BodyEditor {
         const x = event.offsetX - this.renderer.domElement.offsetLeft
         const y = event.offsetY - this.renderer.domElement.offsetTop
         this.raycaster.setFromCamera(
-            {
-                x: (x / this.renderer.domElement.clientWidth) * 2 - 1,
-                y: -(y / this.renderer.domElement.clientHeight) * 2 + 1,
-            },
+            new THREE.Vector2(
+                (x / this.renderer.domElement.clientWidth) * 2 - 1,
+                -(y / this.renderer.domElement.clientHeight) * 2 + 1
+            ),
             this.camera
         )
         const intersects: THREE.Intersection[] =
-            this.raycaster.intersectObjects(this.GetBodies(), true)
+            this.raycaster.intersectObjects(
+                [...this.GetBodies(), ...this.GetVRMModels()],
+                true
+            )
         // If read_point is found, choose it first
+
         const point = intersects.find((o) => o.object.name === 'red_point')
         const intersectedObject: THREE.Object3D | null = point
             ? point.object
@@ -809,7 +827,7 @@ export class BodyEditor {
         const name = intersectedObject ? intersectedObject.name : ''
         let obj: Object3D | null = intersectedObject
 
-        console.log(obj?.name)
+        console.log(obj, obj?.name)
 
         if (this.IsClick) {
             if (event.button === 2 || event.which === 3) {
@@ -827,18 +845,27 @@ export class BodyEditor {
                 return
             }
 
+            const rootObj = this.getRootObject(obj)
+            const jointUtils: JointUtils =
+                rootObj?.name === 'vrm_model'
+                    ? vrmJointUtls
+                    : openposeJointUtils
+
             if (this.MoveMode) {
-                const isOk = IsPickable(name, this.FreeMode)
+                const isOk = jointUtils.IsPickable(name, this.FreeMode)
 
                 if (!isOk) {
                     obj =
                         this.getAncestors(obj).find((o) =>
-                            IsPickable(o.name, this.FreeMode)
+                            jointUtils.IsPickable(o.name, this.FreeMode)
                         ) ?? null
                 }
 
                 if (obj) {
-                    if (IsTranslate(obj.name, this.FreeMode) === false)
+                    if (
+                        jointUtils.IsTranslate(obj.name, this.FreeMode) ===
+                        false
+                    )
                         obj = this.getBodyByPart(obj)
                 }
 
@@ -851,19 +878,19 @@ export class BodyEditor {
                     if (body) this.triggerSelectEvent(body)
                 }
             } else {
-                const isOk = IsPickable(name, this.FreeMode)
+                const isOk = jointUtils.IsPickable(name, this.FreeMode)
 
                 if (!isOk) {
                     obj =
                         this.getAncestors(obj).find((o) =>
-                            IsPickable(o.name, this.FreeMode)
+                            jointUtils.IsPickable(o.name, this.FreeMode)
                         ) ?? null
                 }
 
                 if (obj) {
                     console.log(obj.name)
 
-                    if (IsTranslate(obj.name)) {
+                    if (jointUtils.IsTranslate(obj.name)) {
                         this.transformControl.setMode('translate')
                         this.transformControl.setSpace('world')
                     } else {
@@ -883,7 +910,7 @@ export class BodyEditor {
     traverseHandObjecct(handle: (o: THREE.Mesh) => void) {
         this.GetBodies().forEach((o) => {
             o.traverse((child) => {
-                if (IsHand(child?.name)) {
+                if (openposeJointUtils.IsHand(child?.name)) {
                     handle(child as THREE.Mesh)
                 }
             })
@@ -901,7 +928,11 @@ export class BodyEditor {
     traverseBones(handle: (o: Bone) => void) {
         this.GetBodies().forEach((o) => {
             o.traverse((child) => {
-                if (child instanceof Bone && IsBone(child.name)) handle(child)
+                if (
+                    child instanceof Bone &&
+                    openposeJointUtils.IsBone(child.name)
+                )
+                    handle(child)
             })
         })
     }
@@ -909,7 +940,7 @@ export class BodyEditor {
     traverseExtremities(handle: (o: THREE.Mesh) => void) {
         this.GetBodies().forEach((o) => {
             o.traverse((child) => {
-                if (IsExtremities(child.name)) {
+                if (openposeJointUtils.IsExtremities(child.name)) {
                     handle(child as THREE.Mesh)
                 }
             })
@@ -919,7 +950,7 @@ export class BodyEditor {
     onlyShowSkeleton() {
         const recoveryArr: Object3D[] = []
         this.traverseBodies((o) => {
-            if (IsSkeleton(o.name) === false) {
+            if (openposeJointUtils.IsSkeleton(o.name) === false) {
                 if (o.visible == true) {
                     o.visible = false
                     recoveryArr.push(o)
@@ -935,7 +966,7 @@ export class BodyEditor {
     showMask() {
         const recoveryArr: Object3D[] = []
         this.scene.traverse((o) => {
-            if (IsMask(o.name)) {
+            if (openposeJointUtils.IsMask(o.name)) {
                 console.log(o.name)
                 o.visible = true
                 recoveryArr.push(o)
@@ -952,7 +983,7 @@ export class BodyEditor {
 
         this.GetBodies().forEach((o) => {
             o.traverse((child) => {
-                if (IsExtremities(child?.name)) {
+                if (openposeJointUtils.IsExtremities(child?.name)) {
                     map.set(child, child.parent)
                     this.scene.attach(child)
                 } else if (child?.name === 'red_point') {
@@ -966,6 +997,9 @@ export class BodyEditor {
 
     GetBodies() {
         return this.scene.children.filter((o) => o?.name === 'torso')
+    }
+    GetVRMModels() {
+        return this.scene.children.filter((o) => o?.name === 'vrm_model')
     }
     showSkeleten(map: Map<Object3D, Object3D | null>) {
         for (const [k, v] of map.entries()) {
@@ -994,7 +1028,7 @@ export class BodyEditor {
     changeHandMaterialTraverse(type: 'depth' | 'normal' | 'phone') {
         const map = new Map<THREE.Mesh, Material | Material[]>()
         this.scene.traverse((child) => {
-            if (!IsExtremities(child.name)) return
+            if (!openposeJointUtils.IsExtremities(child.name)) return
             const o = GetExtremityMesh(child) as THREE.Mesh
             map.set(o, o.material)
             if (type == 'depth') o.material = new MeshDepthMaterial()
@@ -1040,9 +1074,11 @@ export class BodyEditor {
         let hands: THREE.Mesh[] = []
         this.scene.traverse((o) => {
             if (this.OnlyHand) {
-                if (IsHand(o?.name)) hands.push(o as THREE.Mesh)
+                if (openposeJointUtils.IsHand(o?.name))
+                    hands.push(o as THREE.Mesh)
             } else {
-                if (IsExtremities(o?.name)) hands.push(o as THREE.Mesh)
+                if (openposeJointUtils.IsExtremities(o?.name))
+                    hands.push(o as THREE.Mesh)
             }
         })
 
@@ -1272,9 +1308,12 @@ export class BodyEditor {
     }
 
     getHandByPart(o: Object3D) {
-        if (IsHand(o?.name)) return o
+        if (openposeJointUtils.IsHand(o?.name)) return o
 
-        const body = this.getAncestors(o).find((o) => IsHand(o?.name)) ?? null
+        const body =
+            this.getAncestors(o).find((o) =>
+                openposeJointUtils.IsHand(o?.name)
+            ) ?? null
         return body
     }
 
@@ -1349,14 +1388,14 @@ export class BodyEditor {
         const name = this.getSelectedPart()?.name ?? ''
 
         if (move) {
-            if (IsTranslate(name, this.FreeMode)) {
+            if (openposeJointUtils.IsTranslate(name, this.FreeMode)) {
                 IsTranslateMode = true
             } else {
                 const obj = this.getSelectedBody()
                 if (obj) this.transformControl.attach(obj)
             }
         } else {
-            if (IsTarget(name)) {
+            if (openposeJointUtils.IsTarget(name)) {
                 IsTranslateMode = true
             }
         }
@@ -1400,7 +1439,7 @@ export class BodyEditor {
     }
     setFootVisible(value: boolean) {
         this.traverseExtremities((o) => {
-            if (IsFoot(o.name)) {
+            if (openposeJointUtils.IsFoot(o.name)) {
                 o.visible = value
             }
         })
@@ -1675,12 +1714,13 @@ void main() {
     ResetScene() {
         try {
             this.ClearScene()
-            this.CopySelectedBody()
-            const body = this.getSelectedBody()
-            if (body) {
-                this.scene.add(body)
-                this.dlight.target = body
-            }
+            // this.CopySelectedBody()
+            this.scene.add(CloneVRMModel()!)
+            // const body = this.getSelectedBody()
+            // if (body) {
+            //     this.scene.add(body)
+            //     this.dlight.target = body
+            // }
         } catch (error: any) {
             Oops(error)
             console.error(error)
@@ -1767,6 +1807,10 @@ void main() {
         const body = bodies.length == 1 ? bodies[0] : this.getSelectedBody()
         return body
     }
+    async GetVRMToSetPose() {
+        const bodies = this.GetVRMModels()
+        return bodies[0] // TODO
+    }
     async SetPose(poseData: [number, number, number][]) {
         const body = await this.GetBodyToSetPose()
 
@@ -1778,13 +1822,13 @@ void main() {
         this.pushCommand(this.CreateAllTransformCommand(body, old))
     }
     async SetBlazePose(positions: [number, number, number][]) {
-        const body = await this.GetBodyToSetPose()
+        const body = await this.GetVRMToSetPose()
         if (!body) return
 
-        const controlor = new BodyControlor(body)
-        const old: BodyData = controlor.GetBodyData()
+        const controlor = new VRMBodyControlor(body)
+        // const old: BodyData = controlor.GetBodyData()
         controlor.SetBlazePose(positions)
-        this.pushCommand(this.CreateAllTransformCommand(body, old))
+        // this.pushCommand(this.CreateAllTransformCommand(body, old))
     }
 
     DetachTransfromControl() {
@@ -1819,7 +1863,7 @@ void main() {
     }
     getSelectedBone() {
         const part = this.getSelectedPart()
-        const isSelectBone = part && IsBone(part.name)
+        const isSelectBone = part && openposeJointUtils.IsBone(part.name)
         return isSelectBone ? (part as Bone) : null
     }
     UpdateBones() {
@@ -1836,7 +1880,9 @@ void main() {
             color = DEFAULT_COLOR
         ) => {
             const point = bone.children.find(
-                (o) => o instanceof THREE.Mesh && !IsMask(o.name)
+                (o) =>
+                    o instanceof THREE.Mesh &&
+                    !openposeJointUtils.IsMask(o.name)
             ) as THREE.Mesh
             if (point) {
                 const material = point.material as MeshBasicMaterial
@@ -1858,7 +1904,7 @@ void main() {
             setColor(bone, SELECTED, SELECTED_COLOR)
 
             bone.traverseAncestors((ancestor) => {
-                if (IsBone(ancestor.name)) {
+                if (openposeJointUtils.IsBone(ancestor.name)) {
                     setColor(ancestor as Bone, ACTIVE)
                 }
             })

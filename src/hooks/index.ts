@@ -4,11 +4,12 @@ import { CreateTemplateBody } from '../body'
 import { GetLoading } from '../components/Loading'
 import { BodyEditor } from '../editor'
 import i18n, { LanguageMapping } from '../i18n'
-import { LoadFoot, LoadHand } from '../models'
+import { LoadFoot, LoadHand, LoadVRMModel } from '../models'
 
 export async function LoadBodyData() {
     const loading = GetLoading(500)
     loading.show({ title: i18n.t('Downloading Hand Model') })
+    await LoadVRMModel(assets['models/three-vrm-girl.vrm'])
     await LoadHand(assets['models/hand.fbx'])
     loading.show({ title: i18n.t('Downloading Foot Model') })
     await LoadFoot(assets['models/foot.fbx'])

@@ -22,7 +22,75 @@ export class Helper {
     constructor(editor: BodyEditor) {
         this.editor = editor
     }
+    async DetectFromImageTest(onChangeBackground: (url: string) => void) {
+        if (IsQQBrowser()) {
+            Oops('QQ浏览器暂不支持图片检测，请使用其他浏览器试试')
+            return
+        }
+        const body = await this.editor.GetBodyToSetPose()
+        // if (!body) {
+        //     ShowToast({ title: i18n.t('Please select a skeleton!!') })
+        //     return
+        // }
 
+        const loading = GetLoading(500)
+
+        try {
+            const dataUrl = await uploadImage()
+
+            if (!dataUrl) return
+
+            const image = await getImage(dataUrl)
+            onChangeBackground(dataUrl)
+
+            loading.show({ title: i18n.t('Downloading MediaPipe Pose Model') })
+            const result = await DetectPosefromImage(image)
+            loading.hide()
+
+            if (result) {
+                console.log('defect result', result)
+
+                if (!result.poseWorldLandmarks)
+                    throw new Error(JSON.stringify(result))
+
+                const positions: [number, number, number][] =
+                    result.poseWorldLandmarks.map(({ x, y, z }) => [
+                        x * 100,
+                        -y * 100,
+                        -z * 100,
+                    ])
+
+                // this.drawPoseData(
+                //     result.poseWorldLandmarks.map(({ x, y, z }) =>
+                //         new THREE.Vector3().fromArray([x * 100, -y * 100, -z * 100])
+                //     )
+                // )
+
+                await this.editor.SetBlazePose(positions)
+                return
+            }
+        } catch (error) {
+            loading.hide()
+            if (error === 'Timeout') {
+                if (IsChina())
+                    Oops(
+                        '下载超时，请点击“从图片中检测 [中国]”或者开启魔法，再试一次。' +
+                            '\n' +
+                            error
+                    )
+                else Oops(error)
+            } else
+                Oops(
+                    i18n.t(
+                        'If you try to detect anime characters, you may get an error. Please try again with photos.'
+                    ) +
+                        '\n' +
+                        error
+                )
+            console.error(error)
+            return null
+        }
+    }
     async DetectFromImage(onChangeBackground: (url: string) => void) {
         if (IsQQBrowser()) {
             Oops('QQ浏览器暂不支持图片检测，请使用其他浏览器试试')

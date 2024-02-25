@@ -1,9 +1,16 @@
 import * as THREE from 'three'
 import { FindObjectItem } from './utils/three-utils'
-import { LoadFBXFile, LoadGLTFile, LoadObjFile } from './utils/loader'
+import {
+    LoadFBXFile,
+    LoadGLTFile,
+    LoadObjFile,
+    LoadVRMFile,
+} from './utils/loader'
+import { vrmJointUtls } from './vrm'
 
 export let HandObject: THREE.Group | null = null
 export let FootObject: THREE.Group | null = null
+export let VRMModelObject: THREE.Group | null = null
 
 export const HandModelInfo = {
     meshName: 'shoupolySurface1',
@@ -125,4 +132,37 @@ export async function LoadFoot(
 
     FootObject = fbx
     return fbx
+}
+
+export async function LoadVRMModel(fileUrl: string): Promise<THREE.Group> {
+    console.log('LoadVRMModel')
+    const gltf = await LoadVRMFile(fileUrl)
+    console.log(gltf, gltf.userData)
+    const model = gltf.scene
+    console.log('LoadVRMModel end', model)
+    model.scale.multiplyScalar(100)
+    model.rotateY(Math.PI)
+    model.name = 'vrm_model'
+    model.traverse((o) => {
+        if (o.type === 'Bone' && vrmJointUtls.IsPickable(o.name)) {
+            const point = new THREE.Mesh(
+                new THREE.SphereGeometry(0.1),
+                new THREE.MeshBasicMaterial({
+                    color: 0xff0000,
+                    depthTest: false,
+                    opacity: 1,
+                    transparent: true,
+                })
+            )
+            console.log(o.name)
+            point.name = 'red_point'
+            // point.position.copy(o.position)
+            // point.translateX(-0.3)
+            point.scale.multiplyScalar(0.1)
+            o.add(point)
+        }
+    })
+    VRMModelObject = model
+
+    return model
 }

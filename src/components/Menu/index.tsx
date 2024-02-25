@@ -110,7 +110,7 @@ const MenubarDemo: React.FC<{
                         <Menubar.Item
                             className={MenubarItem}
                             onSelect={() =>
-                                helper.DetectFromImage(onChangeBackground)
+                                helper.DetectFromImageTest(onChangeBackground)
                             }
                         >
                             {i18n.t('Detect From Image')}

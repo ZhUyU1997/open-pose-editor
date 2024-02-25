@@ -3,6 +3,7 @@ lockfileVersion: 5.4
 specifiers:
   '@ebay/nice-modal-react': ^1.2.9
   '@mediapipe/pose': ^0.5.1675469404
+  '@pixiv/three-vrm': ^2.0.10
   '@radix-ui/colors': ^0.1.8
   '@radix-ui/react-alert-dialog': ^1.0.3
   '@radix-ui/react-dialog': ^1.0.3
@@ -17,7 +18,7 @@ specifiers:
   '@types/lodash-es': ^4.17.7
   '@types/react': ^18.0.27
   '@types/react-dom': ^18.0.10
-  '@types/three': ^0.149.0
+  '@types/three': ^0.160.0
   '@typescript-eslint/eslint-plugin': ^5.54.1
   '@typescript-eslint/parser': ^5.54.1
   '@vitejs/plugin-react': ^3.1.0
@@ -35,7 +36,7 @@ specifiers:
   react: ^18.2.0
   react-dom: ^18.2.0
   rollup-plugin-visualizer: ^5.9.0
-  three: ^0.150.1
+  three: ^0.160.1
   tsx: ^3.12.5
   type-fest: ^3.6.1
   typescript: ^4.9.3
@@ -49,6 +50,7 @@ specifiers:
 dependencies:
   '@ebay/nice-modal-react': 1.2.9_biqbaboplfbrettd7655fr4n2y
   '@mediapipe/pose': 0.5.1675469404
+  '@pixiv/three-vrm': 2.0.10_wik7hhqa7tvoj5df2roppj5wfy
   '@radix-ui/colors': 0.1.8
   '@radix-ui/react-alert-dialog': 1.0.3_zula6vjvt3wdocc4mwcxqa6nzi
   '@radix-ui/react-dialog': 1.0.3_zula6vjvt3wdocc4mwcxqa6nzi
@@ -74,7 +76,7 @@ dependencies:
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
   rollup-plugin-visualizer: 5.9.0
-  three: 0.150.1
+  three: 0.160.1
   tsx: 3.12.5
   type-fest: 3.6.1
   vite-plugin-pwa: 0.14.4_pchkumgzq6po4w4enhsumrku2u
@@ -87,7 +89,7 @@ devDependencies:
   '@types/lodash-es': 4.17.7
   '@types/react': 18.0.28
   '@types/react-dom': 18.0.11
-  '@types/three': 0.149.0
+  '@types/three': 0.160.0
   '@vitejs/plugin-react': 3.1.0_vite@4.1.4
   typescript: 4.9.5
   vite: 4.1.4
@@ -1794,6 +1796,114 @@ packages:
       fastq: 1.15.0
     dev: false
 
+  /@pixiv/three-vrm-core/2.0.10_wik7hhqa7tvoj5df2roppj5wfy:
+    resolution: {integrity: sha512-hNRtVkiUzDUjEnhHD6edM+EquVEgqiMsdFWCFvOnTJ/mmn0aOjoH9FwPFbzljI6gOMbR3Gv7nfoU5YNTPtojNA==}
+    peerDependencies:
+      '@types/three': ^0.160.0
+      three: ^0.160.0
+    dependencies:
+      '@pixiv/types-vrm-0.0': 2.0.10
+      '@pixiv/types-vrmc-vrm-1.0': 2.0.10
+      '@types/three': 0.160.0
+      three: 0.160.1
+    dev: false
+
+  /@pixiv/three-vrm-materials-hdr-emissive-multiplier/2.0.10_wik7hhqa7tvoj5df2roppj5wfy:
+    resolution: {integrity: sha512-2oYNus2FWh0upTDkFgFJFmizjOIp5uGGnNw6TCXX76RfOVMvS/qUhqNmE99lzrbVFKBoDEugNAVE5+Z7YAu7kA==}
+    peerDependencies:
+      '@types/three': ^0.160.0
+      three: ^0.160.0
+    dependencies:
+      '@pixiv/types-vrmc-materials-hdr-emissive-multiplier-1.0': 2.0.10
+      '@types/three': 0.160.0
+      three: 0.160.1
+    dev: false
+
+  /@pixiv/three-vrm-materials-mtoon/2.0.10_wik7hhqa7tvoj5df2roppj5wfy:
+    resolution: {integrity: sha512-LiaRCUoDL+lE/KwQ9Di8OosjSKpiB1TCyXYpZX5ILdqSGrRkSEyiDvnMLzF0XaDVry30FCtc86KSd+YPM6AjXw==}
+    peerDependencies:
+      '@types/three': ^0.160.0
+      three: ^0.160.0
+    dependencies:
+      '@pixiv/types-vrm-0.0': 2.0.10
+      '@pixiv/types-vrmc-materials-mtoon-1.0': 2.0.10
+      '@types/three': 0.160.0
+      three: 0.160.1
+    dev: false
+
+  /@pixiv/three-vrm-materials-v0compat/2.0.10_wik7hhqa7tvoj5df2roppj5wfy:
+    resolution: {integrity: sha512-WVLoMFnxuJf50jSAxFGr91vxx5a4AlTZw7RdktyE7qyvUvEQrncFQLb7/uo6KJQ5A6agJKdUkQDkp0PqJ37W4Q==}
+    peerDependencies:
+      '@types/three': ^0.160.0
+      three: ^0.160.0
+    dependencies:
+      '@pixiv/types-vrm-0.0': 2.0.10
+      '@pixiv/types-vrmc-materials-mtoon-1.0': 2.0.10
+      '@types/three': 0.160.0
+      three: 0.160.1
+    dev: false
+
+  /@pixiv/three-vrm-node-constraint/2.0.10_wik7hhqa7tvoj5df2roppj5wfy:
+    resolution: {integrity: sha512-otgQzoKCy136iiLaZWLjv0xMk1NF6e1MdyCqqwJ+GX0zzljCYUEyY+qF5vA/Qg+E8WQD4JevCr94TaVRdplI3w==}
+    peerDependencies:
+      '@types/three': ^0.160.0
+      three: ^0.160.0
+    dependencies:
+      '@pixiv/types-vrmc-node-constraint-1.0': 2.0.10
+      '@types/three': 0.160.0
+      three: 0.160.1
+    dev: false
+
+  /@pixiv/three-vrm-springbone/2.0.10_three@0.160.1:
+    resolution: {integrity: sha512-jhFfo5pyne+NTXyCT+SNVySY8t8qemXDzMYOu8De5YezDoMDfTrS0qQOSHpyc4kQ82liakBFfW4emafC55x63w==}
+    peerDependencies:
+      three: ^0.160.0
+    dependencies:
+      '@pixiv/types-vrm-0.0': 2.0.10
+      '@pixiv/types-vrmc-springbone-1.0': 2.0.10
+      three: 0.160.1
+    dev: false
+
+  /@pixiv/three-vrm/2.0.10_wik7hhqa7tvoj5df2roppj5wfy:
+    resolution: {integrity: sha512-90pPnAox8xeh3JAqT0W7/OVK6qhClMpxd4hFX6PMLm+dZgDwAhAsz4/SY7ttbz1LwrFYgxvTTgnHU6lOIKF87A==}
+    peerDependencies:
+      '@types/three': ^0.160.0
+      three: ^0.160.0
+    dependencies:
+      '@pixiv/three-vrm-core': 2.0.10_wik7hhqa7tvoj5df2roppj5wfy
+      '@pixiv/three-vrm-materials-hdr-emissive-multiplier': 2.0.10_wik7hhqa7tvoj5df2roppj5wfy
+      '@pixiv/three-vrm-materials-mtoon': 2.0.10_wik7hhqa7tvoj5df2roppj5wfy
+      '@pixiv/three-vrm-materials-v0compat': 2.0.10_wik7hhqa7tvoj5df2roppj5wfy
+      '@pixiv/three-vrm-node-constraint': 2.0.10_wik7hhqa7tvoj5df2roppj5wfy
+      '@pixiv/three-vrm-springbone': 2.0.10_three@0.160.1
+      '@types/three': 0.160.0
+      three: 0.160.1
+    dev: false
+
+  /@pixiv/types-vrm-0.0/2.0.10:
+    resolution: {integrity: sha512-acGbmIrCrENvZus5v8zWNRRH+NQJfA3wTA7mX5gzFks2aZhteZaUPl0EQ7Mc6q2zt28wbs5SVJsByL/SgzkwTg==}
+    dev: false
+
+  /@pixiv/types-vrmc-materials-hdr-emissive-multiplier-1.0/2.0.10:
+    resolution: {integrity: sha512-0O1OF6n0X2xAlKKoZUQQlwgatD4wn8PLIT29BoHfB+fUnbSQFcONUoo6RA83OxqzXSJj+8ezKv5vmLumziNelQ==}
+    dev: false
+
+  /@pixiv/types-vrmc-materials-mtoon-1.0/2.0.10:
+    resolution: {integrity: sha512-aFnLym0JNlq0+NIk2c/g0GL5mqO/db88F+q24WizczLD3r2EBPKqvmbSeOUOmrLV8rC4p82vgBRJJfelKBzd2A==}
+    dev: false
+
+  /@pixiv/types-vrmc-node-constraint-1.0/2.0.10:
+    resolution: {integrity: sha512-feW60xds6LQtpjq8xwGuBye9Hu/XdkQXaouXD3MpPfDWKbMmpj8Gnsw9N8RKmnBwrGpdfmchTNHe2Z7ogxpzVA==}
+    dev: false
+
+  /@pixiv/types-vrmc-springbone-1.0/2.0.10:
+    resolution: {integrity: sha512-PFOtgJxQR1d1sS0RcxnNCdJjez1OlNJJ8yvyaVrzNTb6C6EXm594o6v4A1hMPTBcOo+dgTXYP6xc97S3/6m6RA==}
+    dev: false
+
+  /@pixiv/types-vrmc-vrm-1.0/2.0.10:
+    resolution: {integrity: sha512-y9suiVFTN7GJ3PqUT9qH3bZPaDorvqxqSuHf00x02hnqu0kztkvEfXpK+p21SljcNRXcszOAXdR9ACdcBK1piA==}
+    dev: false
+
   /@radix-ui/colors/0.1.8:
     resolution: {integrity: sha512-jwRMXYwC0hUo0mv6wGpuw254Pd9p/R6Td5xsRpOmaWkUHlooNWqVcadgyzlRumMq3xfOTXwJReU0Jv+EIy4Jbw==}
     dev: false
@@ -2451,11 +2561,16 @@ packages:
     resolution: {integrity: sha512-21cFJr9z3g5dW8B0CVI9g2O9beqaThGQ6ZFBqHfwhzLDKUxaqTIy3vnfah/UPkfOiF2pLq+tGz+W8RyCskuslw==}
     dev: false
 
-  /@types/three/0.149.0:
-    resolution: {integrity: sha512-fgNBm9LWc65ER/W0cvoXdC0iMy7Ke9e2CONmEr6Jt8sDSY3sw4DgOubZfmdZ747dkPhbQrgRQAWwDEr2S/7IEg==}
+  /@types/stats.js/0.17.3:
+    resolution: {integrity: sha512-pXNfAD3KHOdif9EQXZ9deK82HVNaXP5ZIF5RP2QG6OQFNTaY2YIetfrE9t528vEreGQvEPRDDc8muaoYeK0SxQ==}
+
+  /@types/three/0.160.0:
+    resolution: {integrity: sha512-jWlbUBovicUKaOYxzgkLlhkiEQJkhCVvg4W2IYD2trqD2om3VK4DGLpHH5zQHNr7RweZK/5re/4IVhbhvxbV9w==}
     dependencies:
+      '@types/stats.js': 0.17.3
       '@types/webxr': 0.5.1
-    dev: true
+      fflate: 0.6.10
+      meshoptimizer: 0.18.1
 
   /@types/trusted-types/2.0.3:
     resolution: {integrity: sha512-NfQ4gyz38SL8sDNrSixxU2Os1a5xcdFxipAFxYEuLUlvU2uDwS4NUpsImcf1//SlWItCVMMLiylsxbmNMToV/g==}
@@ -2463,7 +2578,6 @@ packages:
 
   /@types/webxr/0.5.1:
     resolution: {integrity: sha512-xlFXPfgJR5vIuDefhaHuUM9uUgvPaXB6GKdXy2gdEh8gBWQZ2ul24AJz3foUd8NNKlSTQuWYJpCb1/pL81m1KQ==}
-    dev: true
 
   /@typescript-eslint/eslint-plugin/5.54.1_mlk7dnz565t663n4razh6a6v6i:
     resolution: {integrity: sha512-a2RQAkosH3d3ZIV08s3DcL/mcGc2M/UC528VkPULFxR9VnVPT8pBu0IyBAJJmVsCmhVfwQX1v6q+QGnmSe1bew==}
@@ -3333,6 +3447,9 @@ packages:
       reusify: 1.0.4
     dev: false
 
+  /fflate/0.6.10:
+    resolution: {integrity: sha512-IQrh3lEPM93wVCEczc9SaAOvkmcoQn/G8Bo1e8ZPlY3X3bnAxWaBdvTdvM1hP62iZp0BXWDy4vTAy4fF0+Dlpg==}
+
   /file-entry-cache/6.0.1:
     resolution: {integrity: sha512-7Gps/XWymbLk2QLYK4NzpMOrYjMhdIxXuIvy2QBsLE6ljuodKvdkWs/cpyJJ3CVIVpH0Oi1Hvg1ovbMzLdFBBg==}
     engines: {node: ^10.12.0 || >=12.0.0}
@@ -3993,6 +4110,9 @@ packages:
     engines: {node: '>= 8'}
     dev: false
 
+  /meshoptimizer/0.18.1:
+    resolution: {integrity: sha512-ZhoIoL7TNV4s5B6+rx5mC//fw8/POGyNxS/DZyCJeiZ12ScLfVwRE/GfsxwiTkMYYD5DmK2/JXnEVXqL4rF+Sw==}
+
   /micromatch/4.0.5:
     resolution: {integrity: sha512-DMy+ERcEW2q8Z2Po+WNXuw3c5YaUSFjAO5GsJqfEl7UjvtIuFKO6ZrKvcItdy98dwFI2N1tg3zNIdKaQT+aNdA==}
     engines: {node: '>=8.6'}
@@ -4651,8 +4771,8 @@ packages:
     resolution: {integrity: sha512-N+8UisAXDGk8PFXP4HAzVR9nbfmVJ3zYLAWiTIoqC5v5isinhr+r5uaO8+7r3BMfuNIufIsA7RdpVgacC2cSpw==}
     dev: false
 
-  /three/0.150.1:
-    resolution: {integrity: sha512-5C1MqKUWaHYo13BX0Q64qcdwImgnnjSOFgBscOzAo8MYCzEtqfQqorEKMcajnA3FHy1yVlIe9AmaMQ0OQracNA==}
+  /three/0.160.1:
+    resolution: {integrity: sha512-Bgl2wPJypDOZ1stAxwfWAcJ0WQf7QzlptsxkjYiURPz+n5k4RBDLsq+6f9Y75TYxn6aHLcWz+JNmwTOXWrQTBQ==}
     dev: false
 
   /to-fast-properties/2.0.0:
